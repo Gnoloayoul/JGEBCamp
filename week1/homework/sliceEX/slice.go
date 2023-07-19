@@ -1,7 +1,7 @@
 package sliceEX
 
 func idxCheck(a []int, n int) bool {
-	if n > len(a) {
+	if n > len(a) || len(a) == 0 {
 		return false
 	}
 	return true
@@ -25,7 +25,7 @@ func SliceV02(a []int, n int) []int {
 }
 
 func idxCheckT[T any](a []T, n int) bool {
-	if n > len(a) {
+	if n > len(a) || len(a) == 0 {
 		return false
 	}
 	return true
