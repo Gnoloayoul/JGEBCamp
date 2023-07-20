@@ -1,43 +1,45 @@
 package sliceEX
 
-func idxCheck(a []int, n int) bool {
-	if n > len(a) || len(a) == 0 {
-		return false
-	}
-	return true
-}
+import "fmt"
 
-func SliceV01(a []int, n int) []int {
-	if !idxCheck(a, n) {return []int{}}
+func SliceV01(a []int, n int) ([]int, int, error) {
+	length := len(a)
+	if n >= length || n < 0 {
+		var zero int
+		return a, zero, fmt.Errorf("index out of range, length %d, index %d", length, n)
+	}
+
 	ans := []int{}
+	val := a[n]
 	ans = append(ans, a[:n]...)
 	ans = append(ans, a[n + 1:]...)
-	return ans
+	return ans, val, nil
 }
 
-func SliceV02(a []int, n int) []int {
-	if !idxCheck(a, n) {return []int{}}
-	length := len(a) - 1
-	ans := make([]int, length, length)
+func SliceV02(a []int, n int) ([]int, int, error) {
+	length := len(a)
+	if n >= length || n < 0 {
+		var zero int
+		return a, zero, fmt.Errorf("index out of range, length %d, index %d", length, n)
+	}
+
+	ans := make([]int, length - 1, length - 1)
+	val := a[n]
 	copy(ans[:len(a[:n])], a[:n])
 	copy(ans[len(a[:n]):], a[n + 1:])
-	return ans
+	return ans, val, nil
 }
 
-func idxCheckT[T any](a []T, n int) bool {
-	if n > len(a) || len(a) == 0 {
-		return false
+func SliceV03[T any](a []T, n int) ([]T, T, error) {
+	length := len(a)
+	if n >= length || n < 0 {
+		var zero T
+		return a, zero, fmt.Errorf("index out of range, length %d, index %d", length, n)
 	}
-	return true
-}
 
-func SliceV03[T any](a []T, n int) []T {
-	if !idxCheckT(a, n) {
-		return []T{}
-	}
-	length := len(a) - 1
-	ans := make([]T, length, length)
+	ans := make([]T, length - 1, length - 1)
+	val := a[n]
 	copy(ans[:len(a[:n])], a[:n])
 	copy(ans[len(a[:n]):], a[n + 1:])
-	return ans
+	return ans, val, nil
 }
