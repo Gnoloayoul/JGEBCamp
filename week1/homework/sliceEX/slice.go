@@ -37,9 +37,8 @@ func SliceV03[T any](a []T, n int) ([]T, T, error) {
 		return a, zero, fmt.Errorf("index out of range, length %d, index %d", length, n)
 	}
 
-	ans := make([]T, length - 1, length - 1)
 	val := a[n]
-	copy(ans[:len(a[:n])], a[:n])
-	copy(ans[len(a[:n]):], a[n + 1:])
-	return ans, val, nil
+	copy(a[n:], a[n + 1:])
+	a = a[:length - 1]
+	return a, val, nil
 }
