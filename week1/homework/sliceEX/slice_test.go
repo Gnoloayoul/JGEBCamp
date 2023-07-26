@@ -1,8 +1,7 @@
-package sliceEX_test
+package sliceEX
 
 import (
 	"fmt"
-	"github.com/Gnoloayoul/JGEBCamp/week1/homework/sliceEX"
 	"reflect"
 	"testing"
 )
@@ -24,7 +23,7 @@ func TestSliceV01(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result, val, err := sliceEX.SliceV01(test.inputSlice, test.inputN)
+		result, val, err := SliceV01(test.inputSlice, test.inputN)
 		if !reflect.DeepEqual(result, test.expected) {
 			t.Errorf("Input: %v, %d\nExpected: %v, %d\nGot: %v, %d", test.inputSlice, test.inputN, test.expected, test.expectedVal, result, val)
 		}
@@ -51,7 +50,7 @@ func TestSliceV02(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result, val, err := sliceEX.SliceV02(test.inputSlice, test.inputN)
+		result, val, err := SliceV02(test.inputSlice, test.inputN)
 		if !reflect.DeepEqual(result, test.expected) {
 			t.Errorf("Input: %v, %d\nExpected: %v, %d\nGot: %v, %d", test.inputSlice, test.inputN, test.expected, test.expectedVal, result, val)
 		}
@@ -79,7 +78,7 @@ func TestSliceV03(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result, val, err := sliceEX.SliceV03(test.inputSlice, test.inputN)
+		result, val, err := SliceV03(test.inputSlice, test.inputN)
 		if !reflect.DeepEqual(result, test.expected) {
 			t.Errorf("Input: %v, %d\nExpected: %v, %v\nGot: %v, %v", test.inputSlice, test.inputN, test.expected, test.expectedVal, result, val)
 		}
@@ -93,7 +92,7 @@ func BenchmarkSliceV01(b *testing.B) {
 	slice := []int{1, 2, 3, 4, 5}
 	index := 2
 	for i := 0; i < b.N; i++ {
-		sliceEX.SliceV01(slice, index)
+		SliceV01(slice, index)
 	}
 }
 
@@ -101,7 +100,7 @@ func BenchmarkSliceV02(b *testing.B) {
 	slice := []int{1, 2, 3, 4, 5}
 	index := 2
 	for i := 0; i < b.N; i++ {
-		sliceEX.SliceV02(slice, index)
+		SliceV02(slice, index)
 	}
 }
 
@@ -109,7 +108,7 @@ func BenchmarkSliceV03I(b *testing.B) {
 	slice := []interface{}{1, 2, 3, 4, 5}
 	index := 2
 	for i := 0; i < b.N; i++ {
-		sliceEX.SliceV03(slice, index)
+		SliceV03(slice, index)
 	}
 }
 
@@ -117,6 +116,6 @@ func BenchmarkSliceV03A(b *testing.B) {
 	slice := []interface{}{"a", "b", "c", "d", "e"}
 	index := 2
 	for i := 0; i < b.N; i++ {
-		sliceEX.SliceV03(slice, index)
+		SliceV03(slice, index)
 	}
 }
