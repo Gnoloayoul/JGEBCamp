@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html long="zh-CN">
+<head>
+    <title>lesson 6 hello - 自定义函数模板</title>
+</head>
+<body>
+    <p>测试嵌套模板</p>
+    <hr>
+    {{template "u1.tmpl"}}
+    <hr>
+    {{template "o1.tmpl"}}
+<div>你好， {{ . }}</div>
+</body>
+</html>
+{{/* 用 define 定义一个模板 */}}
+{{ define "o1.tmpl"}}
+    <o1>
+        <li>吃饭</li>
+        <li>睡觉</li>
+        <li>打豆豆</li>
+    </o1>
+{{end}}
