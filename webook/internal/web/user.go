@@ -4,12 +4,27 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	regexp "github.com/dlclark/regexp2"
 )
 
 // UserHandler
 // 与用户有关的路由
 type UserHandler struct {
+	emailExp *regexp.Regexp
+	passwordExp *regexp.Regexp
+}
 
+func NewUserHandler() *UserHandler {
+	const (
+		emailRegexPatten = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
+		passwordRegexPatten = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
+	)
+	emailExp := regexp.MustCompile(emailRegexPatten, regexp.None)
+	passwordExp := regexp.MustCompile(passwordRegexPatten, regexp.None)
+	return &UserHandler{
+		emailExp: emailExp,
+		passwordExp: passwordExp,
+	}
 }
 
 func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
@@ -34,10 +49,35 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 	if err := c.Bind(&req); err != nil {
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"mes": "注册成功",
-	})
+
+	ok, err := u.emailExp.MatchString(req.Email)
+	if err != nil {
+		c.String(http.StatusOK, "系统错误")
+		return
+	}
+	if !ok {
+		c.String(http.StatusOK, "输入的邮箱格式不对")
+		return
+	}
+	if req.ConfirmPassword != req.Password {
+		c.String(http.StatusOK, "两次输入的密码不一致")
+		return
+	}
+
+	ok, err = u.passwordExp.MatchString(req.Password)
+	if err != nil {
+		// 记录日志
+		c.String(http.StatusOK, "系统错误")
+		return
+	}
+	if !ok {
+		c.String(http.StatusOK, "密码必须大于8位，包含数字、特殊字符")
+		return
+	}
+
+	c.String(http.StatusOK, "注册成功")
 	fmt.Printf("%v", req)
+	// 接下来是数据库操作
 }
 
 func (u *UserHandler) Edit(c *gin.Context) {
