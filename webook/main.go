@@ -1,9 +1,8 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
-
+	"github.com/gin-gonic/gin"
 )
 
 func main() {

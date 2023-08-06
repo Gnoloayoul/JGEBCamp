@@ -2,27 +2,27 @@ package web
 
 import (
 	"fmt"
+	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	regexp "github.com/dlclark/regexp2"
 )
 
 // UserHandler
 // 与用户有关的路由
 type UserHandler struct {
-	emailExp *regexp.Regexp
+	emailExp    *regexp.Regexp
 	passwordExp *regexp.Regexp
 }
 
 func NewUserHandler() *UserHandler {
 	const (
-		emailRegexPatten = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
+		emailRegexPatten    = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
 		passwordRegexPatten = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
 	)
 	emailExp := regexp.MustCompile(emailRegexPatten, regexp.None)
 	passwordExp := regexp.MustCompile(passwordRegexPatten, regexp.None)
 	return &UserHandler{
-		emailExp: emailExp,
+		emailExp:    emailExp,
 		passwordExp: passwordExp,
 	}
 }
@@ -47,9 +47,9 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 		//ConfirmPassword string `form:"confirmPassword"`
 		//Password string `form:"password"`
 
-		Email string `json:"email"`
+		Email           string `json:"email"`
 		ConfirmPassword string `json:"confirmPassword"`
-		Password string `json:"password"`
+		Password        string `json:"password"`
 	}
 
 	var req SignUpReq
