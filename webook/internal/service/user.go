@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ErrUserDuplicateEmail = repository.ErrUserDuplicateEmail
+	ErrUserDuplicateEmail    = repository.ErrUserDuplicateEmail
 	ErrInvalidUserOrPassword = errors.New("账号/邮箱或密码不对")
 )
 
@@ -52,14 +52,3 @@ func (svc *UserService) SignUp(ctx context.Context, u domain.User) error {
 	// 存起来
 	return svc.repo.Create(ctx, u)
 }
-
-
-
-
-
-
-
-
-
-
-

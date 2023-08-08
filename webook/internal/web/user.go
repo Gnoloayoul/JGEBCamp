@@ -2,7 +2,10 @@ package web
 
 import (
 	"fmt"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	regexp "github.com/dlclark/regexp2"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -10,11 +13,12 @@ import (
 // UserHandler
 // 与用户有关的路由
 type UserHandler struct {
+	svc         *service.UserService
 	emailExp    *regexp.Regexp
 	passwordExp *regexp.Regexp
 }
 
-func NewUserHandler() *UserHandler {
+func NewUserHandler(svc *service.UserService) *UserHandler {
 	const (
 		emailRegexPatten    = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
 		passwordRegexPatten = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
@@ -22,6 +26,7 @@ func NewUserHandler() *UserHandler {
 	emailExp := regexp.MustCompile(emailRegexPatten, regexp.None)
 	passwordExp := regexp.MustCompile(passwordRegexPatten, regexp.None)
 	return &UserHandler{
+		svc:         svc,
 		emailExp:    emailExp,
 		passwordExp: passwordExp,
 	}
@@ -33,7 +38,7 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 		ug.POST("/signup", u.SignUp)
 		ug.POST("/edit", u.Edit)
 		ug.GET("/profile", u.Profile)
-		ug.POST("/delete", u.Delete)
+		ug.POST("/login", u.Login)
 		//// 临时signup.HTML用的
 		//ug.GET("/index", u.Index)
 	}
@@ -82,6 +87,19 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 		return
 	}
 
+	err = u.svc.SignUp(c, domain.User{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err == service.ErrUserDuplicateEmail {
+		c.String(http.StatusOK, "邮箱冲突")
+		return
+	}
+	if err != nil {
+		c.String(http.StatusOK, "系统异常")
+		return
+	}
+
 	c.String(http.StatusOK, "注册成功")
 	fmt.Printf("%#v", req)
 	// 接下来是数据库操作
@@ -96,10 +114,37 @@ func (u *UserHandler) Edit(c *gin.Context) {
 
 }
 
-func (u *UserHandler) Delete(c *gin.Context) {
+func (u *UserHandler) Login(c *gin.Context) {
+	type LoginReq struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
 
+	var req LoginReq
+	if err := c.Bind(&req); err != nil {
+		return
+	}
+	user, err := u.svc.Login(c, req.Email, req.Password)
+	if err == service.ErrInvalidUserOrPassword {
+		c.String(http.StatusOK, "用户名或者密码不对")
+		return
+	}
+	if err != nil {
+		c.String(http.StatusOK, "系统错误")
+		return
+	}
+
+	// step 2
+	// login success
+	// set session
+	sess := sessions.Default(c)
+	// you can set the value what you want
+	sess.Set("userId", user.Id)
+	sess.Save()
+	c.String(http.StatusOK, "登录成功")
+	return
 }
 
 func (u *UserHandler) Profile(c *gin.Context) {
-
+	c.String(http.StatusOK, "This is your profile.")
 }
