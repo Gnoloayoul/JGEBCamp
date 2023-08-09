@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	regexp "github.com/dlclark/regexp2"
@@ -33,7 +32,7 @@ func NewUserHandler(svc *service.UserService) *UserHandler {
 }
 
 func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
-	ug := server.Group("/user")
+	ug := server.Group("/users")
 	{
 		ug.POST("/signup", u.SignUp)
 		ug.POST("/edit", u.Edit)
@@ -101,8 +100,6 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 	}
 
 	c.String(http.StatusOK, "注册成功")
-	fmt.Printf("%#v", req)
-	// 接下来是数据库操作
 }
 
 //// 进入临时signup.HTML用的
