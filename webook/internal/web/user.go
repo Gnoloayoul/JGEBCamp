@@ -57,7 +57,7 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 	}
 
 	var req SignUpReq
-	if err := c.ShouldBind(&req); err != nil {
+	if err := c.Bind(&req); err != nil {
 		return
 	}
 

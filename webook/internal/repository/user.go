@@ -39,3 +39,7 @@ func (r *UserRepository) Create(ctx context.Context, u domain.User) error {
 		Password: u.Password,
 	})
 }
+
+func (r *UserRepository) FindById(int642 int64) {
+
+}
