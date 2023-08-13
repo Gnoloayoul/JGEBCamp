@@ -119,16 +119,20 @@ func (u *UserHandler) Edit(c *gin.Context) {
 	if err := c.Bind(&req); err != nil {
 		return
 	}
+
+	// 取得拿到userID
+	sess := sessions.Default(c)
+	id := sess.Get("userId").(int64)
 	_, err := u.svc.Edit(c, domain.User{
-		Email: req.Email,
+		Id: id,
 		NickName: req.NickName,
 		Birthday: req.Birthday,
 		Info: req.Info,
 	})
-	if err == service.ErrInvalidUserOrPassword {
-		c.String(http.StatusOK, "用户名或者密码不对, 不是当前的用户信息")
-		return
-	}
+	//if err == service.ErrInvalidUserOrPassword {
+	//	c.String(http.StatusOK, "用户名或者密码不对, 不是当前的用户信息")
+	//	return
+	//}
 	if err != nil {
 		c.String(http.StatusOK, "系统错误")
 		return

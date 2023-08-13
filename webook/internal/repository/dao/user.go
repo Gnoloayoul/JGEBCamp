@@ -46,11 +46,13 @@ func (dao *UserDAO) Insert(ctx context.Context, u User) error {
 func (dao *UserDAO) Edit(ctx context.Context, u User) error {
 	now := time.Now().UnixMilli()
 	u.Utime = now
-	//err := dao.db.WithContext(ctx).Updates(&u).Error
-	//if err != nil {
-	//	return err
-	//}
-	return dao.db.WithContext(ctx).Updates(&u).Error
+
+	return dao.db.WithContext(ctx).Model(&u).Updates(User{
+		Utime: u.Utime,
+		NickName: u.NickName,
+		Birthday: u.Birthday,
+		Info: u.Info,
+	}).Error
 }
 
 // User
