@@ -14,6 +14,11 @@ type User struct {
 	Ctime    time.Time
 }
 
-//type Address struct {
-//
-//}
+// UserInfo
+// 用户信息
+type UserInfo struct {
+	Id int64
+	NickName string
+	Birthday string
+	Profile string
+}

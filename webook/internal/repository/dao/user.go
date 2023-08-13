@@ -56,3 +56,12 @@ type User struct {
 	// 更新时间(毫秒)
 	Utime int64
 }
+
+// UserInfo
+// 用户信息
+type UserInfo struct {
+	Id int64 `gorm:"primaryKer,autoIncrement,unique"`
+	NickName string
+	Birthday string
+	Profile string
+}
