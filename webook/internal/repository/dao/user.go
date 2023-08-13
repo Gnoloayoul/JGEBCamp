@@ -43,6 +43,16 @@ func (dao *UserDAO) Insert(ctx context.Context, u User) error {
 	return err
 }
 
+func (dao *UserDAO) Edit(ctx context.Context, u User) error {
+	now := time.Now().UnixMilli()
+	u.Utime = now
+	//err := dao.db.WithContext(ctx).Updates(&u).Error
+	//if err != nil {
+	//	return err
+	//}
+	return dao.db.WithContext(ctx).Updates(&u).Error
+}
+
 // User
 // 直接对应数据库表结构
 type User struct {
@@ -55,13 +65,8 @@ type User struct {
 	Ctime int64
 	// 更新时间(毫秒)
 	Utime int64
-}
 
-// UserInfo
-// 用户信息
-type UserInfo struct {
-	Id int64 `gorm:"primaryKer,autoIncrement,unique"`
 	NickName string
 	Birthday string
-	Profile string
+	Info     string
 }

@@ -40,6 +40,15 @@ func (r *UserRepository) Create(ctx context.Context, u domain.User) error {
 	})
 }
 
+func (r *UserRepository) Edit(ctx context.Context, u domain.User) error {
+	return r.dao.Edit(ctx, dao.User{
+		Email: u.Email,
+		NickName: u.NickName,
+		Birthday: u.Birthday,
+		Info: u.Info,
+	})
+}
+
 func (r *UserRepository) FindById(int642 int64) {
 
 }

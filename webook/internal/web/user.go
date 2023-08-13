@@ -108,7 +108,33 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 //}
 
 func (u *UserHandler) Edit(c *gin.Context) {
+	type InfoReq struct {
+		Email    string `json:"email"`
+		NickName           string `json:"nickname"`
+		Birthday string `json:"birthday"`
+		Info        string `json:"info"`
+	}
 
+	var req InfoReq
+	if err := c.Bind(&req); err != nil {
+		return
+	}
+	_, err := u.svc.Edit(c, domain.User{
+		Email: req.Email,
+		NickName: req.NickName,
+		Birthday: req.Birthday,
+		Info: req.Info,
+	})
+	if err == service.ErrInvalidUserOrPassword {
+		c.String(http.StatusOK, "用户名或者密码不对, 不是当前的用户信息")
+		return
+	}
+	if err != nil {
+		c.String(http.StatusOK, "系统错误")
+		return
+	}
+
+	c.String(http.StatusOK, "补充信息修改成功")
 }
 
 func (u *UserHandler) Login(c *gin.Context) {
@@ -143,5 +169,7 @@ func (u *UserHandler) Login(c *gin.Context) {
 }
 
 func (u *UserHandler) Profile(c *gin.Context) {
+	// 根据sesion拿到结构体
+	// 将该结构体返回
 	c.String(http.StatusOK, "This is your profile.")
 }

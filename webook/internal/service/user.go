@@ -42,6 +42,11 @@ func (svc *UserService) Login(ctx context.Context, email, password string) (doma
 	return u, nil
 }
 
+func (svc *UserService) Edit(ctx context.Context, u domain.User) (domain.User, error) {
+	return u, svc.repo.Edit(ctx, u)
+}
+
+
 func (svc *UserService) SignUp(ctx context.Context, u domain.User) error {
 	// 使用bcrypt对密码加密
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
