@@ -47,7 +47,7 @@ func (svc *UserService) Edit(ctx context.Context, u domain.User) (domain.User, e
 }
 
 func (svc *UserService) Profile(ctx context.Context, u domain.User) (domain.User, error) {
-	return u, svc.repo.Profile(ctx, u)
+	return svc.repo.Profile(ctx, u)
 }
 
 

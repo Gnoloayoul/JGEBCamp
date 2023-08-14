@@ -3,7 +3,6 @@ package dao
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"strconv"
@@ -69,7 +68,8 @@ func (dao *UserDAO) Edit(ctx context.Context, u User) error {
 func (dao *UserDAO) Profile(ctx context.Context, u User) (User, error) {
 	key := strconv.FormatInt(u.Id, 10)
 	err := dao.db.WithContext(ctx).Where("id = ?", key).First(&u).Error
-	fmt.Printf("\nform dao--u: %#v", u)
+	// 测试打印 取u之前
+	//fmt.Printf("\nform dao--u: %#v", u)
 	resUser := User{
 		Id: u.Id,
 		Email: u.Email,
@@ -77,7 +77,8 @@ func (dao *UserDAO) Profile(ctx context.Context, u User) (User, error) {
 		Birthday: u.Birthday,
 		Info: u.Info,
 	}
-	fmt.Printf("\nform dao--resUser: %#v", resUser)
+	// 测试打印 取u之前
+	//fmt.Printf("\nform dao--resUser: %#v", resUser)
 	return resUser, err
 }
 

@@ -186,18 +186,5 @@ func (u *UserHandler) Profile(c *gin.Context) {
 		return
 	}
 
-	type InfoReq struct {
-		Email    string `json:"email"`
-		NickName           string `json:"nickname"`
-		Birthday string `json:"birthday"`
-		Info        string `json:"info"`
-	}
-	reqInfo := InfoReq{
-		userinfo.Email,
-		userinfo.NickName,
-		userinfo.Birthday,
-		userinfo.Info,
-	}
-
-	c.JSON(http.StatusOK, reqInfo)
+	c.JSON(http.StatusOK, userinfo)
 }
