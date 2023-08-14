@@ -3,8 +3,10 @@ package dao
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
+	"strconv"
 	"time"
 )
 
@@ -53,6 +55,30 @@ func (dao *UserDAO) Edit(ctx context.Context, u User) error {
 		Birthday: u.Birthday,
 		Info: u.Info,
 	}).Error
+}
+
+//func FindRecordByID(ctx context.Context, db *gorm.DB, userID string) (Record, error) {
+//	var record Record
+//	err := db.WithContext(ctx).Where("user_id = ?", userID).First(&record).Error
+//	if err != nil {
+//		return record, err
+//	}
+//	return record, nil
+//}
+
+func (dao *UserDAO) Profile(ctx context.Context, u User) (User, error) {
+	key := strconv.FormatInt(u.Id, 10)
+	err := dao.db.WithContext(ctx).Where("id = ?", key).First(&u).Error
+	fmt.Printf("\nform dao--u: %#v", u)
+	resUser := User{
+		Id: u.Id,
+		Email: u.Email,
+		NickName: u.NickName,
+		Birthday: u.Birthday,
+		Info: u.Info,
+	}
+	fmt.Printf("\nform dao--resUser: %#v", resUser)
+	return resUser, err
 }
 
 // User

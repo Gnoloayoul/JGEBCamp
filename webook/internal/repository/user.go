@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
 )
@@ -47,6 +48,18 @@ func (r *UserRepository) Edit(ctx context.Context, u domain.User) error {
 		Birthday: u.Birthday,
 		Info: u.Info,
 	})
+}
+
+func (r *UserRepository) Profile(ctx context.Context, u domain.User) (domain.User, error) {
+	//return r.dao.Profile(ctx, dao.User{
+	//	Id: u.Id,
+	//})
+	fmt.Printf("\nform repe before: %#v", u)
+	resUser, err := r.dao.Profile(ctx, dao.User{
+		Id: u.Id,
+	})
+	fmt.Printf("\nform repe after: %#v", resUser)
+	return resUser ,err
 }
 
 func (r *UserRepository) FindById(int642 int64) {

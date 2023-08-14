@@ -46,6 +46,10 @@ func (svc *UserService) Edit(ctx context.Context, u domain.User) (domain.User, e
 	return u, svc.repo.Edit(ctx, u)
 }
 
+func (svc *UserService) Profile(ctx context.Context, u domain.User) (domain.User, error) {
+	return u, svc.repo.Profile(ctx, u)
+}
+
 
 func (svc *UserService) SignUp(ctx context.Context, u domain.User) error {
 	// 使用bcrypt对密码加密

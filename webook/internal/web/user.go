@@ -173,7 +173,31 @@ func (u *UserHandler) Login(c *gin.Context) {
 }
 
 func (u *UserHandler) Profile(c *gin.Context) {
-	// 根据sesion拿到结构体
-	// 将该结构体返回
-	c.String(http.StatusOK, "This is your profile.")
+	// 取得拿到userID
+	sess := sessions.Default(c)
+	id := sess.Get("userId").(int64)
+
+	userinfo, err := u.svc.Profile(c, domain.User{
+		Id: id,
+	})
+
+	if err != nil {
+		c.String(http.StatusOK, "系统错误, 用户信息404")
+		return
+	}
+
+	type InfoReq struct {
+		Email    string `json:"email"`
+		NickName           string `json:"nickname"`
+		Birthday string `json:"birthday"`
+		Info        string `json:"info"`
+	}
+	reqInfo := InfoReq{
+		userinfo.Email,
+		userinfo.NickName,
+		userinfo.Birthday,
+		userinfo.Info,
+	}
+
+	c.JSON(http.StatusOK, reqInfo)
 }
