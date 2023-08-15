@@ -8,7 +8,9 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web/middleware"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
+	_"github.com/gin-contrib/sessions/cookie"
+	_"github.com/gin-contrib/sessions/memstore"
+	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -53,7 +55,22 @@ func initWebServer() *gin.Engine {
 	}))
 
 	// step1
-	store := cookie.NewStore([]byte("secret"))
+
+	// old
+	//store := cookie.NewStore([]byte("secret"))
+
+	// new 单机
+	//store := memstore.NewStore([]byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"),
+	//	[]byte("aRNaEVNTV5IOzXbatCQuQCkwNteyJwPe"))
+
+	// new 多机 Redis
+	store, err := redis.NewStore(16, "tcp", "119.45.240.2:6379", "", []byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"),
+		[]byte("aRNaEVNTV5IOzXbatCQuQCkwNteyJwPe"))
+	if err != nil {
+		panic(err)
+	}
+
+
 	server.Use(sessions.Sessions("mysession", store))
 
 	// step3
