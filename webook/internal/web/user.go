@@ -5,6 +5,7 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
+	jwt "github.com/goland-jwt/jwt/v5"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -37,7 +38,8 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 		ug.POST("/signup", u.SignUp)
 		ug.POST("/edit", u.Edit)
 		ug.GET("/profile", u.Profile)
-		ug.POST("/login", u.Login)
+		//ug.POST("/login", u.Login)
+		ug.POST("/login", u.LoginJWT)
 		//// 临时signup.HTML用的
 		//ug.GET("/index", u.Index)
 	}
@@ -175,6 +177,34 @@ func (u *UserHandler) Login(c *gin.Context) {
 	})
 
 	sess.Save()
+	c.String(http.StatusOK, "登录成功")
+	return
+}
+
+func (u *UserHandler) LoginJWT(c *gin.Context) {
+	type LoginReq struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	var req LoginReq
+	if err := c.Bind(&req); err != nil {
+		return
+	}
+	user, err := u.svc.Login(c, req.Email, req.Password)
+	if err == service.ErrInvalidUserOrPassword {
+		c.String(http.StatusOK, "用户名或者密码不对")
+		return
+	}
+	if err != nil {
+		c.String(http.StatusOK, "系统错误")
+		return
+	}
+
+	// step 2
+	// 在这里 JWT 设置登录态
+	// 生成一个 JWT token
+
 	c.String(http.StatusOK, "登录成功")
 	return
 }
