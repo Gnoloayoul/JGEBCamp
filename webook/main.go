@@ -64,7 +64,9 @@ func initWebServer() *gin.Engine {
 	//	[]byte("aRNaEVNTV5IOzXbatCQuQCkwNteyJwPe"))
 
 	// new 多机 Redis
-	store, err := redis.NewStore(16, "tcp", "119.45.240.2:6379", "", []byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"),
+	store, err := redis.NewStore(16, "tcp", "119.45.240.2:6379", "",
+		// authentication key, encryption key
+		[]byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"),
 		[]byte("aRNaEVNTV5IOzXbatCQuQCkwNteyJwPe"))
 	if err != nil {
 		panic(err)

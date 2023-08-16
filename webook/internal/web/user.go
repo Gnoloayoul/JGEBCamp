@@ -167,6 +167,13 @@ func (u *UserHandler) Login(c *gin.Context) {
 	sess := sessions.Default(c)
 	// you can set the value what you want
 	sess.Set("userId", user.Id)
+
+	sess.Options(sessions.Options{
+		// sess(在cookie里)保存多久？
+		//
+		MaxAge: 60,
+	})
+
 	sess.Save()
 	c.String(http.StatusOK, "登录成功")
 	return
