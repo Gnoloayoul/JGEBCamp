@@ -1,12 +1,13 @@
 package web
 
 import (
+	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
-	jwt "github.com/goland-jwt/jwt/v5"
 	"github.com/gin-gonic/gin"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"net/http"
 )
 
@@ -204,7 +205,17 @@ func (u *UserHandler) LoginJWT(c *gin.Context) {
 	// step 2
 	// 在这里 JWT 设置登录态
 	// 生成一个 JWT token
-
+	token := jwt.New(jwt.SigningMethodHS512)
+	tokenStr, err := token.SignedString([]byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"))
+	if err != nil {
+		c.String(http.StatusInternalServerError, "系统错误")
+		return
+	}
+	// 讲 jwt 带回给前端
+	// 这里设置的 key ，将会是前端这头的关键
+	// 同时还要在跨域的 cors 那里设置 exposeHeaders
+	c.Header("x-jwt-token", tokenStr)
+	fmt.Println(user)
 	c.String(http.StatusOK, "登录成功")
 	return
 }

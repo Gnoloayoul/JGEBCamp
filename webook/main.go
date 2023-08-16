@@ -45,6 +45,8 @@ func initWebServer() *gin.Engine {
 	server.Use(cors.New(cors.Config{
 		AllowHeaders: []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
+		// ExposeHeaders: 用于获取需要前端截获的头，如 jwt
+		ExposeHeaders: []string{"x-jwt-token"},
 		AllowOriginFunc: func(origin string) bool {
 			if strings.HasPrefix(origin, "http://localhost") {
 				return true
@@ -75,8 +77,13 @@ func initWebServer() *gin.Engine {
 
 	server.Use(sessions.Sessions("mysession", store))
 
-	// step3
-	server.Use(middleware.NewLoginMiddlewareBuilder().
+	//// step3
+	//server.Use(middleware.NewLoginMiddlewareBuilder().
+	//	IgnorePaths("/users/signup").
+	//	IgnorePaths("/users/login").Build())
+
+	// 使用 JWT 验证
+	server.Use(middleware.NewLoginJWTMiddlewareBuilder().
 		IgnorePaths("/users/signup").
 		IgnorePaths("/users/login").Build())
 
