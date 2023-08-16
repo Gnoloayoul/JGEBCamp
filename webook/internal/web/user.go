@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
 	"net/http"
+	"time"
 )
 
 // UserHandler
@@ -38,7 +39,8 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 	{
 		ug.POST("/signup", u.SignUp)
 		ug.POST("/edit", u.Edit)
-		ug.GET("/profile", u.Profile)
+		//ug.GET("/profile", u.Profile)
+		ug.GET("/profile", u.ProfileJWT)
 		//ug.POST("/login", u.Login)
 		ug.POST("/login", u.LoginJWT)
 		//// 临时signup.HTML用的
@@ -205,7 +207,13 @@ func (u *UserHandler) LoginJWT(c *gin.Context) {
 	// step 2
 	// 在这里 JWT 设置登录态
 	// 生成一个 JWT token
-	token := jwt.New(jwt.SigningMethodHS512)
+	claims := UserClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute)),
+		},
+		Uid: user.Id,
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 	tokenStr, err := token.SignedString([]byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"))
 	if err != nil {
 		c.String(http.StatusInternalServerError, "系统错误")
@@ -235,4 +243,44 @@ func (u *UserHandler) Profile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, userinfo)
+}
+
+func (u *UserHandler) ProfileJWT (c *gin.Context) {
+	//// 取得拿到userID
+	//sess := sessions.Default(c)
+	//id := sess.Get("userId").(int64)
+
+	cla, ok := c.Get("claims")
+	if !ok {
+		// 假设 这里没有拿到 claims， 怎么办？
+		c.String(http.StatusOK, "系统错误")
+		return
+	}
+	// ok 代表是不是 *UserClaims
+	claims, ok := cla.(*UserClaims)
+	if !ok {
+		// 监控这里
+		c.String(http.StatusOK, "系统错误")
+		return
+	}
+
+	userinfo, err := u.svc.Profile(c, domain.User{
+		Id: claims.Uid,
+	})
+
+	fmt.Println(claims.Uid)
+
+	if err != nil {
+		c.String(http.StatusOK, "系统错误, 用户信息404")
+		return
+	}
+
+	c.JSON(http.StatusOK, userinfo)
+}
+
+type UserClaims struct {
+	jwt.RegisteredClaims
+	// 声明自己要放入的 token 里面的数据
+	Uid int64
+
 }
