@@ -127,6 +127,10 @@ root@node:~# ip a
     inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
        valid_lft forever preferred_lft forever
 
+# 给cri解禁[20230817]
+sudo vim /etc/containerd/config.toml
+## 参考文档 https://blog.csdn.net/weixin_51546928/article/details/131176783
+sudo systemctl restart containerd
 
 kubeadm init \
   --apiserver-advertise-address=172.248.190.2 \
