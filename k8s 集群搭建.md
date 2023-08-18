@@ -96,6 +96,17 @@ KUBELET_CGROUP_ARGS="--cgroup-driver=systemd"
 KUBE_PROXY_MODE="ipvs"
 EOF
 
+# 重新指定pause的版本
+cat <<EOF | sudo tee /etc/containerd/config.toml
+version = 2
+[plugins."io.containerd.grpc.v1.cri"]
+  sandbox_image = "registry.aliyuncs.com/google_containers/pause:3.9"
+EOF
+
+# 使这个指定pause版本操作生效
+sudo systemctl restart containerd
+sudo systemctl enable containerd
+
 ```
 
 # 主实例操作
