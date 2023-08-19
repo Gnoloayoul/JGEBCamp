@@ -16,20 +16,25 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	_ "net"
+	"net/http"
 	"strings"
 	"time"
 )
 
 func main() {
-	db := initDB()
-	server := initWebServer()
-
-	u := initUser(db)
-	u.RegisterRoutes(server)
+	//db := initDB()
+	//server := initWebServer()
+	//
+	//u := initUser(db)
+	//u.RegisterRoutes(server)
 
 	//// 临时用的signup页面
 	//server.LoadHTMLFiles("../webook-fe/signup.html")
 
+	server := gin.Default()
+	server.GET("/hello", func(c *gin.Context) {
+		c.String(http.StatusOK, "hello here is k8s")
+	})
 	server.Run(":8080")
 }
 
