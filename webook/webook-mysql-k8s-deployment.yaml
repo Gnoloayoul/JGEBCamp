@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webook-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webook-mysql
+  template:
+    metadata:
+      labels:
+        app: webook-mysql
+    spec:
+      containers:
+        - name: webook-mysql
+          image: mysql:8.0
+          # 对于mysql，这是必要的，不然pod不能正常启动
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root278803
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3306
+      restartPolicy: Always
