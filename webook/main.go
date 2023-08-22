@@ -22,20 +22,20 @@ import (
 )
 
 func main() {
-	//db := initDB()
-	//server := initWebServer()
-	//
-	//u := initUser(db)
-	//u.RegisterRoutes(server)
+	db := initDB()
+	server := initWebServer()
+
+	u := initUser(db)
+	u.RegisterRoutes(server)
 
 	//// 临时用的signup页面
 	//server.LoadHTMLFiles("../webook-fe/signup.html")
 
-	server := gin.Default()
+	//server := gin.Default()
 	server.GET("/hello", func(c *gin.Context) {
 		c.String(http.StatusOK, "hello here is k8s")
 	})
-	server.Run(":8080")
+	server.Run(":8081")
 }
 
 func initWebServer() *gin.Engine {
@@ -50,7 +50,7 @@ func initWebServer() *gin.Engine {
 	})
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr: "119.45.240.2:6379",
+		Addr: "webook-redis:6380",
 	})
 	server.Use(ratelimit.NewBuilder(redisClient, time.Second, 1000).Build())
 
@@ -114,7 +114,7 @@ func initUser(db *gorm.DB) *web.UserHandler {
 }
 
 func initDB() *gorm.DB {
-	db, err := gorm.Open(mysql.Open("acs:root278803@tcp(119.45.240.2:13316)/webook"))
+	db, err := gorm.Open(mysql.Open("acs:root278803@tcp(webook-mysql:3308)/webook"))
 	if err != nil {
 		panic(err)
 	}

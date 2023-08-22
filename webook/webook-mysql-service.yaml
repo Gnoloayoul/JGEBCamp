@@ -8,5 +8,5 @@ spec:
     app: webook-mysql
   ports:
     - protocol: TCP
-      port: 13306
+      port: 3308
       targetPort: 3306

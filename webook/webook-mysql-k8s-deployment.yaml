@@ -20,6 +20,15 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               value: root278803
           imagePullPolicy: IfNotPresent
+          volumeMounts:
+            # 这里必须对应到容器的数据存储的位置，不然就算挂上了pvc和pv，还是不能数据存储持久化
+            # mysql: /var/lib/mysql
+            - mountPath: /var/lib/mysql
+              name: mysql-storage
           ports:
             - containerPort: 3306
       restartPolicy: Always
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: webook-mysql-claim
