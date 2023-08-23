@@ -9,5 +9,34 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/nmt/data"
+    # path: "/mnt/data"
+    path: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_{{disk-6ncfp0wy}}/webookk8s/mysql/data"
 
+
+# 用于腾讯云的
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  finalizers:
+    - kubernetes.io/pv-protection
+  managedFields:
+    - apiVersion: v1
+      manager: kube-controller-manager
+      operation: Update
+      subresource: status
+    - apiVersion: v1
+      manager: tke-platform-api
+      operation: Update
+  name: webook-local-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 20Gi
+  csi:
+    driver: com.tencent.cloud.csi.cbs
+    fsType: ext4
+    volumeHandle: disk-6ncfp0wy
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: suibian
+  volumeMode: Filesystem
