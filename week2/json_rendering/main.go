@@ -21,11 +21,11 @@ func main() {
 
 		// 方法2： 使用结构体
 		type msg struct {
-			Name string `json:"name"`
+			Name    string `json:"name"`
 			Message string
-			Age int
+			Age     int
 		}
-		data := msg {
+		data := msg{
 			"首席",
 			"hello sec",
 			44,

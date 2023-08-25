@@ -17,4 +17,3 @@ func registerRoutes(server *gin.Engine) {
 	server.POST("/users/edit", u.Edit)
 	server.GET("/users/profile", u.Profile)
 }
-

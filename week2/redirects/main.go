@@ -19,7 +19,7 @@ func main() {
 		c.Redirect(http.StatusMovedPermanently, "https://www.baidu.com")
 	})
 
-	r.GET("/a", func(c *gin.Context){
+	r.GET("/a", func(c *gin.Context) {
 		// 跳转到/b的路由函数
 
 		// 直接修改路由地址
@@ -28,7 +28,7 @@ func main() {
 		r.HandleContext(c)
 	})
 
-	r.GET("/b", func(c *gin.Context){
+	r.GET("/b", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "b",
 		})

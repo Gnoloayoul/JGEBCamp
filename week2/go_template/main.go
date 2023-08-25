@@ -7,10 +7,9 @@ import (
 )
 
 type User struct {
-	Name string
+	Name   string
 	Gender string
-	Age int
-
+	Age    int
 }
 
 func sayhello(w http.ResponseWriter, r *http.Request) {
@@ -26,16 +25,16 @@ func sayhello(w http.ResponseWriter, r *http.Request) {
 
 	// 例子：结构体
 	u1 := User{
-		Name: "首席",
+		Name:   "首席",
 		Gender: "男",
-		Age: 18,
+		Age:    18,
 	}
 
 	// 例子：map
 	m1 := map[string]interface{}{
-		"Name": "首席",
+		"Name":   "首席",
 		"Gender": "男",
-		"Age": 18,
+		"Age":    18,
 	}
 
 	hobbylist := []string{
@@ -45,8 +44,8 @@ func sayhello(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t.Execute(w, map[string]interface{}{
-		"u1": u1,
-		"m1": m1,
+		"u1":    u1,
+		"m1":    m1,
 		"hobby": hobbylist,
 	})
 }

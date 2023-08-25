@@ -56,7 +56,7 @@ func (l *LoginMiddlewareBuilder) Build() gin.HandlerFunc {
 		// 有
 		updateTimeVal, _ := updateTime.(int64)
 
-		if now - updateTimeVal > 60 * 1000 {
+		if now-updateTimeVal > 60*1000 {
 			sess.Set("update_time", now)
 			if err := sess.Save(); err != nil {
 				panic(err)

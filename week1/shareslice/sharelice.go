@@ -1,7 +1,8 @@
 package main
+
 import "fmt"
 
-func printfSlice(s []int, sn string){
+func printfSlice(s []int, sn string) {
 	fmt.Printf("%s: %v, len %d, cap: %d \n", sn, s, len(s), cap(s))
 }
 

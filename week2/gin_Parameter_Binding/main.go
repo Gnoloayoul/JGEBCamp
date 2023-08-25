@@ -15,7 +15,7 @@ func main() {
 	}
 
 	r.LoadHTMLFiles("./index.html")
-	r.GET("/user", func(c *gin.Context){
+	r.GET("/user", func(c *gin.Context) {
 		// 旧做法
 		//username := c.Query("username")
 		//password := c.Query("password")

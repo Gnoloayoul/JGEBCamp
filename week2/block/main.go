@@ -50,7 +50,7 @@ func index2(w http.ResponseWriter, r *http.Request) {
 	}
 	// 渲染模板
 	msg := "空花魅魔"
-	err = t.ExecuteTemplate(w, "index.tmpl" ,msg)
+	err = t.ExecuteTemplate(w, "index.tmpl", msg)
 	if err != nil {
 		fmt.Printf("render template failed, err: %v\n", err)
 		return
@@ -67,13 +67,12 @@ func home2(w http.ResponseWriter, r *http.Request) {
 	}
 	// 渲染模板
 	msg := "空花魅魔"
-	err = t.ExecuteTemplate(w, "home.tmpl" ,msg)
+	err = t.ExecuteTemplate(w, "home.tmpl", msg)
 	if err != nil {
 		fmt.Printf("render template failed, err: %v\n", err)
 		return
 	}
 }
-
 
 func main() {
 	http.HandleFunc("/index", index)

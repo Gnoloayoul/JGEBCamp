@@ -11,35 +11,35 @@ func main() {
 	r := gin.Default()
 
 	// 获取
-	r.GET("/index", func(c *gin.Context){
+	r.GET("/index", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"method": "GET",
 		})
 	})
 
 	// 创建
-	r.POST("/index", func(c *gin.Context){
+	r.POST("/index", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"method": "POST",
 		})
 	})
 
 	// 改 更新
-	r.PUT("/index", func(c *gin.Context){
+	r.PUT("/index", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"method": "PUT",
 		})
 	})
 
 	// 删
-	r.DELETE("/index", func(c *gin.Context){
+	r.DELETE("/index", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"method": "DELETE",
 		})
 	})
 
 	// NoRoute
-	r.NoRoute(func(c *gin.Context){
+	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"method": "404",
 		})
@@ -61,9 +61,8 @@ func main() {
 		})
 	}
 
-
 	// 商场的首页与详情页
-	r.GET("./shop/index", func(c *gin.Context){
+	r.GET("./shop/index", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "/shop/index",
 		})

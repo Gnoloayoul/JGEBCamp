@@ -33,10 +33,10 @@ import (
 
 // UserInfo --> 数据表
 type UserInfo struct {
-	Id uint
-	Name string
+	Id     uint
+	Name   string
 	Gender string
-	Hobby string
+	Hobby  string
 }
 
 func main() {

@@ -11,7 +11,7 @@ import (
 func main() {
 	r := gin.Default()
 	r.LoadHTMLFiles("./index.html")
-	r.GET("/index", func(c *gin.Context){
+	r.GET("/index", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
 	r.POST("/upload", func(c *gin.Context) {
@@ -33,11 +33,3 @@ func main() {
 	})
 	r.Run(":9090")
 }
-
-
-
-
-
-
-
-

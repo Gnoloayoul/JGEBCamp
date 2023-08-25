@@ -115,9 +115,9 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 func (u *UserHandler) Edit(c *gin.Context) {
 	type InfoReq struct {
 		Email    string `json:"email"`
-		NickName           string `json:"nickname"`
+		NickName string `json:"nickname"`
 		Birthday string `json:"birthday"`
-		Info        string `json:"info"`
+		Info     string `json:"info"`
 	}
 
 	var req InfoReq
@@ -129,10 +129,10 @@ func (u *UserHandler) Edit(c *gin.Context) {
 	sess := sessions.Default(c)
 	id := sess.Get("userId").(int64)
 	_, err := u.svc.Edit(c, domain.User{
-		Id: id,
+		Id:       id,
 		NickName: req.NickName,
 		Birthday: req.Birthday,
-		Info: req.Info,
+		Info:     req.Info,
 	})
 	//if err == service.ErrInvalidUserOrPassword {
 	//	c.String(http.StatusOK, "用户名或者密码不对, 不是当前的用户信息")
@@ -176,6 +176,8 @@ func (u *UserHandler) Login(c *gin.Context) {
 	sess.Options(sessions.Options{
 		// sess(在cookie里)保存多久？
 		//
+		Secure: true,
+		HttpOnly: true,
 		MaxAge: 60,
 	})
 
@@ -211,7 +213,7 @@ func (u *UserHandler) LoginJWT(c *gin.Context) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute)),
 		},
-		Uid: user.Id,
+		Uid:       user.Id,
 		UserAgent: c.Request.UserAgent(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
@@ -246,7 +248,7 @@ func (u *UserHandler) Profile(c *gin.Context) {
 	c.JSON(http.StatusOK, userinfo)
 }
 
-func (u *UserHandler) ProfileJWT (c *gin.Context) {
+func (u *UserHandler) ProfileJWT(c *gin.Context) {
 	//// 取得拿到userID
 	//sess := sessions.Default(c)
 	//id := sess.Get("userId").(int64)
@@ -282,7 +284,6 @@ func (u *UserHandler) ProfileJWT (c *gin.Context) {
 type UserClaims struct {
 	jwt.RegisteredClaims
 	// 声明自己要放入的 token 里面的数据
-	Uid int64
+	Uid       int64
 	UserAgent string
-
 }

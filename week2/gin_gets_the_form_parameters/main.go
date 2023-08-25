@@ -10,7 +10,6 @@ import (
 // 一次请求，对应一个响应
 // 一次请求，对应一个响应
 
-
 func main() {
 	r := gin.Default()
 	r.LoadHTMLFiles("./login.html", "./index.html")
@@ -48,11 +47,10 @@ func main() {
 			password = "*********"
 		}
 		c.HTML(http.StatusOK, "index.html", gin.H{
-			"Name": username,
+			"Name":     username,
 			"Password": password,
 		})
 	})
-
 
 	r.Run(":9090")
 }

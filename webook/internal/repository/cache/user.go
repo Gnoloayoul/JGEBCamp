@@ -12,14 +12,14 @@ import (
 var ErrKeyNotExist = redis.Nil
 
 type UserCache struct {
-	client redis.Cmdable
+	client     redis.Cmdable
 	expiration time.Duration
 }
 
 // NewUserCache
 func NewUserCache(client redis.Cmdable) *UserCache {
 	return &UserCache{
-		client: client,
+		client:     client,
 		expiration: time.Minute * 15,
 	}
 }

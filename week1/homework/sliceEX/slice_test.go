@@ -10,11 +10,11 @@ func TestSliceV01(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		inputSlice []int
-		inputN     int
-		expected   []int
+		inputSlice  []int
+		inputN      int
+		expected    []int
 		expectedVal int
-		expErr error
+		expErr      error
 	}{
 		{[]int{1, 2, 3, 4, 5}, 2, []int{1, 2, 4, 5}, 3, nil},
 		{[]int{10, 20, 30, 40, 50}, 3, []int{10, 20, 30, 50}, 40, nil},
@@ -37,11 +37,11 @@ func TestSliceV02(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		inputSlice []int
-		inputN     int
-		expected   []int
+		inputSlice  []int
+		inputN      int
+		expected    []int
 		expectedVal int
-		expErr error
+		expErr      error
 	}{
 		{[]int{1, 2, 3, 4, 5}, 2, []int{1, 2, 4, 5}, 3, nil},
 		{[]int{10, 20, 30, 40, 50}, 3, []int{10, 20, 30, 50}, 40, nil},
@@ -64,11 +64,11 @@ func TestSliceV03(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		inputSlice []interface{}
-		inputN     int
-		expected   []interface{}
+		inputSlice  []interface{}
+		inputN      int
+		expected    []interface{}
 		expectedVal interface{}
-		expErr error
+		expErr      error
 	}{
 		{[]interface{}{1, 2, 3, 4, 5}, 2, []interface{}{1, 2, 4, 5}, 3, nil},
 		{[]interface{}{10, 20, 30, 40, 50}, 3, []interface{}{10, 20, 30, 50}, 40, nil},

@@ -20,4 +20,3 @@ func f() (result int) {
 func main() {
 	fmt.Println(f())
 }
-

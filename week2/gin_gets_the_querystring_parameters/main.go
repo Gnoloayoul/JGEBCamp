@@ -26,7 +26,7 @@ func main() {
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"name": name,
-			"age": age,
+			"age":  age,
 		})
 
 	})

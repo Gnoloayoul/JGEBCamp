@@ -12,8 +12,8 @@ func SliceV03[T any](a []T, n int) ([]T, T, error) {
 	}
 
 	val := a[n]
-	copy(a[n:], a[n + 1:])
-	a = shrink(a[:length - 1])
+	copy(a[n:], a[n+1:])
+	a = shrink(a[:length-1])
 	return a, val, nil
 }
 
@@ -24,13 +24,13 @@ func shrink[T any](src []T) []T {
 	switch {
 	case capt <= 64:
 		return src
-	case capt >= 2048 && (capt / length >= 2):
-		res := make([]T, 0, capt >> 1)
+	case capt >= 2048 && (capt/length >= 2):
+		res := make([]T, 0, capt>>1)
 		res = append(res, src...)
 		return res
-	case capt < 2048 && (capt / length >= 4):
+	case capt < 2048 && (capt/length >= 4):
 		factor := 0.625
-		res := make([]T, 0, int(float32(factor) * float32(capt)))
+		res := make([]T, 0, int(float32(factor)*float32(capt)))
 		res = append(res, src...)
 		return res
 	default:
@@ -50,7 +50,7 @@ func SliceV01(a []int, n int) ([]int, int, error) {
 	ans := []int{}
 	val := a[n]
 	ans = append(ans, a[:n]...)
-	ans = append(ans, a[n + 1:]...)
+	ans = append(ans, a[n+1:]...)
 	return ans, val, nil
 }
 
@@ -63,12 +63,9 @@ func SliceV02(a []int, n int) ([]int, int, error) {
 		return a, zero, fmt.Errorf("index out of range, length %d, index %d", length, n)
 	}
 
-	ans := make([]int, length - 1, length - 1)
+	ans := make([]int, length-1, length-1)
 	val := a[n]
 	copy(ans[:len(a[:n])], a[:n])
-	copy(ans[len(a[:n]):], a[n + 1:])
+	copy(ans[len(a[:n]):], a[n+1:])
 	return ans, val, nil
 }
-
-
-

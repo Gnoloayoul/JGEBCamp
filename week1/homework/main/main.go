@@ -1,4 +1,5 @@
 package main
+
 import (
 	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/week1/homework/sliceEX"

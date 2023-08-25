@@ -50,7 +50,6 @@ func (svc *UserService) Profile(ctx context.Context, u domain.User) (domain.User
 	return svc.repo.Profile(ctx, u)
 }
 
-
 func (svc *UserService) SignUp(ctx context.Context, u domain.User) error {
 	// 使用bcrypt对密码加密
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)

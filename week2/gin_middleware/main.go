@@ -53,7 +53,7 @@ func authMiddleware0(c *gin.Context) {
 }
 
 // 登录中间件 闭包写法
-func authMiddleware(docheck bool) gin.HandlerFunc{
+func authMiddleware(docheck bool) gin.HandlerFunc {
 	// 链接数据库
 	// 或者其他准备工作
 	return func(c *gin.Context) {
@@ -71,7 +71,7 @@ func authMiddleware(docheck bool) gin.HandlerFunc{
 }
 
 func main() {
-	r :=  gin.Default()
+	r := gin.Default()
 
 	r.Use(m1, m2) // 将自定义的中间件m1注册上
 	r.GET("./index", indexHandleFunc)

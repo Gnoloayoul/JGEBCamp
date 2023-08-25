@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
 )
 
@@ -12,12 +13,14 @@ var (
 )
 
 type UserRepository struct {
-	dao *dao.UserDAO
+	dao   *dao.UserDAO
+	cache *cache.UserCache
 }
 
-func NewUserRepository(dao *dao.UserDAO) *UserRepository {
+func NewUserRepository(dao *dao.UserDAO, c *cache.UserCache) *UserRepository {
 	return &UserRepository{
-		dao: dao,
+		dao:   dao,
+		cache: c,
 	}
 }
 
@@ -42,10 +45,10 @@ func (r *UserRepository) Create(ctx context.Context, u domain.User) error {
 
 func (r *UserRepository) Edit(ctx context.Context, u domain.User) error {
 	return r.dao.Edit(ctx, dao.User{
-		Id: u.Id,
+		Id:       u.Id,
 		NickName: u.NickName,
 		Birthday: u.Birthday,
-		Info: u.Info,
+		Info:     u.Info,
 	})
 }
 
@@ -58,15 +61,40 @@ func (r *UserRepository) Profile(ctx context.Context, u domain.User) (domain.Use
 	// 测试打印 取u之后
 	//fmt.Printf("\nform repe after: %#v", resUser)
 	return domain.User{
-		Id: resUser.Id,
-		Email: resUser.Email,
+		Id:       resUser.Id,
+		Email:    resUser.Email,
 		Password: resUser.Password,
 		NickName: resUser.NickName,
 		Birthday: resUser.Birthday,
-		Info: resUser.Info,
+		Info:     resUser.Info,
 	}, err
 }
 
-func (r *UserRepository) FindById(int642 int64) {
+func (r *UserRepository) FindById(ctx context.Context, id int64) (domain.User, error) {
+	// 第一次取，在缓存（redis）中
+	u, err := r.cache.Get(ctx, id)
+	if err == nil {
+		return u, nil
+	}
 
+	// 第二次取，在数据库（mysql）中
+	ue, err := r.dao.FindById(ctx, id)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	u = domain.User{
+		Id:       ue.Id,
+		Email:    ue.Email,
+		Password: ue.Password,
+	}
+
+	go func() {
+		err = r.cache.Set(ctx, u)
+		if err != nil {
+			// 打日志，做监控的好地方？
+		}
+	}()
+
+	return u, err
 }

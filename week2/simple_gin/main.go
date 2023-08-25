@@ -12,7 +12,6 @@ func sayhello(c *gin.Context) {
 
 }
 
-
 func main() {
 	// 准备路由引擎
 	r := gin.Default()
@@ -26,27 +25,26 @@ func main() {
 	//r.GET("/delete_book",)
 
 	// 推荐写法， Restful风格，需要用postman配合调试
-	r.GET("/book", func(c *gin.Context){
+	r.GET("/book", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"method": "Get",
 		})
 	})
-	r.POST("/book", func(c *gin.Context){
+	r.POST("/book", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"method": "POST",
 		})
 	})
-	r.PUT("/book", func(c *gin.Context){
+	r.PUT("/book", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"method": "PUT",
 		})
 	})
-	r.DELETE("/book", func(c *gin.Context){
+	r.DELETE("/book", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"method": "DELETE",
 		})
 	})
-
 
 	// 启动,默认是8080，要别的口，自己指定
 	r.Run()

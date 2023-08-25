@@ -54,7 +54,7 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 		// 这里要用指针，因为下面的 ParseWithClaims 就是会修改里面的数值
 		claims := &web.UserClaims{}
 		// 还原 jwt
-		token, err := jwt.ParseWithClaims(tokenStr, claims,func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"), nil
 		})
 		if err != nil {
@@ -78,7 +78,7 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 
 		now := time.Now()
 		// 每十秒钟刷新一次
-		if claims.ExpiresAt.Sub(now) < time.Second * 50 {
+		if claims.ExpiresAt.Sub(now) < time.Second*50 {
 			claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute))
 			tokenStr, err = token.SignedString([]byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"))
 			if err != nil {
@@ -92,7 +92,3 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 		//ctx.Set("userId", claims.Uid)
 	}
 }
-
-
-
-

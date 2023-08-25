@@ -30,6 +30,13 @@ func (dao *UserDAO) FindByEmail(ctx context.Context, email string) (User, error)
 	return u, err
 }
 
+func (dao *UserDAO) FindById(ctx context.Context, id int64) (User, error) {
+	var u User
+	err := dao.db.WithContext(ctx).Where("'id' = ?", id).First(&u).Error
+	return u, err
+}
+
+
 func (dao *UserDAO) Insert(ctx context.Context, u User) error {
 	now := time.Now().UnixMilli()
 	u.Utime, u.Ctime = now, now
@@ -49,10 +56,10 @@ func (dao *UserDAO) Edit(ctx context.Context, u User) error {
 	u.Utime = now
 
 	return dao.db.WithContext(ctx).Model(&u).Updates(User{
-		Utime: u.Utime,
+		Utime:    u.Utime,
 		NickName: u.NickName,
 		Birthday: u.Birthday,
-		Info: u.Info,
+		Info:     u.Info,
 	}).Error
 }
 
@@ -71,11 +78,11 @@ func (dao *UserDAO) Profile(ctx context.Context, u User) (User, error) {
 	// 测试打印 取u之前
 	//fmt.Printf("\nform dao--u: %#v", u)
 	resUser := User{
-		Id: u.Id,
-		Email: u.Email,
+		Id:       u.Id,
+		Email:    u.Email,
 		NickName: u.NickName,
 		Birthday: u.Birthday,
-		Info: u.Info,
+		Info:     u.Info,
 	}
 	// 测试打印 取u之前
 	//fmt.Printf("\nform dao--resUser: %#v", resUser)

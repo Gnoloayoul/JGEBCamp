@@ -46,7 +46,7 @@ func initWebServer() *gin.Engine {
 	})
 
 	server.Use(func(c *gin.Context) {
-   		println("这是第二个 middleware")
+		println("这是第二个 middleware")
 	})
 
 	redisClient := redis.NewClient(&redis.Options{
@@ -55,7 +55,7 @@ func initWebServer() *gin.Engine {
 	server.Use(ratelimit.NewBuilder(redisClient, time.Second, 1000).Build())
 
 	server.Use(cors.New(cors.Config{
-		AllowHeaders: []string{"Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 		// ExposeHeaders: 用于获取需要前端截获的头，如 jwt
 		ExposeHeaders: []string{"x-jwt-token"},
@@ -88,7 +88,6 @@ func initWebServer() *gin.Engine {
 	store := memstore.NewStore(
 		[]byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"),
 		[]byte("aRNaEVNTV5IOzXbatCQuQCkwNteyJwPe"))
-
 
 	server.Use(sessions.Sessions("mysession", store))
 

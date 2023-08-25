@@ -12,21 +12,21 @@ import (
 func main() {
 	r := gin.Default()
 
-	r.GET("/user/:name/:age", func(c *gin.Context){
+	r.GET("/user/:name/:age", func(c *gin.Context) {
 		// 获取路劲参数
 		name := c.Param("name")
 		age := c.Param("age")
 		c.JSON(http.StatusOK, gin.H{
 			"name": name,
-			"age": age,
+			"age":  age,
 		})
 	})
-	r.GET("/blog/:year/:month", func(c *gin.Context){
+	r.GET("/blog/:year/:month", func(c *gin.Context) {
 		// 获取路劲参数
 		year := c.Param("year")
 		month := c.Param("month")
 		c.JSON(http.StatusOK, gin.H{
-			"year": year,
+			"year":  year,
 			"month": month,
 		})
 	})
