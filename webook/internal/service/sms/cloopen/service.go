@@ -7,16 +7,15 @@ import (
 	"log"
 )
 
-
 type Service struct {
 	client *cloopen.SMS
-	appId string
+	appId  string
 }
 
 func NewService(c *cloopen.SMS, addId string) *Service {
 	return &Service{
 		client: c,
-		appId: addId,
+		appId:  addId,
 	}
 }
 
@@ -47,20 +46,3 @@ func (s *Service) Send(ctx context.Context, tplId string, data []string, numbers
 	}
 	return nil
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -14,6 +14,6 @@ type Service interface {
 }
 
 type NameArg struct {
-	Val string
+	Val  string
 	Name string
 }

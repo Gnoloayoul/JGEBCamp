@@ -43,9 +43,9 @@ func (s *Service) SendSms(ctx context.Context, signName, tplCode string, phone [
 
 		// 2. 初始化短信结构体
 		smsRequest := &sms.SendSmsRequest{
-			SignName: ekit.ToPtr[string](signName),
-			TemplateCode: ekit.ToPtr[string](tplCode),
-			PhoneNumbers: ekit.ToPtr[string](phoneSignle),
+			SignName:      ekit.ToPtr[string](signName),
+			TemplateCode:  ekit.ToPtr[string](tplCode),
+			PhoneNumbers:  ekit.ToPtr[string](phoneSignle),
 			TemplateParam: ekit.ToPtr[string](string(bcode)),
 		}
 
@@ -62,20 +62,3 @@ func (s *Service) SendSms(ctx context.Context, signName, tplCode string, phone [
 	}
 	return nil
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

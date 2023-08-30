@@ -36,7 +36,6 @@ func (dao *UserDAO) FindById(ctx context.Context, id int64) (User, error) {
 	return u, err
 }
 
-
 func (dao *UserDAO) Insert(ctx context.Context, u User) error {
 	now := time.Now().UnixMilli()
 	u.Utime, u.Ctime = now, now

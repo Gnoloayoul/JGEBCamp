@@ -176,9 +176,9 @@ func (u *UserHandler) Login(c *gin.Context) {
 	sess.Options(sessions.Options{
 		// sess(在cookie里)保存多久？
 		//
-		Secure: true,
+		Secure:   true,
 		HttpOnly: true,
-		MaxAge: 60,
+		MaxAge:   60,
 	})
 
 	sess.Save()
