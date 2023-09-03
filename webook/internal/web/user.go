@@ -16,6 +16,7 @@ import (
 // 与用户有关的路由
 type UserHandler struct {
 	svc         *service.UserService
+	codeSvc     *service.CodeService
 	emailExp    *regexp.Regexp
 	passwordExp *regexp.Regexp
 }
@@ -31,6 +32,7 @@ func NewUserHandler(svc *service.UserService) *UserHandler {
 		svc:         svc,
 		emailExp:    emailExp,
 		passwordExp: passwordExp,
+		codeSvc: codeSvc,
 	}
 }
 
@@ -45,8 +47,35 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 		ug.POST("/login", u.LoginJWT)
 		//// 临时signup.HTML用的
 		//ug.GET("/index", u.Index)
+		ug.POST("/login_sms/code/send", u.SendLoginSMSCode)
+		ug.POST("login_sms", u.LoginSMS)
 	}
+}
 
+func (u *UserHandler) LoginSMS(ctx *gin.Context) {
+
+}
+
+func (u *UserHandler) SendLoginSMSCode(ctx *gin.Context) {
+	type Req struct {
+		Phone string `json:"phone"`
+	}
+	const biz = "login"
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	err := u.codeSvc.Send(ctx, biz, req.Phone)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg: "系统错误",
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Msg: "发送成功",
+	})
 }
 
 func (u *UserHandler) SignUp(c *gin.Context) {

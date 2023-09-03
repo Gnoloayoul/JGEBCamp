@@ -9,7 +9,7 @@ type Service struct {
 
 }
 
-type NewService() *Service {
+func NewService() *Service {
 	return &Service{}
 }
 
