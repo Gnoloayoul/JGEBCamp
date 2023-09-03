@@ -2,11 +2,13 @@ package main
 
 import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service/sms/memory"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web/middleware"
-	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/ginx/middlewares/ratelimit"
+	_ "github.com/Gnoloayoul/JGEBCamp/webook/pkg/ginx/middlewares/ratelimit"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	_ "github.com/gin-contrib/sessions/cookie"
@@ -25,7 +27,8 @@ func main() {
 	db := initDB()
 	server := initWebServer()
 
-	u := initUser(db)
+	rdb := initRedis()
+	u := initUser(db, rdb)
 	u.RegisterRoutes(server)
 
 	//// 临时用的signup页面
@@ -49,10 +52,10 @@ func initWebServer() *gin.Engine {
 		println("这是第二个 middleware")
 	})
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: "146.56.252.134:6380",
-	})
-	server.Use(ratelimit.NewBuilder(redisClient, time.Second, 1000).Build())
+	//redisClient := redis.NewClient(&redis.Options{
+	//	Addr: "146.56.252.134:6380",
+	//})
+	//server.Use(ratelimit.NewBuilder(redisClient, time.Second, 1000).Build())
 
 	server.Use(cors.New(cors.Config{
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
@@ -99,16 +102,30 @@ func initWebServer() *gin.Engine {
 	// 使用 JWT 验证
 	server.Use(middleware.NewLoginJWTMiddlewareBuilder().
 		IgnorePaths("/users/signup").
+		IgnorePaths("/users/login_sms/code/send").
+		IgnorePaths("/users/login_sms").
 		IgnorePaths("/users/login").Build())
 
 	return server
 }
 
-func initUser(db *gorm.DB) *web.UserHandler {
+func initRedis() redis.Cmdable {
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: 146.56.252.134:6380,
+	})
+	return redisClient
+}
+
+func initUser(db *gorm.DB, rdb redis.Cmdable) *web.UserHandler {
 	ud := dao.NewUserDAO(db)
-	repo := repository.NewUserRepository(ud)
+	uc := cache.NewUserCache(rdb)
+	repo := repository.NewUserRepository(ud, uc)
 	svc := service.NewUserService(repo)
-	u := web.NewUserHandler(svc)
+	codeCache := cache.NewCodeCache(rdb)
+	codeRepo := repository.NewCodeRepository(codeCache)
+	smsSvc := memory.NewService()
+	codeSvc := service.NewCodeService(codeRepo, smsSvc)
+	u := web.NewUserHandler(svc, codeSvc)
 	return u
 }
 

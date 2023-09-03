@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	ErrCodeSendTooMany = errors.New("发送验证码太频繁了")
+	ErrCodeSendTooMany        = errors.New("发送验证码太频繁了")
 	ErrCodeVerifyTooManyTimes = errors.New("验证次数太多")
-	ErrUnknownForCode = errors.New("我也不知道发生了什么，反正就是和 Code 有关")
+	ErrUnknownForCode         = errors.New("我也不知道发生了什么，反正就是和 Code 有关")
 )
 
 // 编译器会在编译的时候，把 set_code 的代码放进来这个 luaSetCode 变量里
@@ -64,7 +64,7 @@ func (c *CodeCache) Verify(ctx context.Context, biz, phone, inputCode string) (b
 		// 正常来说，如果频繁出现这个错误，你就要告警，因为有人搞你
 		return false, ErrCodeVerifyTooManyTimes
 	case -2:
-		return  false, nil
+		return false, nil
 		//default:
 		//	return false, ErrUnknownForCode
 	}

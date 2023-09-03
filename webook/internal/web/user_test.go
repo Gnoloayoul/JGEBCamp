@@ -24,4 +24,3 @@ func testTypeAssert(c any) {
 	claims := c.(*UserClaims)
 	println(claims.Uid)
 }
-

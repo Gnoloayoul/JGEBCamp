@@ -8,15 +8,15 @@ import (
 )
 
 type ServiceV1 struct {
-	client *sms.Client
-	appId *string
+	client   *sms.Client
+	appId    *string
 	signName *string
 }
 
 func NewServiceV1(c *sms.Client, appId string, signName string) *Service {
 	return &Service{
-		client: c,
-		appId: toPtr[string](appId),
+		client:   c,
+		appId:    toPtr[string](appId),
 		signName: ekit.ToPtr[string](signName),
 	}
 }
@@ -44,7 +44,6 @@ func (s *ServiceV1) Send(ctx context.Context, tplId string, args map[string]stri
 	return nil
 }
 
-
 func toStringPtrSlice(src []string) []*string {
 	dst := make([]*string, len(src))
 	for i, s := range src {
@@ -66,16 +65,3 @@ func mapToStringPtrSlice(src map[string]string) []*string {
 func toPtr[T any](t T) *T {
 	return &t
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

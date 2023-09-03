@@ -21,7 +21,7 @@ type UserHandler struct {
 	passwordExp *regexp.Regexp
 }
 
-func NewUserHandler(svc *service.UserService) *UserHandler {
+func NewUserHandler(svc *service.UserService, codeSvc *service.CodeService) *UserHandler {
 	const (
 		emailRegexPatten    = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
 		passwordRegexPatten = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
@@ -32,7 +32,7 @@ func NewUserHandler(svc *service.UserService) *UserHandler {
 		svc:         svc,
 		emailExp:    emailExp,
 		passwordExp: passwordExp,
-		codeSvc: codeSvc,
+		codeSvc:     codeSvc,
 	}
 }
 
@@ -69,7 +69,7 @@ func (u *UserHandler) SendLoginSMSCode(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
-			Msg: "系统错误",
+			Msg:  "系统错误",
 		})
 		return
 	}
@@ -265,9 +265,7 @@ func (u *UserHandler) Profile(c *gin.Context) {
 	sess := sessions.Default(c)
 	id := sess.Get("userId").(int64)
 
-	userinfo, err := u.svc.Profile(c, domain.User{
-		Id: id,
-	})
+	userinfo, err := u.svc.Profile(c, id)
 
 	if err != nil {
 		c.String(http.StatusOK, "系统错误, 用户信息404")
@@ -296,18 +294,9 @@ func (u *UserHandler) ProfileJWT(c *gin.Context) {
 		return
 	}
 
-	userinfo, err := u.svc.Profile(c, domain.User{
-		Id: claims.Uid,
-	})
-
 	fmt.Println(claims.Uid)
 
-	if err != nil {
-		c.String(http.StatusOK, "系统错误, 用户信息404")
-		return
-	}
-
-	c.JSON(http.StatusOK, userinfo)
+	c.String(http.StatusOK, "你的 profile")
 }
 
 type UserClaims struct {
