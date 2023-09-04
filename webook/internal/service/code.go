@@ -12,7 +12,7 @@ const codeTplId = "1877556"
 
 var (
 	ErrCodeVerifyTooManyTimes = repository.ErrCodeVerifyTooManyTimes
-	ErrCodeSendTooMany  = repository.ErrCodeSendTooMany
+	ErrCodeSendTooMany        = repository.ErrCodeSendTooMany
 )
 
 type CodeService struct {

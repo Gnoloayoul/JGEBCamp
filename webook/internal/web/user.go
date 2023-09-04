@@ -57,7 +57,7 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 func (u *UserHandler) LoginSMS(ctx *gin.Context) {
 	type Req struct {
 		Phone string `json:"phone"`
-		Code string `json:"code"`
+		Code  string `json:"code"`
 	}
 	var req Req
 	if err := ctx.Bind(&req); err != nil {
@@ -68,14 +68,14 @@ func (u *UserHandler) LoginSMS(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
-			Msg: "系统错误",
+			Msg:  "系统错误",
 		})
 		return
 	}
 	if !ok {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 4,
-			Msg: "验证码有误",
+			Msg:  "验证码有误",
 		})
 		return
 	}

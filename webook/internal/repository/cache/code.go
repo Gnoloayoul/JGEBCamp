@@ -99,7 +99,6 @@ func NewCodeCache(data sync.Map) *CodeLocalCache {
 func (c *CodeLocalCache) Set(ctx context.Context, biz, phone, code string) error {
 	res, err := c.client.Eval(ctx, luaSetCode, []string{c.key(biz, phone)}, code).Int()
 
-
 	if err != nil {
 		return err
 	}

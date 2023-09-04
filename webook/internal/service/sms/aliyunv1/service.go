@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gitee.com/geekbang/basic-go/webook/internal/service/sms"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service/sms"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/dysmsapi"
 	"strconv"
 	"strings"
@@ -92,7 +92,7 @@ func (s *Service) SendV1(ctx context.Context, tplId string, args []sms.NameArg, 
 	// 传的是 JSON
 	argsMap := make(map[string]string, len(args))
 	for _, arg := range args {
-		argsMap[]
+		argsMap[arg.Name] = arg.Val
 	}
 
 
