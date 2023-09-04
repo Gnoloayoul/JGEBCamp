@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ErrUserDuplicateEmail    = repository.ErrUserDuplicateEmail
+	ErrUserDuplicateEmail    = repository.ErrUserDuplicate
 	ErrInvalidUserOrPassword = errors.New("账号/邮箱或密码不对")
 )
 
@@ -65,4 +65,41 @@ func (svc *UserService) SignUp(ctx context.Context, u domain.User) error {
 	u.Password = string(hash)
 	// 存起来
 	return svc.repo.Create(ctx, u)
+}
+
+func (svc *UserService) FindOrCreate(ctx context.Context,
+	phone string) (domain.User, error) {
+	// 这时候，这个地方要怎么办？
+	// 这个叫做快路径
+	u, err := svc.repo.FindByPhone(ctx, phone)
+	// 要判断，有咩有这个用户
+	if err != repository.ErrUserNotFound {
+		// 绝大部分请求进来这里
+		// nil 会进来这里
+		// 不为 ErrUserNotFound 的也会进来这里
+		return u, err
+	}
+	// 在系统资源不足，触发降级之后，不执行慢路径了
+	//if ctx.Value("降级") == "true" {
+	//	return domain.User{}, errors.New("系统降级了")
+	//}
+	// 这个叫做慢路径
+	// 你明确知道，没有这个用户
+	u = domain.User{
+		Phone: phone,
+	}
+	err = svc.repo.Create(ctx, u)
+	if err != nil && err != repository.ErrUserDuplicate {
+		return u, err
+	}
+	// 因为这里会遇到主从延迟的问题
+	return svc.repo.FindByPhone(ctx, phone)
+}
+
+func PathsDownGrade(ctx context.Context, quick, slow func()) {
+	quick()
+	if ctx.Value("降级") == "true" {
+		return
+	}
+	slow()
 }

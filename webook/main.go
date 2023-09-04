@@ -111,7 +111,7 @@ func initWebServer() *gin.Engine {
 
 func initRedis() redis.Cmdable {
 	redisClient := redis.NewClient(&redis.Options{
-		Addr: 146.56.252.134:6380,
+		Addr: "43.132.234.191:6380",
 	})
 	return redisClient
 }
@@ -130,7 +130,7 @@ func initUser(db *gorm.DB, rdb redis.Cmdable) *web.UserHandler {
 }
 
 func initDB() *gorm.DB {
-	db, err := gorm.Open(mysql.Open("acs:root278803@tcp(175.27.183.113:3308)/webook"))
+	db, err := gorm.Open(mysql.Open("acs:root278803@tcp(43.132.234.191:3308)/webook"))
 	if err != nil {
 		panic(err)
 	}
