@@ -96,45 +96,13 @@ func NewCodeCache(data sync.Map) *CodeLocalCache {
 	}
 }
 
-func (c *CodeLocalCache) Set(ctx context.Context, biz, phone, code string) error {
-	res, err := c.client.Eval(ctx, luaSetCode, []string{c.key(biz, phone)}, code).Int()
-
-	if err != nil {
-		return err
-	}
-	switch res {
-	case 0:
-		// 毫无问题
-		return nil
-	case -1:
-		// 发送太频繁
-		return ErrCodeSendTooMany
-		//case -2:
-	//	return
-	default:
-		// 系统错误
-		return errors.New("系统错误")
-	}
+func (c *CodeLocalCache) Set(biz, phone, code string) error {
+	if
+	c.data.Store(biz + phone, code)
 }
 
-func (c *CodeLocalCache) Verify(ctx context.Context, biz, phone, inputCode string) (bool, error) {
-	res, err := c.client.Eval(ctx, luaVerifyCode, []string{c.key(biz, phone)}, inputCode).Int()
+func (c *CodeLocalCache) Verify(biz, phone, inputCode string) (bool, error) {
 
-	if err != nil {
-		return false, err
-	}
-	switch res {
-	case 0:
-		return true, nil
-	case -1:
-		// 正常来说，如果频繁出现这个错误，你就要告警，因为有人搞你
-		return false, ErrCodeVerifyTooManyTimes
-	case -2:
-		return false, nil
-		//default:
-		//	return false, ErrUnknownForCode
-	}
-	return false, ErrUnknownForCode
 }
 
 func (c *CodeLocalCache) key(biz, phone string) string {
