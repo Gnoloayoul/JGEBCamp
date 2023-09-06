@@ -97,12 +97,24 @@ func NewCodeCache(data sync.Map) *CodeLocalCache {
 }
 
 func (c *CodeLocalCache) Set(biz, phone, code string) error {
-	if
-	c.data.Store(biz + phone, code)
+	_, ok := c.data.Load(biz + phone)
+	if !ok {
+		c.data.Store(biz + phone, code)
+	}
+	return err
 }
 
 func (c *CodeLocalCache) Verify(biz, phone, inputCode string) (bool, error) {
-
+	curCode, ok := c.data.Load(biz + phone)
+	if !ok {
+		// 该电话号码还没配备验证码
+		return false, err
+	}
+	if curCode != inputCode {
+		// 输入的验证错误
+		return false, nil
+	}
+	return true, nil
 }
 
 func (c *CodeLocalCache) key(biz, phone string) string {
