@@ -1,35 +1,24 @@
 package main
 
 import (
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service/sms/memory"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web/middleware"
 	_ "github.com/Gnoloayoul/JGEBCamp/webook/pkg/ginx/middlewares/ratelimit"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	_ "github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	_ "net"
 	"net/http"
-	"strings"
-	"time"
 )
 
 func main() {
-	db := initDB()
-	server := initWebServer()
+	//db := initDB()
+	//server := initWebServer()
+	//
+	//rdb := initRedis()
+	//u := initUser(db, rdb)
+	//u.RegisterRoutes(server)
 
-	rdb := initRedis()
-	u := initUser(db, rdb)
-	u.RegisterRoutes(server)
+    server := InitWebServer()
 
 	//// 临时用的signup页面
 	//server.LoadHTMLFiles("../webook-fe/signup.html")
@@ -57,19 +46,7 @@ func initWebServer() *gin.Engine {
 	//})
 	//server.Use(ratelimit.NewBuilder(redisClient, time.Second, 1000).Build())
 
-	server.Use(cors.New(cors.Config{
-		AllowHeaders:     []string{"Content-Type", "Authorization"},
-		AllowCredentials: true,
-		// ExposeHeaders: 用于获取需要前端截获的头，如 jwt
-		ExposeHeaders: []string{"x-jwt-token"},
-		AllowOriginFunc: func(origin string) bool {
-			if strings.HasPrefix(origin, "http://localhost") {
-				return true
-			}
-			return strings.Contains(origin, "yourcompany.com")
-		},
-		MaxAge: 12 * time.Hour,
-	}))
+
 
 	// step1
 
@@ -99,45 +76,7 @@ func initWebServer() *gin.Engine {
 	//	IgnorePaths("/users/signup").
 	//	IgnorePaths("/users/login").Build())
 
-	// 使用 JWT 验证
-	server.Use(middleware.NewLoginJWTMiddlewareBuilder().
-		IgnorePaths("/users/signup").
-		IgnorePaths("/users/login_sms/code/send").
-		IgnorePaths("/users/login_sms").
-		IgnorePaths("/users/login").Build())
 
 	return server
 }
 
-func initRedis() redis.Cmdable {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: "43.132.234.191:6380",
-	})
-	return redisClient
-}
-
-func initUser(db *gorm.DB, rdb redis.Cmdable) *web.UserHandler {
-	ud := dao.NewUserDAO(db)
-	uc := cache.NewUserCache(rdb)
-	repo := repository.NewUserRepository(ud, uc)
-	svc := service.NewUserService(repo)
-	codeCache := cache.NewCodeRedisCache(rdb)
-	codeRepo := repository.NewCodeRepository(codeCache)
-	smsSvc := memory.NewService()
-	codeSvc := service.NewCodeService(codeRepo, smsSvc)
-	u := web.NewUserHandler(svc, codeSvc)
-	return u
-}
-
-func initDB() *gorm.DB {
-	db, err := gorm.Open(mysql.Open("acs:root278803@tcp(43.132.234.191:3308)/webook"))
-	if err != nil {
-		panic(err)
-	}
-
-	err = dao.InitTable(db)
-	if err != nil {
-		panic(err)
-	}
-	return db
-}
