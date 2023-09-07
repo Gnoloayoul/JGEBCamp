@@ -15,36 +15,45 @@ var (
 	ErrUserNotFound  = gorm.ErrRecordNotFound
 )
 
-type UserDAO struct {
+type UserDAO interface {
+	FindByEmail(ctx context.Context, email string) (User, error)
+	FindByPhone(ctx context.Context, phone string) (User, error)
+	FindById(ctx context.Context, id int64) (User, error)
+	Insert(ctx context.Context, u User) error
+	Edit(ctx context.Context, u User) error
+	Profile(ctx context.Context, u User) (User, error)
+}
+
+type GORMUserDAO struct {
 	db *gorm.DB
 }
 
-func NewUserDAO(db *gorm.DB) *UserDAO {
-	return &UserDAO{
+func NewUserDAO(db *gorm.DB) UserDAO {
+	return &GORMUserDAO{
 		db: db,
 	}
 }
 
-func (dao *UserDAO) FindByEmail(ctx context.Context, email string) (User, error) {
+func (dao *GORMUserDAO) FindByEmail(ctx context.Context, email string) (User, error) {
 	var u User
 	err := dao.db.WithContext(ctx).Where("email = ?", email).First(&u).Error
 	return u, err
 }
 
-func (dao *UserDAO) FindByPhone(ctx context.Context, phone string) (User, error) {
+func (dao *GORMUserDAO) FindByPhone(ctx context.Context, phone string) (User, error) {
 	var u User
 	err := dao.db.WithContext(ctx).Where("phone = ?", phone).First(&u).Error
 	//err := dao.db.WithContext(ctx).First(&u, "email = ?", email).Error
 	return u, err
 }
 
-func (dao *UserDAO) FindById(ctx context.Context, id int64) (User, error) {
+func (dao *GORMUserDAO) FindById(ctx context.Context, id int64) (User, error) {
 	var u User
 	err := dao.db.WithContext(ctx).Where("'id' = ?", id).First(&u).Error
 	return u, err
 }
 
-func (dao *UserDAO) Insert(ctx context.Context, u User) error {
+func (dao *GORMUserDAO) Insert(ctx context.Context, u User) error {
 	now := time.Now().UnixMilli()
 	u.Utime, u.Ctime = now, now
 	err := dao.db.WithContext(ctx).Create(&u).Error
@@ -58,7 +67,7 @@ func (dao *UserDAO) Insert(ctx context.Context, u User) error {
 	return err
 }
 
-func (dao *UserDAO) Edit(ctx context.Context, u User) error {
+func (dao *GORMUserDAO) Edit(ctx context.Context, u User) error {
 	now := time.Now().UnixMilli()
 	u.Utime = now
 
@@ -79,7 +88,7 @@ func (dao *UserDAO) Edit(ctx context.Context, u User) error {
 //	return record, nil
 //}
 
-func (dao *UserDAO) Profile(ctx context.Context, u User) (User, error) {
+func (dao *GORMUserDAO) Profile(ctx context.Context, u User) (User, error) {
 	key := strconv.FormatInt(u.Id, 10)
 	err := dao.db.WithContext(ctx).Where("id = ?", key).First(&u).Error
 	// 测试打印 取u之前
