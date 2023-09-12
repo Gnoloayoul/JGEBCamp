@@ -18,7 +18,7 @@ func main() {
 	//u := initUser(db, rdb)
 	//u.RegisterRoutes(server)
 
-    server := InitWebServer()
+	server := InitWebServer()
 
 	//// 临时用的signup页面
 	//server.LoadHTMLFiles("../webook-fe/signup.html")
@@ -45,8 +45,6 @@ func initWebServer() *gin.Engine {
 	//	Addr: "146.56.252.134:6380",
 	//})
 	//server.Use(ratelimit.NewBuilder(redisClient, time.Second, 1000).Build())
-
-
 
 	// step1
 
@@ -76,7 +74,5 @@ func initWebServer() *gin.Engine {
 	//	IgnorePaths("/users/signup").
 	//	IgnorePaths("/users/login").Build())
 
-
 	return server
 }
-

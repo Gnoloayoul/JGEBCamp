@@ -4,15 +4,23 @@ import (
 	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
+	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
 
-const biz = "login"
+const (
+	userIdKey = "userId"
+	bizLogin  = "login"
+	emailRegexPatten    = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
+	passwordRegexPatten = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
+)
 
 // UserHandler
 // 与用户有关的路由
@@ -23,11 +31,17 @@ type UserHandler struct {
 	passwordExp *regexp.Regexp
 }
 
+// UserHandlerV1
+// for homework
+type UserHandlerV1 struct {
+	svc         service.UserService
+	codeSvc     service.CodeService
+	emailExp    *regexp.Regexp
+	passwordExp *regexp.Regexp
+	ijwt.Handler
+}
+
 func NewUserHandler(svc service.UserService, codeSvc service.CodeService) *UserHandler {
-	const (
-		emailRegexPatten    = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
-		passwordRegexPatten = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
-	)
 	emailExp := regexp.MustCompile(emailRegexPatten, regexp.None)
 	passwordExp := regexp.MustCompile(passwordRegexPatten, regexp.None)
 	return &UserHandler{
@@ -35,6 +49,21 @@ func NewUserHandler(svc service.UserService, codeSvc service.CodeService) *UserH
 		emailExp:    emailExp,
 		passwordExp: passwordExp,
 		codeSvc:     codeSvc,
+	}
+}
+
+// NewUserHandlerV1
+// for homework
+func NewUserHandlerV1(svc service.UserService, codeSvc service.CodeService,
+	jwthdl ijwt.Handler) *UserHandlerV1 {
+	emailExp := regexp.MustCompile(emailRegexPatten, regexp.None)
+	passwordExp := regexp.MustCompile(passwordRegexPatten, regexp.None)
+	return &UserHandlerV1{
+		svc:         svc,
+		emailExp:    emailExp,
+		passwordExp: passwordExp,
+		codeSvc:     codeSvc,
+		Handler:     jwthdl,
 	}
 }
 
@@ -54,6 +83,15 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 	}
 }
 
+// RegisterRoutesV1
+// for homework
+func (c *UserHandlerV1) RegisterRoutesV1(server *gin.Engine) {
+	ug := server.Group("/users")
+	{
+		ug.POST("login_smsV1", c.LoginSMSV1)
+	}
+}
+
 func (u *UserHandler) LoginSMS(ctx *gin.Context) {
 	type Req struct {
 		Phone string `json:"phone"`
@@ -64,7 +102,7 @@ func (u *UserHandler) LoginSMS(ctx *gin.Context) {
 		return
 	}
 	// 这边，可以加上各种校验
-	ok, err := u.codeSvc.Verify(ctx, biz, req.Phone, req.Code)
+	ok, err := u.codeSvc.Verify(ctx, bizLogin, req.Phone, req.Code)
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
@@ -106,6 +144,45 @@ func (u *UserHandler) LoginSMS(ctx *gin.Context) {
 	})
 }
 
+// LoginSMSV1
+// for homework
+func (c *UserHandlerV1) LoginSMSV1(ctx *gin.Context) {
+	type Req struct {
+		Phone string `json:"phone"`
+		Code  string `json:"code"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	ok, err := c.codeSvc.Verify(ctx, bizLogin, req.Phone, req.Code)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统异常"})
+		zap.L().Error("用户手机号码登录失败", zap.Error(err))
+		return
+	}
+	if !ok {
+		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "验证码错误"})
+		return
+	}
+
+	// 验证码是对的
+	// 登录或者注册用户
+	u, err := c.svc.FindOrCreate(ctx, req.Phone)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "系统错误"})
+		return
+	}
+	// 用 uuid 来标识这一次会话
+	ssid := uuid.New().String()
+	err = c.SetJWTToken(ctx, ssid, u.Id)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{Msg: "系统错误"})
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{Msg: "登录成功"})
+}
+
 func (u *UserHandler) SendLoginSMSCode(ctx *gin.Context) {
 	type Req struct {
 		Phone string `json:"phone"`
@@ -126,7 +203,7 @@ func (u *UserHandler) SendLoginSMSCode(ctx *gin.Context) {
 		return
 	}
 
-	err := u.codeSvc.Send(ctx, biz, req.Phone)
+	err := u.codeSvc.Send(ctx, bizLogin, req.Phone)
 	switch err {
 	case nil:
 		ctx.JSON(http.StatusOK, Result{

@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func InitGin(mdls []gin.HandlerFunc,hdl *web.UserHandler) *gin.Engine{
+func InitGin(mdls []gin.HandlerFunc, hdl *web.UserHandler) *gin.Engine {
 	server := gin.Default()
 	server.Use(mdls...)
 	hdl.RegisterRoutes(server)

@@ -11,13 +11,13 @@ import (
 )
 
 type Service struct {
-	client *dysmapi.Client
+	client   *dysmapi.Client
 	signName string
 }
 
 func NewService(c *dysmapi.Client, signName string) *Service {
 	return &Service{
-		client: c,
+		client:   c,
 		signName: signName,
 	}
 }
@@ -95,8 +95,6 @@ func (s *Service) SendV1(ctx context.Context, tplId string, args []sms.NameArg, 
 		argsMap[arg.Name] = arg.Val
 	}
 
-
-
 	// 这意味着，你的模板必须是 你的短信验证码是{0}
 	// 你的短信验证码是{code}
 	bcode, err := json.Marshal(args)
@@ -117,5 +115,3 @@ func (s *Service) SendV1(ctx context.Context, tplId string, args []sms.NameArg, 
 	}
 	return nil
 }
-
-

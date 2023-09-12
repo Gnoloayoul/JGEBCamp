@@ -8,11 +8,10 @@ import (
 	"github.com/google/wire"
 )
 
-func InitRepository() *repository.UserRepository{
+func InitRepository() *repository.UserRepository {
 	wire.Build(
 		repository.NewUserRepository,
 		dao.NewUserDAO,
 		InitDB)
 	return new(repository.UserRepository)
 }
-

@@ -104,7 +104,7 @@ func NewCodeCache(data sync.Map) *CodeLocalCache {
 func (c *CodeLocalCache) Set(biz, phone, code string) error {
 	_, ok := c.data.Load(biz + phone)
 	if !ok {
-		c.data.Store(biz + phone, code)
+		c.data.Store(biz+phone, code)
 	}
 	return err
 }

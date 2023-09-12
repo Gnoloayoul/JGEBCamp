@@ -13,7 +13,7 @@ import (
 	"github.com/google/wire"
 )
 
-func InitWebServer() *gin.Engine{
+func InitWebServer() *gin.Engine {
 	wire.Build(
 		// 最底层的第三方依赖
 		ioc.InitDB, ioc.InitRedis,
@@ -31,6 +31,6 @@ func InitWebServer() *gin.Engine{
 		web.NewUserHandler,
 
 		ioc.InitGin, ioc.InitMiddlewares,
-		)
+	)
 	return new(gin.Engine)
 }
