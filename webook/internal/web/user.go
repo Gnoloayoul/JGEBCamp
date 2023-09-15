@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	userIdKey = "userId"
-	bizLogin  = "login"
+	userIdKey           = "userId"
+	bizLogin            = "login"
 	emailRegexPatten    = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
 	passwordRegexPatten = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
 )
