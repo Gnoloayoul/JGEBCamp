@@ -1,6 +1,6 @@
 in = ""
-now = $(shell date +%Y-%m-%d)
-.PHONY: reset gitCommit test
+now = $(shell date +%Y%m%d)
+.PHONY: reset commit
 reset:
 	@git fetch origin
 	@git reset --hard origin/main
@@ -8,11 +8,11 @@ reset:
 	@echo "=========================="
 	@echo "Local code reset complete"
 	@echo "=========================="
-gitCommit:
+commit:
 	@git config --global user.email "631821745@qq.com"
 	@git config --global user.name "Gnoloayoul"
 	@git add .
-	@git commit -s -m "$(in)-$(now)"
+	@git commit -s -m "$(in) -$(now)"
 	@echo "=========================="
-	@echo "Git push ready"
+	@echo "Git push ready, please exec [git push]"
 	@echo "=========================="
