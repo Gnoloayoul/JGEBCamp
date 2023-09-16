@@ -106,14 +106,14 @@ func (c *CodeLocalCache) Set(biz, phone, code string) error {
 	if !ok {
 		c.data.Store(biz+phone, code)
 	}
-	return err
+	return nil
 }
 
 func (c *CodeLocalCache) Verify(biz, phone, inputCode string) (bool, error) {
 	curCode, ok := c.data.Load(biz + phone)
 	if !ok {
 		// 该电话号码还没配备验证码
-		return false, err
+		return false, errors.New("系统错误")
 	}
 	if curCode != inputCode {
 		// 输入的验证错误
