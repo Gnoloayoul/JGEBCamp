@@ -13,6 +13,6 @@ commit:
 	@git config --global user.name "Gnoloayoul"
 	@git add .
 	@git commit -s -m "$(in) -$(now)"
-	@echo "=========================="
+	@echo "======================================="
 	@echo "Git push ready, please exec [git push]"
-	@echo "=========================="
+	@echo "======================================="
