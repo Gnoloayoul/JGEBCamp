@@ -2,6 +2,9 @@ package web
 
 import (
 	"bytes"
+	"context"
+	"errors"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	svcmocks "github.com/Gnoloayoul/JGEBCamp/webook/internal/service/mocks"
 	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
@@ -103,4 +106,18 @@ func TestUserHandler_SignUp(t *testing.T) {
 
 		})
 	}
+}
+
+func TestMock(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	usersvc := svcmocks.NewMockUserService(ctrl)
+
+	usersvc.EXPECT().SignUp(gomock.Any(), gomock.Any()).return(errors.New("mock error"))
+
+	err := usersvc.SignUp(context.Background(), domain.User{
+		Email: "123@qq.com",
+	})
+	t.Log(err)
 }
