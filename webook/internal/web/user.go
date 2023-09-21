@@ -259,7 +259,7 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 		return
 	}
 	if !ok {
-		c.String(http.StatusOK, "密码必须大于8位，包含数字、特殊字符")
+		c.String(http.StatusOK, "密码必须大于8位，包含数字、特殊字符、字母")
 		return
 	}
 

@@ -262,3 +262,159 @@ func TestMock(t *testing.T) {
 	})
 	t.Log(err)
 }
+
+func TestUserHandler_SignUp1(t *testing.T) {
+	testCases := []struct {
+		name string
+		mock func(ctrl *gomock.Controller) service.UserService
+		reqBody string
+		wantCode int
+		wantBody string
+	}{
+		{
+			name: "注册成功",
+			mock: func(ctrl *gomock.Controller) service.UserService{
+				usersvc := svcmocks.NewMockUserService(ctrl)
+				usersvc.EXPECT().SignUp(gomock.Any(), domain.User{
+					Email:    "631821745@qq.com",
+					Password: "a123454@123214",
+				}).Return(nil)
+				return usersvc
+			},
+			reqBody: `
+{
+	"email": "631821745@qq.com",
+	"password": "a123454@123214",
+	"confirmPassword": "a123454@123214"
+}
+`,
+			wantCode: http.StatusOK,
+			wantBody: "注册成功",
+		},
+		{
+			name: "系统错误",
+			mock: func(ctrl *gomock.Controller) service.UserService{
+				usersvc := svcmocks.NewMockUserService(ctrl)
+				return usersvc
+			},
+			reqBody: `{
+				"password": "a123454@123214",
+				"confirmPassword": "a123454@123214"
+}`,
+			wantCode: http.StatusOK,
+			wantBody: "系统错误",
+		},
+		{
+			name: "输入的邮箱格式不对",
+			mock: func(ctrl *gomock.Controller) service.UserService{
+				usersvc := svcmocks.NewMockUserService(ctrl)
+				return usersvc
+			},
+			reqBody: `{
+				"email": "6@qq",
+				"password": "a123454@123214",
+				"confirmPassword": "a123454@123214"
+}`,
+			wantCode: http.StatusOK,
+			wantBody: "输入的邮箱格式不对",
+		},
+		{
+			name: "两次输入的密码不一致",
+			mock: func(ctrl *gomock.Controller) service.UserService{
+				usersvc := svcmocks.NewMockUserService(ctrl)
+				return usersvc
+			},
+			reqBody: `{
+				"email": "631821745@qq.com",
+				"password": "a123454@123214",
+				"confirmPassword": "a12@123214"
+}`,
+			wantCode: http.StatusOK,
+			wantBody: "两次输入的密码不一致",
+		},
+		{
+			name: "[密码解析]系统错误",
+			mock: func(ctrl *gomock.Controller) service.UserService{
+				usersvc := svcmocks.NewMockUserService(ctrl)
+				return usersvc
+			},
+			reqBody: `{
+				"email": "631821745@qq.com",
+}`,
+			wantCode: http.StatusOK,
+			wantBody: "系统错误",
+		},
+		{
+			name: "密码必须大于8位，包含数字、特殊字符、字母",
+			mock: func(ctrl *gomock.Controller) service.UserService{
+				usersvc := svcmocks.NewMockUserService(ctrl)
+				return usersvc
+			},
+			reqBody: `{
+				"email": "631821745@qq.com",
+				"password": "1@123214",
+				"confirmPassword": "1@123214"
+}`,
+			wantCode: http.StatusOK,
+			wantBody: "密码必须大于8位，包含数字、特殊字符、字母",
+		},
+		{
+			name: "邮箱冲突",
+			mock: func(ctrl *gomock.Controller) service.UserService{
+				usersvc := svcmocks.NewMockUserService(ctrl)
+				usersvc.EXPECT().SignUp(gomock.Any(), domain.User{
+					Email: "631821745@qq.com",
+					Password: "123454@123214",
+				}).Return(nil)
+				return usersvc
+			},
+			reqBody: `{
+				"email": "631821745@qq.com",
+				"password": "a123454@123214",
+				"confirmPassword": "a123454@123214"
+}`,
+			wantCode: http.StatusOK,
+			wantBody: "邮箱冲突",
+		},
+		{
+			name: "[signup]系统异常",
+			mock: func(ctrl *gomock.Controller) service.UserService{
+				usersvc := svcmocks.NewMockUserService(ctrl)
+				usersvc.EXPECT().SignUp(gomock.Any(), domain.User{
+					Email: "631821745@qq.com",
+					Password: "a123454@123214",
+				}).Return(nil)
+				return usersvc
+			},
+			reqBody: `{
+				"password": "123454@123214",
+				"confirmPassword": "a123454@123214"
+}`,
+			wantCode: http.StatusOK,
+			wantBody: "系统异常",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T){
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			server := gin.Default()
+
+			h := NewUserHandler(tc.mock(ctrl), nil)
+			h.RegisterRoutes(server)
+
+			req, err := http.NewRequest(http.MethodPost, "/users/signup", bytes.NewBuffer([]byte(tc.reqBody)))
+			require.NoError(t, err)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp := httptest.NewRecorder()
+			t.Log(resp)
+
+			server.ServeHTTP(resp, req)
+
+			assert.Equal(t, tc.wantCode, resp.Code)
+			assert.Equal(t, tc.wantBody, resp.Body.String())
+		})
+	}
+}
