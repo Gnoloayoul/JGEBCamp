@@ -240,7 +240,7 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 
 	ok, err := u.emailExp.MatchString(req.Email)
 	if err != nil {
-		c.String(http.StatusOK, "系统错误")
+		c.String(http.StatusOK, "系统异常")
 		return
 	}
 	if !ok {
@@ -255,7 +255,7 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 	ok, err = u.passwordExp.MatchString(req.Password)
 	if err != nil {
 		// 记录日志
-		c.String(http.StatusOK, "系统错误")
+		c.String(http.StatusOK, "系统异常")
 		return
 	}
 	if !ok {
