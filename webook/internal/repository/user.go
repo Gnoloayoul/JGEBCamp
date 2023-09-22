@@ -96,14 +96,18 @@ func (r *CachedUserRepository) FindById(ctx context.Context, id int64) (domain.U
 
 	u = r.entityToDomain(ue)
 
+
+	//if err != nil {
+	//	// 打日志，做监控的好地方？
+	//}
+
+	// 并发测试
+	// timeSleep 为上策
 	go func() {
-		err = r.cache.Set(ctx, u)
-		if err != nil {
-			// 打日志，做监控的好地方？
-		}
+		_ = r.cache.Set(ctx, u)
 	}()
 
-	return u, err
+	return u, nil
 }
 
 func (r *CachedUserRepository) domainToEntity(u domain.User) dao.User {

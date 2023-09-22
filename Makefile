@@ -1,6 +1,6 @@
 in = ""
 now = $(shell date +%Y%m%d)
-.PHONY: reset commit
+.PHONY: reset commit push
 reset:
 	@git fetch origin
 	@git reset --hard origin/main
@@ -16,3 +16,5 @@ commit:
 	@echo "======================================="
 	@echo "Git push ready, please exec [git push]"
 	@echo "======================================="
+push: commit
+	@git push origin main
