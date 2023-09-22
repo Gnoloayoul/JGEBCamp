@@ -96,7 +96,6 @@ func (r *CachedUserRepository) FindById(ctx context.Context, id int64) (domain.U
 
 	u = r.entityToDomain(ue)
 
-
 	//if err != nil {
 	//	// 打日志，做监控的好地方？
 	//}

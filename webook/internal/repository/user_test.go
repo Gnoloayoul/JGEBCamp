@@ -18,16 +18,16 @@ import (
 func TestCachedUserRepository_FindById(t *testing.T) {
 	now := time.Now()
 	now = time.UnixMilli(now.UnixMilli())
-	testCases := []struct{
+	testCases := []struct {
 		name string
 
 		mock func(ctrl *gomock.Controller) (dao.UserDAO, cache.UserCache)
 
 		ctx context.Context
-		id int64
+		id  int64
 
 		wantUser domain.User
-		wantErr error
+		wantErr  error
 	}{
 		{
 			name: "缓存未命中, 查询成功",
@@ -43,37 +43,37 @@ func TestCachedUserRepository_FindById(t *testing.T) {
 						Id: 123,
 						Email: sql.NullString{
 							String: "631821745@qq.com",
-							Valid: true,
+							Valid:  true,
 						},
 						Password: "xxx",
 						Phone: sql.NullString{
 							String: "137xxxxxxxx",
-							Valid: true,
+							Valid:  true,
 						},
 						Ctime: now.UnixMilli(),
 						Utime: now.UnixMilli(),
-				}, nil)
+					}, nil)
 
 				c.EXPECT().Set(gomock.Any(), domain.User{
-					Id: 123,
-					Email: "631821745@qq.com",
-					Phone: "137xxxxxxxx",
+					Id:       123,
+					Email:    "631821745@qq.com",
+					Phone:    "137xxxxxxxx",
 					Password: "xxx",
-					Ctime: now,
+					Ctime:    now,
 				}).Return(nil)
 				return d, c
 			},
 
 			ctx: context.Background(),
-			id: 123,
+			id:  123,
 
 			wantErr: nil,
 			wantUser: domain.User{
-				Id: 123,
-				Email: "631821745@qq.com",
-				Phone: "137xxxxxxxx",
+				Id:       123,
+				Email:    "631821745@qq.com",
+				Phone:    "137xxxxxxxx",
 				Password: "xxx",
-				Ctime: now,
+				Ctime:    now,
 			},
 		},
 		{
@@ -83,27 +83,27 @@ func TestCachedUserRepository_FindById(t *testing.T) {
 				c := cachemocks.NewMockUserCache(ctrl)
 				c.EXPECT().Get(gomock.Any(), int64(123)).
 					Return(domain.User{
-					Id: 123,
-					Email: "631821745@qq.com",
-					Phone: "137xxxxxxxx",
-					Password: "xxx",
-					Ctime: now,
-				}, nil)
+						Id:       123,
+						Email:    "631821745@qq.com",
+						Phone:    "137xxxxxxxx",
+						Password: "xxx",
+						Ctime:    now,
+					}, nil)
 
 				d := daomocks.NewMockUserDAO(ctrl)
 				return d, c
 			},
 
 			ctx: context.Background(),
-			id: 123,
+			id:  123,
 
 			wantErr: nil,
 			wantUser: domain.User{
-				Id: 123,
-				Email: "631821745@qq.com",
-				Phone: "137xxxxxxxx",
+				Id:       123,
+				Email:    "631821745@qq.com",
+				Phone:    "137xxxxxxxx",
 				Password: "xxx",
-				Ctime: now,
+				Ctime:    now,
 			},
 		},
 		{
@@ -121,15 +121,15 @@ func TestCachedUserRepository_FindById(t *testing.T) {
 			},
 
 			ctx: context.Background(),
-			id: 123,
+			id:  123,
 
-			wantErr: errors.New("mock db 错误"),
+			wantErr:  errors.New("mock db 错误"),
 			wantUser: domain.User{},
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -154,14 +154,14 @@ func TestCachedUserRepository_FindById1(t *testing.T) {
 		mock func(ctrl *gomock.Controller) (dao.UserDAO, cache.UserCache)
 
 		ctx context.Context
-		id int64
+		id  int64
 
-		wantErr error
+		wantErr  error
 		wantUser domain.User
-	} {
+	}{
 		{
 			name: "缓存未命中，查询成功",
-			mock: func(ctrl *gomock.Controller) (dao.UserDAO, cache.UserCache){
+			mock: func(ctrl *gomock.Controller) (dao.UserDAO, cache.UserCache) {
 				c := cachemocks.NewMockUserCache(ctrl)
 				d := daomocks.NewMockUserDAO(ctrl)
 
@@ -173,118 +173,118 @@ func TestCachedUserRepository_FindById1(t *testing.T) {
 						Id: int64(123),
 						Email: sql.NullString{
 							String: "631821745@qq.com",
-							Valid: true,
+							Valid:  true,
 						},
 						Password: "xxxx",
 						Phone: sql.NullString{
 							String: "137xxxxxxxxx",
-							Valid: true,
-						},
-						Ctime: now.UnixMilli(),
-				}, nil)
-
-				c.EXPECT().Set(gomock.Any(), domain.User{
-					Id: int64(123),
-					Email: "631821745@qq.com",
-					Password: "xxxx",
-					Phone: "137xxxxxxxxx",
-					Ctime: now,
-				})
-				return d, c
-			},
-
-			ctx: context.Background(),
-			id: int64(123),
-
-			wantErr: nil,
-			wantUser: domain.User{
-				Id: int64(123),
-				Email: "631821745@qq.com",
-				Password: "xxxx",
-				Phone: "137xxxxxxxxx",
-				Ctime: now,
-			},
-		},
-		{
-			name: "缓存命中，查询成功",
-			mock: func(ctrl *gomock.Controller) (dao.UserDAO, cache.UserCache){
-				c := cachemocks.NewMockUserCache(ctrl)
-				d := daomocks.NewMockUserDAO(ctrl)
-
-				c.EXPECT().Get(gomock.Any(), int64(123)).
-					Return(domain.User{
-						Id: int64(123),
-						Email: "631821745@qq.com",
-						Password: "xxxx",
-						Phone: "137xxxxxxxxx",
-						Ctime: now,
-				}, nil)
-
-				return d, c
-			},
-
-			ctx: context.Background(),
-			id: int64(123),
-
-			wantErr: nil,
-			wantUser: domain.User{
-				Id: int64(123),
-				Email: "631821745@qq.com",
-				Password: "xxxx",
-				Phone: "137xxxxxxxxx",
-				Ctime: now,
-			},
-		},
-		{
-			name: "缓存未命中，查询失败",
-			mock: func(ctrl *gomock.Controller) (dao.UserDAO, cache.UserCache){
-				c := cachemocks.NewMockUserCache(ctrl)
-				d := daomocks.NewMockUserDAO(ctrl)
-
-				c.EXPECT().Get(gomock.Any(), int64(123)).
-					Return(domain.User{}, cache.ErrKeyNotExist)
-
-				d.EXPECT().FindById(gomock.Any(), int64(123)).
-					Return(dao.User{
-						Id: int64(123),
-						Email: sql.NullString{
-							String: "631821745@qq.com",
-							Valid: true,
-						},
-						Password: "xxxx",
-						Phone: sql.NullString{
-							String: "137xxxxxxxxx",
-							Valid: true,
+							Valid:  true,
 						},
 						Ctime: now.UnixMilli(),
 					}, nil)
 
 				c.EXPECT().Set(gomock.Any(), domain.User{
-					Id: int64(123),
-					Email: "631821745@qq.com",
+					Id:       int64(123),
+					Email:    "631821745@qq.com",
 					Password: "xxxx",
-					Phone: "137xxxxxxxxx",
-					Ctime: now,
+					Phone:    "137xxxxxxxxx",
+					Ctime:    now,
 				})
 				return d, c
 			},
 
 			ctx: context.Background(),
-			id: int64(123),
+			id:  int64(123),
 
 			wantErr: nil,
 			wantUser: domain.User{
-				Id: int64(123),
-				Email: "631821745@qq.com",
+				Id:       int64(123),
+				Email:    "631821745@qq.com",
 				Password: "xxxx",
-				Phone: "137xxxxxxxxx",
-				Ctime: now,
+				Phone:    "137xxxxxxxxx",
+				Ctime:    now,
+			},
+		},
+		{
+			name: "缓存命中，查询成功",
+			mock: func(ctrl *gomock.Controller) (dao.UserDAO, cache.UserCache) {
+				c := cachemocks.NewMockUserCache(ctrl)
+				d := daomocks.NewMockUserDAO(ctrl)
+
+				c.EXPECT().Get(gomock.Any(), int64(123)).
+					Return(domain.User{
+						Id:       int64(123),
+						Email:    "631821745@qq.com",
+						Password: "xxxx",
+						Phone:    "137xxxxxxxxx",
+						Ctime:    now,
+					}, nil)
+
+				return d, c
+			},
+
+			ctx: context.Background(),
+			id:  int64(123),
+
+			wantErr: nil,
+			wantUser: domain.User{
+				Id:       int64(123),
+				Email:    "631821745@qq.com",
+				Password: "xxxx",
+				Phone:    "137xxxxxxxxx",
+				Ctime:    now,
+			},
+		},
+		{
+			name: "缓存未命中，查询失败",
+			mock: func(ctrl *gomock.Controller) (dao.UserDAO, cache.UserCache) {
+				c := cachemocks.NewMockUserCache(ctrl)
+				d := daomocks.NewMockUserDAO(ctrl)
+
+				c.EXPECT().Get(gomock.Any(), int64(123)).
+					Return(domain.User{}, cache.ErrKeyNotExist)
+
+				d.EXPECT().FindById(gomock.Any(), int64(123)).
+					Return(dao.User{
+						Id: int64(123),
+						Email: sql.NullString{
+							String: "631821745@qq.com",
+							Valid:  true,
+						},
+						Password: "xxxx",
+						Phone: sql.NullString{
+							String: "137xxxxxxxxx",
+							Valid:  true,
+						},
+						Ctime: now.UnixMilli(),
+					}, nil)
+
+				c.EXPECT().Set(gomock.Any(), domain.User{
+					Id:       int64(123),
+					Email:    "631821745@qq.com",
+					Password: "xxxx",
+					Phone:    "137xxxxxxxxx",
+					Ctime:    now,
+				})
+				return d, c
+			},
+
+			ctx: context.Background(),
+			id:  int64(123),
+
+			wantErr: nil,
+			wantUser: domain.User{
+				Id:       int64(123),
+				Email:    "631821745@qq.com",
+				Password: "xxxx",
+				Phone:    "137xxxxxxxxx",
+				Ctime:    now,
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 

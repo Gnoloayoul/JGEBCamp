@@ -18,3 +18,6 @@ commit:
 	@echo "======================================="
 push: commit
 	@git push origin main
+	@echo "============================"
+	@echo "JGEBCamp git push accomplish"
+	@echo "============================"
