@@ -145,4 +145,3 @@ func TestCachedUserRepository_FindById(t *testing.T) {
 		})
 	}
 }
-

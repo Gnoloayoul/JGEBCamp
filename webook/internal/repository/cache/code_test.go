@@ -16,17 +16,17 @@ func TestRedisCodeCache_Set(t *testing.T) {
 		mock func(ctrl *gomock.Controller) redis.Cmdable
 
 		// 输入
-		ctx context.Context
-		biz string
+		ctx   context.Context
+		biz   string
 		phone string
-		code string
+		code  string
 
 		// 输出
 		wantErr error
 	}{
 		{
 			name: "验证码设置成功",
-			mock: func(ctrl *gomock.Controller) redis.Cmdable{
+			mock: func(ctrl *gomock.Controller) redis.Cmdable {
 				cmd := redismocks.NewMockCmdable(ctrl)
 				res := redis.NewCmd(context.Background())
 				res.SetVal(int64(0))
@@ -37,16 +37,16 @@ func TestRedisCodeCache_Set(t *testing.T) {
 				return cmd
 			},
 
-			ctx: context.Background(),
-			biz: "login",
+			ctx:   context.Background(),
+			biz:   "login",
 			phone: "137xxxxxxxx",
-			code: "123456",
+			code:  "123456",
 
 			wantErr: nil,
 		},
 		{
 			name: "redis错误",
-			mock: func(ctrl *gomock.Controller) redis.Cmdable{
+			mock: func(ctrl *gomock.Controller) redis.Cmdable {
 				cmd := redismocks.NewMockCmdable(ctrl)
 				res := redis.NewCmd(context.Background())
 				res.SetErr(errors.New("mock redis 错误"))
@@ -58,16 +58,16 @@ func TestRedisCodeCache_Set(t *testing.T) {
 				return cmd
 			},
 
-			ctx: context.Background(),
-			biz: "login",
+			ctx:   context.Background(),
+			biz:   "login",
 			phone: "137xxxxxxxx",
-			code: "123456",
+			code:  "123456",
 
 			wantErr: errors.New("mock redis 错误"),
 		},
 		{
 			name: "验证码发送太频繁",
-			mock: func(ctrl *gomock.Controller) redis.Cmdable{
+			mock: func(ctrl *gomock.Controller) redis.Cmdable {
 				cmd := redismocks.NewMockCmdable(ctrl)
 				res := redis.NewCmd(context.Background())
 				res.SetVal(int64(-1))
@@ -78,16 +78,16 @@ func TestRedisCodeCache_Set(t *testing.T) {
 				return cmd
 			},
 
-			ctx: context.Background(),
-			biz: "login",
+			ctx:   context.Background(),
+			biz:   "login",
 			phone: "137xxxxxxxx",
-			code: "123456",
+			code:  "123456",
 
 			wantErr: ErrCodeSendTooMany,
 		},
 		{
 			name: "系统错误",
-			mock: func(ctrl *gomock.Controller) redis.Cmdable{
+			mock: func(ctrl *gomock.Controller) redis.Cmdable {
 				cmd := redismocks.NewMockCmdable(ctrl)
 				res := redis.NewCmd(context.Background())
 				res.SetVal(int64(-10))
@@ -98,17 +98,17 @@ func TestRedisCodeCache_Set(t *testing.T) {
 				return cmd
 			},
 
-			ctx: context.Background(),
-			biz: "login",
+			ctx:   context.Background(),
+			biz:   "login",
 			phone: "137xxxxxxxx",
-			code: "123456",
+			code:  "123456",
 
 			wantErr: errors.New("系统错误"),
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -125,10 +125,10 @@ func TestRedisCodeCache_Set1(t *testing.T) {
 		name string
 		mock func(ctrl *gomock.Controller) redis.Cmdable
 
-		ctx context.Context
-		biz string
+		ctx   context.Context
+		biz   string
 		phone string
-		code string
+		code  string
 
 		wantErr error
 	}{
@@ -142,10 +142,10 @@ func TestRedisCodeCache_Set1(t *testing.T) {
 					[]any{"1324567"}).Return(res)
 				return cmd
 			},
-			ctx: context.Background(),
-			biz: "login",
+			ctx:   context.Background(),
+			biz:   "login",
 			phone: "137xxxxxxxx",
-			code: "1324567",
+			code:  "1324567",
 
 			wantErr: nil,
 		},
@@ -160,10 +160,10 @@ func TestRedisCodeCache_Set1(t *testing.T) {
 					[]any{"1324567"}).Return(res)
 				return cmd
 			},
-			ctx: context.Background(),
-			biz: "login",
+			ctx:   context.Background(),
+			biz:   "login",
 			phone: "137xxxxxxxx",
-			code: "1324567",
+			code:  "1324567",
 
 			wantErr: errors.New("mock redis 错误"),
 		},
@@ -177,10 +177,10 @@ func TestRedisCodeCache_Set1(t *testing.T) {
 					[]any{"1324567"}).Return(res)
 				return cmd
 			},
-			ctx: context.Background(),
-			biz: "login",
+			ctx:   context.Background(),
+			biz:   "login",
 			phone: "137xxxxxxxx",
-			code: "1324567",
+			code:  "1324567",
 
 			wantErr: ErrCodeSendTooMany,
 		},
@@ -194,17 +194,17 @@ func TestRedisCodeCache_Set1(t *testing.T) {
 					[]any{"1324567"}).Return(res)
 				return cmd
 			},
-			ctx: context.Background(),
-			biz: "login",
+			ctx:   context.Background(),
+			biz:   "login",
 			phone: "137xxxxxxxx",
-			code: "1324567",
+			code:  "1324567",
 
 			wantErr: errors.New("系统错误"),
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
