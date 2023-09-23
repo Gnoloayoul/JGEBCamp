@@ -7,4 +7,5 @@ mock:
 	@mockgen -source=C:\Users\Administrator\Desktop\JGEBCamp\webook\internal\repository\code.go -package=repomocks -destination=C:\Users\Administrator\Desktop\JGEBCamp\webook\internal\repository\mocks\code_mock.go
 	@mockgen -source=C:\Users\Administrator\Desktop\JGEBCamp\webook\internal\repository\dao\user.go -package=daomocks -destination=C:\Users\Administrator\Desktop\JGEBCamp\webook\internal\repository\dao\mocks\user_mock.go
 	@mockgen -source=C:\Users\Administrator\Desktop\JGEBCamp\webook\internal\repository\cache\user.go -package=cachemocks -destination=C:\Users\Administrator\Desktop\JGEBCamp\webook\internal\repository\cache\mocks\user_mock.go
+	@mockgen -package=redismocks -destination=C:\Users\Administrator\Desktop\JGEBCamp\webook\internal\repository\cache\redismocks\cmdable_mock.go github.com/redis/go-redis/v9 Cmdable
 	@go mod tidy
