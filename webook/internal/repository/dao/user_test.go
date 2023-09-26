@@ -14,12 +14,12 @@ import (
 )
 
 func TestGORMUserDAO_Insert(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		name string
 
 		mock func(t *testing.T) *sql.DB
 
-		ctx context.Context
+		ctx  context.Context
 		user User
 
 		wantErr error
@@ -40,7 +40,7 @@ func TestGORMUserDAO_Insert(t *testing.T) {
 			user: User{
 				Email: sql.NullString{
 					String: "631821745@qq.com",
-					Valid: true,
+					Valid:  true,
 				},
 			},
 		},
@@ -54,13 +54,13 @@ func TestGORMUserDAO_Insert(t *testing.T) {
 				mock.ExpectExec("INSERT INTO `users` .*").
 					WillReturnError(&mysql.MySQLError{
 						Number: 1062,
-				})
+					})
 				require.NoError(t, err)
 				return mockDB
 			},
-			user: User{},
+			user:    User{},
 			wantErr: ErrUserDuplicate,
-			},
+		},
 		{
 			name: "数据库错误",
 			mock: func(t *testing.T) *sql.DB {
@@ -76,7 +76,7 @@ func TestGORMUserDAO_Insert(t *testing.T) {
 			user: User{
 				Email: sql.NullString{
 					String: "631821745@qq.com",
-					Valid: true,
+					Valid:  true,
 				},
 			},
 			wantErr: errors.New("数据库错误"),
@@ -84,7 +84,7 @@ func TestGORMUserDAO_Insert(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			db, err := gorm.Open(gormMysql.New(gormMysql.Config{
 				Conn: tc.mock(t),
 				// 跳步骤

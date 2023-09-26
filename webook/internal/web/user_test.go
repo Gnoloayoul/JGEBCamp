@@ -361,8 +361,8 @@ func TestUserHandler_SignUp1(t *testing.T) {
 
 func TestUserHandler_LoginSMS(t *testing.T) {
 	testCases := []struct {
-		name string
-		mock func(ctrl *gomock.Controller) (service.UserService, service.CodeService)
+		name    string
+		mock    func(ctrl *gomock.Controller) (service.UserService, service.CodeService)
 		reqBody string
 
 		wantCode int
@@ -370,7 +370,7 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 	}{
 		{
 			name: "短信登录成功",
-			mock: func(ctrl *gomock.Controller) (service.UserService,service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
 				us := svcmocks.NewMockUserService(ctrl)
 				cs := svcmocks.NewMockCodeService(ctrl)
 
@@ -379,18 +379,16 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 				us.EXPECT().FindOrCreate(gomock.Any(), "137XXXXXXXX").
 					Return(domain.User{
 						Phone: "137XXXXXXXX",
-				}, nil)
+					}, nil)
 
 				return us, cs
 			},
-			reqBody:
-`
+			reqBody: `
 {
 	"phone": "137XXXXXXXX",
 	"code": "1234567"
 }
 `,
-
 
 			wantCode: http.StatusOK,
 			wantBody: Result{
@@ -399,7 +397,7 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 		},
 		{
 			name: "参数错误，没能 bind 上",
-			mock: func(ctrl *gomock.Controller) (service.UserService,service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
 				us := svcmocks.NewMockUserService(ctrl)
 				cs := svcmocks.NewMockCodeService(ctrl)
 
@@ -412,7 +410,7 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 		},
 		{
 			name: "Verift 系统错误",
-			mock: func(ctrl *gomock.Controller) (service.UserService,service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
 				us := svcmocks.NewMockUserService(ctrl)
 				cs := svcmocks.NewMockCodeService(ctrl)
 
@@ -421,14 +419,12 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 
 				return us, cs
 			},
-			reqBody:
-			`
+			reqBody: `
 {
 	"phone": "137XXXXXXXX",
 	"code": "1234567"
 }
 `,
-
 
 			wantCode: http.StatusOK,
 			wantBody: Result{
@@ -438,7 +434,7 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 		},
 		{
 			name: "Verify 验证码有误",
-			mock: func(ctrl *gomock.Controller) (service.UserService,service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
 				us := svcmocks.NewMockUserService(ctrl)
 				cs := svcmocks.NewMockCodeService(ctrl)
 
@@ -447,14 +443,12 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 
 				return us, cs
 			},
-			reqBody:
-			`
+			reqBody: `
 {
 	"phone": "137XXXXXXXX",
 	"code": "1234567"
 }
 `,
-
 
 			wantCode: http.StatusOK,
 			wantBody: Result{
@@ -464,7 +458,7 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 		},
 		{
 			name: "FindORCreate 失败",
-			mock: func(ctrl *gomock.Controller) (service.UserService,service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
 				us := svcmocks.NewMockUserService(ctrl)
 				cs := svcmocks.NewMockCodeService(ctrl)
 
@@ -477,14 +471,12 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 
 				return us, cs
 			},
-			reqBody:
-			`
+			reqBody: `
 {
 	"phone": "137XXXXXXXX",
 	"code": "1234567"
 }
 `,
-
 
 			wantCode: http.StatusOK,
 			wantBody: Result{
@@ -495,7 +487,7 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -526,8 +518,8 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 
 func TestUserHandler_LoginSMS2(t *testing.T) {
 	testCases := []struct {
-		name string
-		mock func(ctrl *gomock.Controller) (service.UserService, service.CodeService)
+		name    string
+		mock    func(ctrl *gomock.Controller) (service.UserService, service.CodeService)
 		reqBody string
 
 		wantCode int
@@ -535,7 +527,7 @@ func TestUserHandler_LoginSMS2(t *testing.T) {
 	}{
 		{
 			name: "短信设置 JWT 失败",
-			mock: func(ctrl *gomock.Controller) (service.UserService,service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
 				us := svcmocks.NewMockUserService(ctrl)
 				cs := svcmocks.NewMockCodeService(ctrl)
 
@@ -543,13 +535,12 @@ func TestUserHandler_LoginSMS2(t *testing.T) {
 					Return(true, nil)
 				us.EXPECT().FindOrCreate(gomock.Any(), "137XXXXXXXX").
 					Return(domain.User{
-						Id: 1,
+						Id:    1,
 						Phone: "137XXXXXXXX",
 					}, nil)
 				return us, cs
 			},
-			reqBody:
-			`
+			reqBody: `
 {
 	"phone": "137XXXXXXXX",
 	"code": "1234567"
@@ -565,7 +556,7 @@ func TestUserHandler_LoginSMS2(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
