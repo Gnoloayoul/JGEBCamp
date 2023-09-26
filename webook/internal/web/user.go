@@ -51,7 +51,7 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 		//// 临时signup.HTML用的
 		//ug.GET("/index", u.Index)
 		ug.POST("/login_sms/code/send", u.SendLoginSMSCode)
-		ug.POST("/login_sms", u.LoginSMS)
+		ug.POST("/login_sms/code/loginsms", u.LoginSMS)
 	}
 }
 
