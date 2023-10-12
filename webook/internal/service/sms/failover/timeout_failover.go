@@ -8,7 +8,7 @@ import (
 
 type TimeoutFailoverSMSService struct {
 	svcs []sms.Service
-	idx int32
+	idx  int32
 	// 超时次数
 	cnt int32
 
@@ -18,9 +18,7 @@ type TimeoutFailoverSMSService struct {
 }
 
 func NewTimeoutFailoverSMSService() sms.Service {
-	return &TimeoutFailoverSMSService{
-
-	}
+	return &TimeoutFailoverSMSService{}
 }
 
 func (t *TimeoutFailoverSMSService) Send(ctx context.Context, tpl string, args []string, numbers ...string) error {
@@ -53,4 +51,3 @@ func (t *TimeoutFailoverSMSService) Send(ctx context.Context, tpl string, args [
 	}
 	return err
 }
-

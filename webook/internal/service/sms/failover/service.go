@@ -38,7 +38,7 @@ func (f *FailoverSMSService) SendV1(ctx context.Context, tpl string, args []stri
 	// 取下一个节点作为起始节点
 	idx := atomic.AddUint64(&f.idx, 1)
 	length := uint64(len(f.svcs))
-	for i := idx; i < length + idx; i++ {
+	for i := idx; i < length+idx; i++ {
 		svc := f.svcs[int(i%length)]
 		err := svc.Send(ctx, tpl, args, numbers...)
 		switch err {
