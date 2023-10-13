@@ -13,8 +13,8 @@ type RatelimitSMSServiceV1 struct {
 }
 
 func NewRatelimitSMSServiceV1(svc sms.Service, limiter ratelimit.Limiter) sms.Service {
-	return &RatelimitSMSService{
-		svc:     svc,
+	return &RatelimitSMSServiceV1{
+		Service: svc,
 		limiter: limiter,
 	}
 }
