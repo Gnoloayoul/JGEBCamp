@@ -8,3 +8,4 @@ func InitRedis() redis.Cmdable {
 	})
 	return redisClient
 }
+

@@ -19,6 +19,7 @@ type UserService interface {
 	Profile(ctx context.Context, id int64) (domain.User, error)
 	SignUp(ctx context.Context, u domain.User) error
 	FindOrCreate(ctx context.Context, phone string) (domain.User, error)
+	FindOrCreateByWechat(ctx context.Context, wechatInfo domain.WechatInfo) (domain.User, error)
 }
 
 type UserServiceIn struct {
@@ -73,6 +74,23 @@ func (svc *UserServiceIn) SignUp(ctx context.Context, u domain.User) error {
 	u.Password = string(hash)
 	// 存起来
 	return svc.repo.Create(ctx, u)
+}
+
+func (svc *UserServiceIn) FindOrCreateByWechat(ctx context.Context,
+	info domain.WechatInfo) (domain.User, error) {
+	u, err := svc.repo.FindByWechat(ctx, info.OpenID)
+	if err != repository.ErrUserNotFound {
+		return u, err
+	}
+	u = domain.User{
+		WechatInfo: info,
+	}
+	err = svc.repo.Create(ctx, u)
+	if err != nil && err != repository.ErrUserDuplicate {
+		return u, err
+	}
+	// 因为这里会遇到主从延迟的问题
+	return svc.repo.FindByWechat(ctx, info.OpenID)
 }
 
 func (svc *UserServiceIn) FindOrCreate(ctx context.Context,

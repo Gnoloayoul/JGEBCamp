@@ -17,8 +17,11 @@ type TimeoutFailoverSMSService struct {
 	threshold int32
 }
 
-func NewTimeoutFailoverSMSService() sms.Service {
-	return &TimeoutFailoverSMSService{}
+func NewTimeoutFailoverSMSService(svcs []sms.Service, threshold int32) *TimeoutFailoverSMSService {
+	return &TimeoutFailoverSMSService{
+		svcs: svcs,
+		threshold: threshold,
+	}
 }
 
 func (t *TimeoutFailoverSMSService) Send(ctx context.Context, tpl string, args []string, numbers ...string) error {
@@ -26,14 +29,14 @@ func (t *TimeoutFailoverSMSService) Send(ctx context.Context, tpl string, args [
 	idx := atomic.LoadInt32(&t.idx)
 	cnt := atomic.LoadInt32(&t.cnt)
 
-	if cnt > t.threshold {
+	if cnt >= t.threshold {
 		newIdx := (idx + 1) % int32(len(t.svcs))
 		if atomic.CompareAndSwapInt32(&t.idx, idx, newIdx) {
 			// 成功换至下一位
 			// cnt 归零
 			atomic.StoreInt32(&t.cnt, 0)
 		}
-		idx = atomic.LoadInt32(&t.cnt)
+		idx = newIdx
 	}
 	svc := t.svcs[idx]
 	err := svc.Send(ctx, tpl, args, numbers...)

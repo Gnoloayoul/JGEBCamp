@@ -12,6 +12,8 @@ type User struct {
 	Email    string
 	Password string
 	Phone    string
+
+	WechatInfo WechatInfo
 	Ctime    time.Time
 
 	NickName string
