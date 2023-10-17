@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
-	uuid "github.com/lithammer/shortuuid/v4"
 	"net/http"
 	"net/url"
 )
@@ -14,7 +13,7 @@ const urlPatten = "https://open.weixin.qq.com/connect/qrconnect?appid=%s&redirec
 var redirectURL = url.PathEscape("https://meoying.com/oauth2/wechat/callback")
 
 type Service interface {
-	AuthURL(ctx context.Context) (string, error)
+	AuthURL(ctx context.Context, state string) (string, error)
 	VerifyCode(ctx context.Context, code string, state string) (domain.WechatInfo, error)
 }
 
@@ -72,8 +71,7 @@ func (s *service) VerifyCode(ctx context.Context, code string, state string) (do
 	}, nil
 }
 
-func (s *service) AuthURL(ctx context.Context) (string, error) {
-	state := uuid.New()
+func (s *service) AuthURL(ctx context.Context, state string) (string, error) {
 	return fmt.Sprintf(urlPatten, s.appId, redirectURL, state), nil
 }
 
