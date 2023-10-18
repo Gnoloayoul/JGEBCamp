@@ -7,6 +7,7 @@ import (
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 )
 
@@ -35,6 +36,7 @@ func NewUserHandler(svc service.UserService, codeSvc service.CodeService) *UserH
 		emailExp:    emailExp,
 		passwordExp: passwordExp,
 		codeSvc:     codeSvc,
+		jwtHandler: newJwtHandler(),
 	}
 }
 
@@ -51,8 +53,32 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 		//ug.GET("/index", u.Index)
 		ug.POST("/login_sms/code/send", u.SendLoginSMSCode)
 		ug.POST("/login_sms/code/loginsms", u.LoginSMS)
+		ug.POST("/refresh_token", u.RefreshToken)
 	}
 }
+
+func (u *UserHandler) RefreshToken(ctx *gin.Context) {
+	//  只有在这里拿出的，才是 refresh_token
+	refreshToken := ExtraJWTToken(ctx)
+	var rc RefreshClaims
+	token, err := jwt.ParseWithClaims(refreshToken, &rc, func(token *jwt.Token) (interface{}, error) {
+		return u.rtKey, nil
+	})
+	if err != nil || !token.Valid {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	// 搞个新的 access_token
+	err = u.setJWTToken(ctx, rc.Uid)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Msg: "刷新成功",
+	})
+}
+
 
 func (u *UserHandler) LoginSMS(ctx *gin.Context) {
 	type Req struct {
@@ -94,6 +120,13 @@ func (u *UserHandler) LoginSMS(ctx *gin.Context) {
 	// 这边要怎么办呢？
 	// 从哪来？
 	if err = u.setJWTToken(ctx, user.Id); err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "系统错误",
+		})
+		return
+	}
+	if err = u.setRefashJWTToken(ctx, user.Id); err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
 			Msg:  "系统错误",
@@ -306,7 +339,17 @@ func (u *UserHandler) LoginJWT(ctx *gin.Context) {
 	// 生成一个 JWT token
 
 	if err = u.setJWTToken(ctx, user.Id); err != nil {
-		ctx.String(http.StatusOK, "系统错误")
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "系统错误",
+		})
+		return
+	}
+	if err = u.setRefashJWTToken(ctx, user.Id); err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "系统错误",
+		})
 		return
 	}
 	fmt.Println(user)

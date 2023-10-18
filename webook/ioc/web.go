@@ -25,11 +25,13 @@ func InitMiddlewares(redisClient redis.Cmdable) []gin.HandlerFunc {
 		corsHdl(),
 		middleware.NewLoginJWTMiddlewareBuilder().
 			IgnorePaths("/users/signup").
+			IgnorePaths("/users/refresh_token").
 			IgnorePaths("/users/login_sms/code/send").
 			IgnorePaths("/users/login_sms").
 			IgnorePaths("/oauth2/wechat/authurl").
 			IgnorePaths("/oauth2/wechat/callback").
-			IgnorePaths("/users/login").Build(),
+			IgnorePaths("/users/login").
+			Build(),
 		ratelimit.NewBuilder(redisClient, time.Second, 100).Build(),
 	}
 }
@@ -39,7 +41,7 @@ func corsHdl() gin.HandlerFunc {
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 		// ExposeHeaders: 用于获取需要前端截获的头，如 jwt
-		ExposeHeaders: []string{"x-jwt-token"},
+		ExposeHeaders: []string{"x-jwt-token", "x-refresh-token"},
 		AllowOriginFunc: func(origin string) bool {
 			if strings.HasPrefix(origin, "http://localhost") {
 				return true

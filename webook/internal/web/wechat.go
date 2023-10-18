@@ -31,6 +31,7 @@ func NewWechatHandler(svc wechat.Service,
 		userSvc: userSvc,
 		stateKey: []byte("95osj3fUD7fo0mlYdDbncXz4VD2igvf1"),
 		cfg: cfg,
+		jwtHandler: newJwtHandler(),
 	}
 }
 
@@ -111,6 +112,15 @@ func (h *OAuth2WechatHandler) CallBack(ctx *gin.Context) {
 		return
 	}
 	err = h.setJWTToken(ctx, u.Id)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "系统错误",
+		})
+		return
+	}
+
+	err = h.setRefashJWTToken(ctx, u.Id)
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,

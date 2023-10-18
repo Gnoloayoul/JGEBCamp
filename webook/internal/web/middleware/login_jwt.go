@@ -4,10 +4,7 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"log"
 	"net/http"
-	"strings"
-	"time"
 )
 
 // LoginJWTMiddlewareBuilder
@@ -34,23 +31,8 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			}
 		}
 		// 用 JWT 做登陆校验
-		tokenHeader := ctx.GetHeader("Authorization")
-		if tokenHeader == "" {
-			// 没登陆
-			ctx.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-
-		// 等效写法： sege := strings.SplitN(tokenHeader, " ", 2)
-		// 因为这个 tokenHeader 也就两段
-		sege := strings.Split(tokenHeader, " ")
-		if len(sege) != 2 {
-			// 有人捣乱
-			ctx.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		// 正式取得token
-		tokenStr := sege[1]
+		// 正式取得token(提取)
+		tokenStr := web.ExtraJWTToken(ctx)
 		// 这里要用指针，因为下面的 ParseWithClaims 就是会修改里面的数值
 		claims := &web.UserClaims{}
 		// 还原 jwt
@@ -74,18 +56,6 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			// 需要监控
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
-		}
-
-		now := time.Now()
-		// 每十秒钟刷新一次
-		if claims.ExpiresAt.Sub(now) < time.Second*50 {
-			claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute))
-			tokenStr, err = token.SignedString([]byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"))
-			if err != nil {
-				// 记录日志
-				log.Println("jwt 续约失败", err)
-			}
-			ctx.Header("x-jwt-token", tokenStr)
 		}
 
 		ctx.Set("claims", claims)
