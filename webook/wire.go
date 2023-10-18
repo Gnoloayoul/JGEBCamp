@@ -28,6 +28,8 @@ func InitWebServer() *gin.Engine {
 		// 基于内存实现
 		ioc.InitSMSService,
 
+		ioc.NewWechatHandlerconfig,
+
 		web.NewUserHandler, web.NewWechatHandler,
 
 		ioc.InitGin, ioc.InitMiddlewares,
