@@ -2,6 +2,7 @@ package ioc
 
 import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
+	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web/middleware"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/ginx/middlewares/ratelimit"
 	"github.com/gin-contrib/cors"
@@ -20,10 +21,10 @@ func InitGin(mdls []gin.HandlerFunc, hdl *web.UserHandler,
 	return server
 }
 
-func InitMiddlewares(redisClient redis.Cmdable) []gin.HandlerFunc {
+func InitMiddlewares(redisClient redis.Cmdable, jwtHdl ijwt.Handler) []gin.HandlerFunc {
 	return []gin.HandlerFunc{
 		corsHdl(),
-		middleware.NewLoginJWTMiddlewareBuilder().
+		middleware.NewLoginJWTMiddlewareBuilder(jwtHdl).
 			IgnorePaths("/users/signup").
 			IgnorePaths("/users/refresh_token").
 			IgnorePaths("/users/login_sms/code/send").

@@ -6,22 +6,22 @@ import (
 )
 
 type Handler interface {
-	ClearToken(ctx *gin.Context) error
 	SetLoginToken(ctx *gin.Context, uid int64) error
-	SetJWTToken(ctx *gin.Context, ssid string, uid int64) error
+	SetJWTToken(ctx *gin.Context, uid int64, ssid string) error
+	ClearToken(ctx *gin.Context) error
 	CheckSession(ctx *gin.Context, ssid string) error
-	ExtractTokenString(ctx *gin.Context) string
+	ExtractToken(ctx *gin.Context) string
 }
 
 type RefreshClaims struct {
-	Id   int64
+	Uid int64
 	Ssid string
 	jwt.RegisteredClaims
 }
 
 type UserClaims struct {
-	Id        int64
 	UserAgent string
+	Uid      int64
 	Ssid      string
 	jwt.RegisteredClaims
 }

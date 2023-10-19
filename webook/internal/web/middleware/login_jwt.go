@@ -1,11 +1,9 @@
 package middleware
 
 import (
-	"fmt"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
+	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/redis/go-redis/v9"
 	"net/http"
 )
 
@@ -13,11 +11,13 @@ import (
 // 基于 JWT 的登陆校验
 type LoginJWTMiddlewareBuilder struct {
 	paths []string
-	cmd redis.Cmdable
+	ijwt.Handler
 }
 
-func NewLoginJWTMiddlewareBuilder() *LoginJWTMiddlewareBuilder {
-	return &LoginJWTMiddlewareBuilder{}
+func NewLoginJWTMiddlewareBuilder(jwtHdl ijwt.Handler) *LoginJWTMiddlewareBuilder {
+	return &LoginJWTMiddlewareBuilder{
+		Handler: jwtHdl,
+	}
 }
 
 func (l *LoginJWTMiddlewareBuilder) IgnorePaths(path string) *LoginJWTMiddlewareBuilder {
@@ -35,9 +35,9 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 		}
 		// 用 JWT 做登陆校验
 		// 正式取得token(提取)
-		tokenStr := web.ExtraJWTToken(ctx)
+		tokenStr := l.ExtractToken(ctx)
 		// 这里要用指针，因为下面的 ParseWithClaims 就是会修改里面的数值
-		claims := &web.UserClaims{}
+		claims := &ijwt.UserClaims{}
 		// 还原 jwt
 		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte("h7oUXRzcGPyJbZJfq68iGChnzA0iJBfJ"), nil
@@ -61,8 +61,8 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			return
 		}
 
-		cnt, err := l.cmd.Exists(ctx, fmt.Sprintf("users:ssid:%s", claims.Ssid)).Result()
-		if err != nil || cnt > 0  {
+		err = l.CheckSession(ctx, claims.Ssid)
+		if err != nil {
 			// redis 出问题， 或者你已经退出登录
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return

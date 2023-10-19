@@ -8,6 +8,7 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
+	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/ioc"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
@@ -29,6 +30,7 @@ func InitWebServer() *gin.Engine {
 		ioc.InitSMSService,
 
 		ioc.NewWechatHandlerconfig,
+		ijwt.NewRedisJwtHandler,
 
 		web.NewUserHandler, web.NewWechatHandler,
 
