@@ -6,6 +6,7 @@ import (
 	_ "github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	_ "net"
 	"net/http"
 )
@@ -17,7 +18,7 @@ func main() {
 	//rdb := initRedis()
 	//u := initUser(db, rdb)
 	//u.RegisterRoutes(server)
-
+	initViper()
 	server := InitWebServer()
 
 	//// 临时用的signup页面
@@ -75,4 +76,14 @@ func initWebServer() *gin.Engine {
 	//	IgnorePaths("/users/login").Build())
 
 	return server
+}
+
+func initViper() {
+	viper.SetConfigName("dev")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("./config")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
 }

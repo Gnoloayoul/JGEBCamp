@@ -11,12 +11,12 @@ import (
 )
 
 func TestTimeoutFailoverSMSService_Send(t *testing.T) {
-	testCases := []struct{
-		name string
-		mock func(ctrl *gomock.Controller) []sms.Service
+	testCases := []struct {
+		name      string
+		mock      func(ctrl *gomock.Controller) []sms.Service
 		threshold int32
-		idx int32
-		cnt int32
+		idx       int32
+		cnt       int32
 
 		wantErr error
 		wantIdx int32
@@ -31,9 +31,9 @@ func TestTimeoutFailoverSMSService_Send(t *testing.T) {
 				return []sms.Service{svc0}
 			},
 			threshold: 3,
-			wantErr: context.DeadlineExceeded,
-			wantCnt: 1,
-			wantIdx: 0,
+			wantErr:   context.DeadlineExceeded,
+			wantCnt:   1,
+			wantIdx:   0,
 		},
 		{
 			name: "触发了切换，切换之后成功了",
@@ -45,7 +45,7 @@ func TestTimeoutFailoverSMSService_Send(t *testing.T) {
 				return []sms.Service{svc0, svc1}
 			},
 			threshold: 3,
-			cnt: 3,
+			cnt:       3,
 
 			wantCnt: 0,
 			wantIdx: 1,
@@ -60,7 +60,7 @@ func TestTimeoutFailoverSMSService_Send(t *testing.T) {
 				return []sms.Service{svc0, svc1}
 			},
 			threshold: 3,
-			cnt: 3,
+			cnt:       3,
 
 			wantErr: errors.New("发送失败"),
 			wantCnt: 0,
@@ -76,7 +76,7 @@ func TestTimeoutFailoverSMSService_Send(t *testing.T) {
 				return []sms.Service{svc0, svc1}
 			},
 			threshold: 3,
-			cnt: 3,
+			cnt:       3,
 
 			wantErr: context.DeadlineExceeded,
 			wantCnt: 1,
@@ -84,7 +84,7 @@ func TestTimeoutFailoverSMSService_Send(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 

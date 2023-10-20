@@ -14,7 +14,7 @@ type User struct {
 	Phone    string
 
 	WechatInfo WechatInfo
-	Ctime    time.Time
+	Ctime      time.Time
 
 	NickName string
 	Birthday string

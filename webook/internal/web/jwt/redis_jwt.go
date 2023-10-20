@@ -39,9 +39,9 @@ func (h *RedisJwtHandler) SetLoginToken(ctx *gin.Context, uid int64) error {
 
 func (h *RedisJwtHandler) SetRefreshToken(ctx *gin.Context,
 	uid int64, ssid string,
-	) error {
+) error {
 	rc := RefreshClaims{
-		Uid:   uid,
+		Uid:  uid,
 		Ssid: ssid,
 		RegisteredClaims: jwt.RegisteredClaims{
 			// 设置为七天过期
@@ -66,7 +66,7 @@ func (h *RedisJwtHandler) ClearToken(ctx *gin.Context) error {
 	// 这里不可能拿不到
 	uc := ctx.MustGet("user").(UserClaims)
 	return h.cmd.Set(ctx, h.key(uc.Ssid),
-		"", time.Hour * 24 * 7).Err()
+		"", time.Hour*24*7).Err()
 }
 
 func (h *RedisJwtHandler) CheckSession(ctx *gin.Context, ssid string) error {
@@ -99,7 +99,7 @@ func (h *RedisJwtHandler) ExtractToken(ctx *gin.Context) string {
 func (h *RedisJwtHandler) SetJWTToken(ctx *gin.Context, uid int64,
 	ssid string) error {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, UserClaims{
-		Uid:        uid,
+		Uid:       uid,
 		Ssid:      ssid,
 		UserAgent: ctx.GetHeader("User-Agent"),
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -130,12 +130,6 @@ func (h *RedisJwtHandler) SetJWTToken(ctx *gin.Context, uid int64,
 //	}
 //}
 
-
-
 func (h *RedisJwtHandler) key(ssid string) string {
 	return fmt.Sprintf("users:Ssid:%s", ssid)
 }
-
-
-
-

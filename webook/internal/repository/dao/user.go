@@ -131,7 +131,7 @@ type User struct {
 
 	// 微信的字段
 	WechatUnionID sql.NullString
-	WechatOpenID sql.NullString `gorm:"unique"`
+	WechatOpenID  sql.NullString `gorm:"unique"`
 
 	// 创建时间(毫秒)
 	Ctime int64

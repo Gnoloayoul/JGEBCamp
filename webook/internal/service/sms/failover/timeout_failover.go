@@ -19,7 +19,7 @@ type TimeoutFailoverSMSService struct {
 
 func NewTimeoutFailoverSMSService(svcs []sms.Service, threshold int32) *TimeoutFailoverSMSService {
 	return &TimeoutFailoverSMSService{
-		svcs: svcs,
+		svcs:      svcs,
 		threshold: threshold,
 	}
 }

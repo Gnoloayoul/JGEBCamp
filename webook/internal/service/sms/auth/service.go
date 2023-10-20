@@ -34,5 +34,4 @@ func (s *SMSService) Send(ctx context.Context, tpl string, args []string, number
 type Claims struct {
 	jwt.RegisteredClaims
 	Tpl string
-
 }

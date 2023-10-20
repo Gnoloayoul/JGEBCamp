@@ -39,7 +39,7 @@ func NewUserHandler(svc service.UserService, codeSvc service.CodeService, jwtHdl
 		emailExp:    emailExp,
 		passwordExp: passwordExp,
 		codeSvc:     codeSvc,
-		Handler: jwtHdl,
+		Handler:     jwtHdl,
 	}
 }
 
@@ -66,12 +66,10 @@ func (u *UserHandler) LogoutJWT(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
-			Msg: "退出登录失败",
+			Msg:  "退出登录失败",
 		})
 		return
 	}
-
-
 
 	ctx.JSON(http.StatusOK, Result{
 		Msg: "退出登录, 成功",
@@ -80,7 +78,7 @@ func (u *UserHandler) LogoutJWT(ctx *gin.Context) {
 
 func (u *UserHandler) RefreshToken(ctx *gin.Context) {
 	//  只有在这里拿出的，才是 refresh_token
-	refreshToken := u.ExtractTokenString(ctx)
+	refreshToken := u.ExtractToken(ctx)
 	var rc ijwt.RefreshClaims
 	token, err := jwt.ParseWithClaims(refreshToken, &rc, func(token *jwt.Token) (interface{}, error) {
 		return ijwt.RTKey, nil
@@ -105,7 +103,6 @@ func (u *UserHandler) RefreshToken(ctx *gin.Context) {
 		Msg: "刷新成功",
 	})
 }
-
 
 func (u *UserHandler) LoginSMS(ctx *gin.Context) {
 	type Req struct {
@@ -406,4 +403,3 @@ func (u *UserHandler) ProfileJWT(c *gin.Context) {
 
 	c.String(http.StatusOK, "你的 profile")
 }
-

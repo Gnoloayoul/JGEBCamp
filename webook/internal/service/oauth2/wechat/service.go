@@ -10,6 +10,7 @@ import (
 )
 
 const urlPatten = "https://open.weixin.qq.com/connect/qrconnect?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_login&state=%s#wechat_redire"
+
 var redirectURL = url.PathEscape("https://meoying.com/oauth2/wechat/callback")
 
 type Service interface {
@@ -18,14 +19,14 @@ type Service interface {
 }
 
 type service struct {
-	appId string
+	appId     string
 	appSecret string
 	client    *http.Client
 }
 
 func NewService(appId string, appSecret string) Service {
 	return &service{
-		appId: appId,
+		appId:     appId,
 		appSecret: appSecret,
 	}
 }

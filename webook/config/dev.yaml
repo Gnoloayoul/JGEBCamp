@@ -1,0 +1,5 @@
+db.mysql:
+  dsn: "acs:root278803@tcp(43.132.234.191:3308)/webook"
+
+redis:
+  addr: "43.132.234.191:6380"

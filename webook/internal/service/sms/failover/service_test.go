@@ -11,7 +11,7 @@ import (
 )
 
 func TestFailoverSMSService_Send(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		name string
 		mock func(ctrl *gomock.Controller) []sms.Service
 
@@ -20,15 +20,15 @@ func TestFailoverSMSService_Send(t *testing.T) {
 		{
 			name: "成功发送",
 			mock: func(ctrl *gomock.Controller) []sms.Service {
-				 s1 := smsmocks.NewMockService(ctrl)
-				 s2 := smsmocks.NewMockService(ctrl)
-				 s3 := smsmocks.NewMockService(ctrl)
-				 s := []sms.Service{s1, s2, s3}
-				 s1.EXPECT().Send(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					 Return(errors.New("something wrong"))
-				 s2.EXPECT().Send(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					 Return(nil)
-				 return s
+				s1 := smsmocks.NewMockService(ctrl)
+				s2 := smsmocks.NewMockService(ctrl)
+				s3 := smsmocks.NewMockService(ctrl)
+				s := []sms.Service{s1, s2, s3}
+				s1.EXPECT().Send(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(errors.New("something wrong"))
+				s2.EXPECT().Send(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil)
+				return s
 			},
 
 			wantErr: nil,
@@ -51,10 +51,9 @@ func TestFailoverSMSService_Send(t *testing.T) {
 
 			wantErr: errors.New("全部服务商都失败"),
 		},
-
 	}
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -70,7 +69,7 @@ func TestFailoverSMSService_SendV1(t *testing.T) {
 	testCases := []struct {
 		name string
 		mock func(ctrl *gomock.Controller) []sms.Service
-		idx uint64
+		idx  uint64
 
 		wantErr error
 		wantIdx uint64

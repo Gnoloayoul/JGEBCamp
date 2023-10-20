@@ -14,11 +14,11 @@ import (
 )
 
 type OAuth2WechatHandler struct {
-	svc wechat.Service
+	svc     wechat.Service
 	userSvc service.UserService
 	ijwt.Handler
 	stateKey []byte
-	cfg WechatHandlerConfig
+	cfg      WechatHandlerConfig
 }
 
 type WechatHandlerConfig struct {
@@ -28,11 +28,11 @@ type WechatHandlerConfig struct {
 func NewWechatHandler(svc wechat.Service,
 	userSvc service.UserService, cfg WechatHandlerConfig, jwtHdl ijwt.Handler) *OAuth2WechatHandler {
 	return &OAuth2WechatHandler{
-		svc: svc,
-		userSvc: userSvc,
+		svc:      svc,
+		userSvc:  userSvc,
 		stateKey: []byte("95osj3fUD7fo0mlYdDbncXz4VD2igvf1"),
-		cfg: cfg,
-		Handler: jwtHdl,
+		cfg:      cfg,
+		Handler:  jwtHdl,
 	}
 }
 
@@ -49,14 +49,14 @@ func (h *OAuth2WechatHandler) AuthURL(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
-			Msg: "构造扫描登录 URL 失败",
+			Msg:  "构造扫描登录 URL 失败",
 		})
 		return
 	}
 	if err = h.setStateCookie(ctx, state); err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
-			Msg: "构造扫描登录 URL 失败",
+			Msg:  "构造扫描登录 URL 失败",
 		})
 		return
 	}
