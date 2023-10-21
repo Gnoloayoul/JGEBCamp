@@ -42,4 +42,3 @@ func main() {
 	}
 	println("way2: ", cfg.DSN)
 }
-

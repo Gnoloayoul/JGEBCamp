@@ -15,7 +15,6 @@ func initViper() {
 	}
 }
 
-
 func main() {
 	initViper()
 

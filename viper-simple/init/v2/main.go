@@ -19,4 +19,3 @@ func main() {
 	msg := viper.GetString("db.mysql.dsn")
 	println(msg)
 }
-

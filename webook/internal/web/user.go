@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -120,6 +121,7 @@ func (u *UserHandler) LoginSMS(ctx *gin.Context) {
 			Code: 5,
 			Msg:  "系统错误",
 		})
+		zap.L().Error("校验验证码出错", zap.Error(err))
 		return
 	}
 	if !ok {

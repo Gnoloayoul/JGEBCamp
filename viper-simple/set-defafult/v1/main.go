@@ -21,7 +21,7 @@ func main() {
 	initViper()
 
 	type Config struct {
-		DSN string `yaml:dsn`
+		DSN  string `yaml:dsn`
 		Name string `yaml:name`
 	}
 	var cfg Config

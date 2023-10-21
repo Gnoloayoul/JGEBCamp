@@ -7,6 +7,7 @@ import (
 	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	_ "net"
 	"net/http"
 )
@@ -76,6 +77,16 @@ func initWebServer() *gin.Engine {
 	//	IgnorePaths("/users/login").Build())
 
 	return server
+}
+
+func initLogger() {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	zap.L().Info("before Hello")
+	zap.ReplaceGlobals(logger)
+	zap.L().Info("after Hello")
 }
 
 func initViper() {
