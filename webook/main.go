@@ -20,6 +20,7 @@ func main() {
 	//u := initUser(db, rdb)
 	//u.RegisterRoutes(server)
 	initViper()
+
 	server := InitWebServer()
 
 	//// 临时用的signup页面

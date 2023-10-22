@@ -21,6 +21,8 @@ const (
 	passwordRegexPatten = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
 )
 
+var _ handler = (*UserHandler)(nil)
+
 // UserHandler
 // 与用户有关的路由
 type UserHandler struct {

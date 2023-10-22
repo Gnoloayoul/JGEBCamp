@@ -1,10 +1,13 @@
 package web
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
+	"github.com/gin-gonic/gin"
+)
 
 var _ handler = (*ArticleHandler)(nil)
 type ArticleHandler struct {
-
+	l logger.LoggerV1
 }
 
 func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
