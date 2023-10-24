@@ -1,29 +1,42 @@
 package ioc
 
 import (
+	"context"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
 	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web/middleware"
-	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/ginx/middlewares/ratelimit"
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/ginx/middlewares/logger"
+	logger2 "github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
+	"github.com/fsnotify/fsnotify"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
 	"strings"
 	"time"
 )
 
-func InitGin(mdls []gin.HandlerFunc, hdl *web.UserHandler,
-	oauth2WechatHdl *web.OAuth2WechatHandler) *gin.Engine {
+func InitwebServer(mdls []gin.HandlerFunc, userHdl *web.UserHandler,
+	oauth2WechatHdl *web.OAuth2WechatHandler, articleHdl *web.ArticleHandler) *gin.Engine {
 	server := gin.Default()
 	server.Use(mdls...)
-	hdl.RegisterRoutes(server)
+	userHdl.RegisterRoutes(server)
+	articleHdl.RegisterRoutes(server)
 	oauth2WechatHdl.RegisterRoutes(server)
 	return server
 }
 
-func InitMiddlewares(redisClient redis.Cmdable, jwtHdl ijwt.Handler) []gin.HandlerFunc {
+func InitMiddlewares(redisClient redis.Cmdable, l logger2.LoggerV1, jwtHdl ijwt.Handler) []gin.HandlerFunc {
+	bd := logger.NewBuilder(func(ctx context.Context, al *logger.AccessLog) {
+		l.Debug("HTTP请求", logger2.Field{Key: "al", Value: al})
+	}).AllowReqBody(true).AllowRespBody()
+	viper.OnConfigChange(func(in fsnotify.Event) {
+		ok := viper.GetBool("web.logreq")
+		bd.AllowReqBody(ok)
+	})
 	return []gin.HandlerFunc{
 		corsHdl(),
+		bd.Build(),
 		middleware.NewLoginJWTMiddlewareBuilder(jwtHdl).
 			IgnorePaths("/users/signup").
 			IgnorePaths("/users/refresh_token").
@@ -33,7 +46,7 @@ func InitMiddlewares(redisClient redis.Cmdable, jwtHdl ijwt.Handler) []gin.Handl
 			IgnorePaths("/oauth2/wechat/callback").
 			IgnorePaths("/users/login").
 			Build(),
-		ratelimit.NewBuilder(redisClient, time.Second, 100).Build(),
+		//ratelimit.NewBuilder(redisClient, time.Second, 100).Build(),
 	}
 }
 

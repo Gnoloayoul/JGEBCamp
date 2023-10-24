@@ -35,7 +35,7 @@ func InitWebServer() *gin.Engine {
 
 		web.NewUserHandler, web.NewWechatHandler,
 
-		ioc.InitGin, ioc.InitMiddlewares,
+		ioc.InitwebServer, ioc.InitMiddlewares,
 	)
 	return new(gin.Engine)
 }

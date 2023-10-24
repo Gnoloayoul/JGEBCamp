@@ -10,6 +10,10 @@ type ArticleHandler struct {
 	l logger.LoggerV1
 }
 
+func NewArticleHandler() *ArticleHandler {
+	return &ArticleHandler{}
+}
+
 func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 	g := server.Group("/articles")
 	g.POST("/edit", h.Edit)
