@@ -21,7 +21,7 @@ type LoggerV1 interface {
 }
 
 type Field struct {
-	Key string
+	Key   string
 	Value any
 }
 
@@ -29,7 +29,7 @@ func LoggerV1Example() {
 	var l LoggerV1
 	phone := "152XXXX1234"
 	l.Info("用户未注册", Field{
-		Key: "phone",
+		Key:   "phone",
 		Value: phone,
 	})
 }

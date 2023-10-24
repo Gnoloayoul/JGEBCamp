@@ -2,14 +2,14 @@ package logger
 
 func String(key, val string) Field {
 	return Field{
-		Key: key,
+		Key:   key,
 		Value: val,
 	}
 }
 
 func Error(err error) Field {
 	return Field{
-		Key: "error",
+		Key:   "error",
 		Value: err,
 	}
 }

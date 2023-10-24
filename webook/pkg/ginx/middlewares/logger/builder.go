@@ -10,14 +10,14 @@ import (
 )
 
 type MiddlewareBuilder struct {
-	allowReqBody *atomic.Bool
+	allowReqBody  *atomic.Bool
 	allowRespBody bool
-	loggerFunc func(ctx context.Context, al *AccessLog)
+	loggerFunc    func(ctx context.Context, al *AccessLog)
 }
 
 func NewBuilder(fn func(ctx context.Context, al *AccessLog)) *MiddlewareBuilder {
 	return &MiddlewareBuilder{
-		loggerFunc: fn,
+		loggerFunc:   fn,
 		allowReqBody: atomic.NewBool(false),
 	}
 }
@@ -40,9 +40,9 @@ func (b *MiddlewareBuilder) Build() gin.HandlerFunc {
 			url = url[:1024]
 		}
 
-		al := &AccessLog {
+		al := &AccessLog{
 			Method: ctx.Request.Method,
-			Url: url,
+			Url:    url,
 		}
 
 		if b.allowReqBody.Load() && ctx.Request.Body != nil {
@@ -58,8 +58,8 @@ func (b *MiddlewareBuilder) Build() gin.HandlerFunc {
 		}
 
 		if b.allowRespBody {
-			ctx.Writer = responseWriter {
-				al: al,
+			ctx.Writer = responseWriter{
+				al:             al,
 				ResponseWriter: ctx.Writer,
 			}
 		}
@@ -93,10 +93,10 @@ func (w responseWriter) WriteString(data string) (int, error) {
 }
 
 type AccessLog struct {
-	Method string
-	Url string
+	Method   string
+	Url      string
 	Duration string
-	ReqBody string
+	ReqBody  string
 	RespBody string
-	Status int
+	Status   int
 }

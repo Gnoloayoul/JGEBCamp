@@ -1,7 +1,6 @@
 package logger
 
 type NopLogger struct {
-
 }
 
 func (n *NopLogger) Debug(msg string, args ...Field) {}

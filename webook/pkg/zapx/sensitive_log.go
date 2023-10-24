@@ -19,11 +19,10 @@ func (c MyCore) Write(entry zapcore.Entry, fds []zapcore.Field) error {
 	return c.Core.Write(entry, fds)
 }
 
-
 func MaskPhone(key string, value string) zap.Field {
 	value = value[:3] + "****" + value[7:]
 	return zap.Field{
-		Key: key,
+		Key:    key,
 		String: value,
 	}
 }

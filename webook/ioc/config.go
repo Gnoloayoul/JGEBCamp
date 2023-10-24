@@ -16,7 +16,6 @@ type ViperConfigerAdapter struct {
 }
 
 type myConfiger struct {
-
 }
 
 func (m *myConfiger) GetString(ctx context.Context, key string) (string, error) {
@@ -38,6 +37,3 @@ func (m *myConfiger) GetStringOrDefault(ctx context.Context, key string, def str
 	}
 	return str
 }
-
-
-

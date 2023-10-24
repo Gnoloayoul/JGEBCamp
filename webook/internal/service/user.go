@@ -25,13 +25,13 @@ type UserService interface {
 
 type UserServiceIn struct {
 	repo repository.UserRepository
-	l logger.LoggerV1
+	l    logger.LoggerV1
 }
 
 func NewUserService(repo repository.UserRepository, l logger.LoggerV1) UserService {
 	return &UserServiceIn{
 		repo: repo,
-		l: l,
+		l:    l,
 	}
 }
 

@@ -12,8 +12,6 @@ func initLogger() {
 		panic(err)
 	}
 
-
-
 	// 将 logger 放入全局，使之生效
 	// 这句不能没有
 	zap.ReplaceGlobals(logger)
@@ -35,7 +33,6 @@ func initLogger() {
 	// 又或者将其脱敏， 例如 123******456
 	zap.L().Debug("手机号", zap.Error(err))
 }
-
 
 func main() {
 	initLogger()

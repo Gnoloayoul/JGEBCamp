@@ -23,7 +23,7 @@ type service struct {
 	appId     string
 	appSecret string
 	client    *http.Client
-	l logger.LoggerV1
+	l         logger.LoggerV1
 }
 
 // 不偷懒的写法
@@ -31,7 +31,7 @@ func NewServiceV1(appId string, appSecret string, client *http.Client) Service {
 	return &service{
 		appId:     appId,
 		appSecret: appSecret,
-		client: client,
+		client:    client,
 	}
 }
 
@@ -41,7 +41,7 @@ func NewService(appId string, appSecret string, l logger.LoggerV1) Service {
 		appSecret: appSecret,
 		// 依赖注入，但是没完全注入
 		client: http.DefaultClient,
-		l: l,
+		l:      l,
 	}
 }
 

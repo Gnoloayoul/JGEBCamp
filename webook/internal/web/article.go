@@ -9,15 +9,16 @@ import (
 )
 
 var _ handler = (*ArticleHandler)(nil)
+
 type ArticleHandler struct {
 	svc service.ArticleService
-	l logger.LoggerV1
+	l   logger.LoggerV1
 }
 
 func NewArticleHandler(svc service.ArticleService, l logger.LoggerV1) *ArticleHandler {
 	return &ArticleHandler{
 		svc: svc,
-		l: l,
+		l:   l,
 	}
 }
 
@@ -28,7 +29,7 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 
 func (h *ArticleHandler) Edit(ctx *gin.Context) {
 	type Req struct {
-		Title string `json:"title"`
+		Title   string `json:"title"`
 		Content string `json:"content"`
 	}
 	var req Req
@@ -40,13 +41,13 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 
 	// 调用 svc 的代码
 	id, err := h.svc.Save(ctx, domain.Article{
-		Title: req.Title,
+		Title:   req.Title,
 		Content: req.Content,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
-			Msg: "系统错误",
+			Msg:  "系统错误",
 		})
 
 		// 打日志
@@ -54,7 +55,7 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, Result{
-		Msg: "ok",
+		Msg:  "ok",
 		Data: id,
 	})
 }

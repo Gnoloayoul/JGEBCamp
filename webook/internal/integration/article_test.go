@@ -30,7 +30,7 @@ func (s *ArticleTestSuite) SetupSuite() {
 
 func (s *ArticleTestSuite) TestEdit() {
 	t := s.T()
-	testCases := []struct{
+	testCases := []struct {
 		name string
 
 		// 集成测试准备数据
@@ -41,7 +41,7 @@ func (s *ArticleTestSuite) TestEdit() {
 		art Article
 
 		wantCode int
-		wantRes Result[int64]
+		wantRes  Result[int64]
 	}{
 		{
 			name: "新建帖子-保存成功",
@@ -52,19 +52,18 @@ func (s *ArticleTestSuite) TestEdit() {
 				//  验证数据库
 			},
 			art: Article{
-				Title: "my title",
+				Title:   "my title",
 				Content: "my context",
 			},
 			wantCode: http.StatusOK,
 			wantRes: Result[int64]{
 				Data: 1,
-				Msg: "ok",
-
+				Msg:  "ok",
 			},
 		},
 	}
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			// 构造请求
 			// 执行
 			// 验证结果
@@ -96,23 +95,21 @@ func (s *ArticleTestSuite) TestEdit() {
 	}
 }
 
-
 func (s *ArticleTestSuite) TestABC() {
 	s.T().Log("hello， 这里是测试套件")
 }
-
 
 func TestAriticle(t *testing.T) {
 	suite.Run(t, &ArticleTestSuite{})
 }
 
 type Article struct {
-	Title string `json:"title"`
+	Title   string `json:"title"`
 	Content string `json:"content"`
 }
 
 type Result[T any] struct {
-	Code int `json:"code"`
-	Msg string `json:"msg"`
-	Data T `json:data`
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+	Data T      `json:data`
 }

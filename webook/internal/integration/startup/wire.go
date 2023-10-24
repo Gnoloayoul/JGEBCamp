@@ -31,7 +31,7 @@ func InitWebServer() *gin.Engine {
 		repository.NewCodeRepository,
 		repository.NewArticleRepository,
 
-	//
+		//
 
 		// service 部分
 		// 集成测试我们显式指定使用内存实现
@@ -54,7 +54,7 @@ func InitWebServer() *gin.Engine {
 
 		// Web 服务器
 		ioc.InitwebServer,
-		)
+	)
 	// 随便返回一个
 	return gin.Default()
 }
@@ -64,7 +64,7 @@ func InitArticleHandler() *web.ArticleHandler {
 		service.NewArticleService,
 		web.NewArticleHandler,
 		repository.NewArticleRepository,
-		)
+	)
 	return &web.ArticleHandler{}
 }
 

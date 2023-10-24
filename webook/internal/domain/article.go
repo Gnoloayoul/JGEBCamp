@@ -1,12 +1,12 @@
 package domain
 
 type Article struct {
-	Title string
+	Title   string
 	Content string
-	Author Author
+	Author  Author
 }
 
 type Author struct {
-	Id int64
+	Id   int64
 	Name string
 }
