@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,11 +25,13 @@ type UserService interface {
 
 type UserServiceIn struct {
 	repo repository.UserRepository
+	l logger.LoggerV1
 }
 
-func NewUserService(repo repository.UserRepository) UserService {
+func NewUserService(repo repository.UserRepository, l logger.LoggerV1) UserService {
 	return &UserServiceIn{
 		repo: repo,
+		l: l,
 	}
 }
 

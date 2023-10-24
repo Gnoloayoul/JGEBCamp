@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
 	"net/http"
 	"net/url"
 )
@@ -22,12 +23,25 @@ type service struct {
 	appId     string
 	appSecret string
 	client    *http.Client
+	l logger.LoggerV1
 }
 
-func NewService(appId string, appSecret string) Service {
+// 不偷懒的写法
+func NewServiceV1(appId string, appSecret string, client *http.Client) Service {
 	return &service{
 		appId:     appId,
 		appSecret: appSecret,
+		client: client,
+	}
+}
+
+func NewService(appId string, appSecret string, l logger.LoggerV1) Service {
+	return &service{
+		appId:     appId,
+		appSecret: appSecret,
+		// 依赖注入，但是没完全注入
+		client: http.DefaultClient,
+		l: l,
 	}
 }
 

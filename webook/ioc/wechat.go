@@ -3,10 +3,11 @@ package ioc
 import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service/oauth2/wechat"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
+	logger2 "github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
 	"os"
 )
 
-func InitOAuth2WechatService() wechat.Service {
+func InitOAuth2WechatService(l logger2.LoggerV1) wechat.Service {
 	appId, ok := os.LookupEnv("WECHAT_APP_ID")
 	if !ok {
 		panic("没有找到环境变量 WECHAT_APP_ID ")
@@ -15,7 +16,7 @@ func InitOAuth2WechatService() wechat.Service {
 	if !ok {
 		panic("没有找到环境变量 WECHAT_APP_SECRET ")
 	}
-	return wechat.NewService(appId, appKey)
+	return wechat.NewService(appId, appKey, l)
 }
 
 func NewWechatHandlerconfig() web.WechatHandlerConfig {
