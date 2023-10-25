@@ -27,11 +27,9 @@ func InitWebServer() *gin.Engine {
 		userSvcProvider,
 
 		cache.NewCodeRedisCache,
-		//
+		dao.NewGORMArticleDAO,
 		repository.NewCodeRepository,
 		repository.NewArticleRepository,
-
-		//
 
 		// service 部分
 		// 集成测试我们显式指定使用内存实现
@@ -61,6 +59,7 @@ func InitWebServer() *gin.Engine {
 
 func InitArticleHandler() *web.ArticleHandler {
 	wire.Build(thirdProvider,
+		dao.NewGORMArticleDAO,
 		service.NewArticleService,
 		web.NewArticleHandler,
 		repository.NewArticleRepository,

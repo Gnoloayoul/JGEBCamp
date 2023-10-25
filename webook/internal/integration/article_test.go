@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/integration/startup"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
+	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"gorm.io/gorm"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,14 +21,26 @@ import (
 type ArticleTestSuite struct {
 	suite.Suite
 	server *gin.Engine
+	db *gorm.DB
 }
 
 func (s *ArticleTestSuite) SetupSuite() {
 	// 在所有测试执行之前，初始化一些内容
 	s.server = gin.Default()
+	s.server.Use(func(ctx *gin.Context) {
+		ctx.Set("claims", &ijwt.UserClaims{
+			Uid: 123,
+		})
+	})
+	s.db = startup.InitTestDB()
 	artHdl := startup.InitArticleHandler()
 	// 注册好了路由
 	artHdl.RegisterRoutes(s.server)
+}
+
+func (s *ArticleTestSuite) TearDownTest() {
+
+	s.db.Exec("TRUNCATE TABLE articles")
 }
 
 func (s *ArticleTestSuite) TestEdit() {
@@ -50,6 +65,18 @@ func (s *ArticleTestSuite) TestEdit() {
 			},
 			after: func(t *testing.T) {
 				//  验证数据库
+				var art dao.Article
+				err := s.db.Where("id=?", 1).First(&art).Error
+				assert.NoError(t, err)
+				assert.True(t, art.Ctime > 0)
+				assert.True(t, art.Utime > 0)
+				art.Ctime, art.Utime = 0, 0
+				assert.Equal(t, dao.Article{
+					Id: 1,
+					Title:   "my title",
+					Content: "my context",
+					AuthorId: 123,
+				}, art)
 			},
 			art: Article{
 				Title:   "my title",
