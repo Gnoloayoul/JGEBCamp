@@ -26,10 +26,12 @@ func NewArticleHandler(svc service.ArticleService, l logger.LoggerV1) *ArticleHa
 func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 	g := server.Group("/articles")
 	g.POST("/edit", h.Edit)
+	g.POST("/publish", h.Publish)
 }
 
 func (h *ArticleHandler) Edit(ctx *gin.Context) {
 	type Req struct {
+		Id	int64 `json:"id"`
 		Title   string `json:"title"`
 		Content string `json:"content"`
 	}
@@ -55,6 +57,7 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 
 	// 调用 svc 的代码
 	id, err := h.svc.Save(ctx, domain.Article{
+		Id: req.Id,
 		Title:   req.Title,
 		Content: req.Content,
 		Author: domain.Author{
@@ -76,3 +79,5 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 		Data: id,
 	})
 }
+
+func (h *ArticleHandler) Publish(ctx *gin.Context) {}

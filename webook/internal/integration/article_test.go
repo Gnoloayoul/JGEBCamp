@@ -21,7 +21,7 @@ import (
 type ArticleTestSuite struct {
 	suite.Suite
 	server *gin.Engine
-	db *gorm.DB
+	db     *gorm.DB
 }
 
 func (s *ArticleTestSuite) SetupSuite() {
@@ -39,7 +39,7 @@ func (s *ArticleTestSuite) SetupSuite() {
 }
 
 func (s *ArticleTestSuite) TearDownTest() {
-
+	// 清空所有数据，并且自增主键恢复到 1
 	s.db.Exec("TRUNCATE TABLE articles")
 }
 
@@ -72,9 +72,9 @@ func (s *ArticleTestSuite) TestEdit() {
 				assert.True(t, art.Utime > 0)
 				art.Ctime, art.Utime = 0, 0
 				assert.Equal(t, dao.Article{
-					Id: 1,
-					Title:   "my title",
-					Content: "my context",
+					Id:       1,
+					Title:    "my title",
+					Content:  "my context",
 					AuthorId: 123,
 				}, art)
 			},
@@ -86,6 +86,88 @@ func (s *ArticleTestSuite) TestEdit() {
 			wantRes: Result[int64]{
 				Data: 1,
 				Msg:  "ok",
+			},
+		},
+		{
+			name: "修改已有帖子，并保存",
+			before: func(t *testing.T) {
+				// 提前准备数据
+				err := s.db.Create(dao.Article{
+					Id:       2,
+					Title:    "my title",
+					Content:  "my content",
+					AuthorId: 123,
+					Ctime:    123,
+					Utime:    234,
+				}).Error
+				assert.NoError(t, err)
+			},
+			after: func(t *testing.T) {
+				//  验证数据库
+				var art dao.Article
+				err := s.db.Where("id=?", 2).First(&art).Error
+				assert.NoError(t, err)
+				// 验证确实有更新
+				assert.True(t, art.Utime > 234)
+				art.Utime = 0
+				assert.Equal(t, dao.Article{
+					Id:       2,
+					Title:    "new title",
+					Content:  "new context",
+					Ctime:    123,
+					AuthorId: 123,
+				}, art)
+			},
+			art: Article{
+				Id:      2,
+				Title:   "my title",
+				Content: "my context",
+			},
+			wantCode: http.StatusOK,
+			wantRes: Result[int64]{
+				Data: 2,
+				Msg:  "ok",
+			},
+		},
+		{
+			name: "修改别人帖子",
+			before: func(t *testing.T) {
+				// 提前准备数据
+				err := s.db.Create(dao.Article{
+					Id:       3,
+					Title:    "my title",
+					Content:  "my content",
+					// 用户的123，但帖子是789的
+					// 在模拟修改别人的帖子
+					AuthorId: 789,
+					Ctime:    123,
+					Utime:    234,
+				}).Error
+				assert.NoError(t, err)
+			},
+			after: func(t *testing.T) {
+				//  验证数据库
+				var art dao.Article
+				err := s.db.Where("id=?", 3).First(&art).Error
+				assert.NoError(t, err)
+				assert.Equal(t, dao.Article{
+					Id:       3,
+					Title:    "my title",
+					Content:  "my context",
+					Ctime:    123,
+					Utime:    234,
+					AuthorId: 789,
+				}, art)
+			},
+			art: Article{
+				Id:      3,
+				Title:   "my title",
+				Content: "my context",
+			},
+			wantCode: http.StatusOK,
+			wantRes: Result[int64]{
+				Data: 5,
+				Msg:  "系统错误",
 			},
 		},
 	}
@@ -131,6 +213,7 @@ func TestAriticle(t *testing.T) {
 }
 
 type Article struct {
+	Id      int64  `json:"id"`
 	Title   string `json:"title"`
 	Content string `json:"content"`
 }

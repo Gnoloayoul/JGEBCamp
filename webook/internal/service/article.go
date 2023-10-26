@@ -27,3 +27,4 @@ func (a *articleService) Save(ctx context.Context, art domain.Article) (int64, e
 	}
 	return a.repo.Create(ctx, art)
 }
+
