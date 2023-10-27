@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"errors"
 	"context"
 	"fmt"
 	"gorm.io/gorm"

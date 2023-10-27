@@ -4,6 +4,7 @@ package startup
 
 import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
@@ -29,7 +30,7 @@ func InitWebServer() *gin.Engine {
 		cache.NewCodeRedisCache,
 		dao.NewGORMArticleDAO,
 		repository.NewCodeRepository,
-		repository.NewArticleRepository,
+		article.NewArticleRepository,
 
 		// service 部分
 		// 集成测试我们显式指定使用内存实现
@@ -62,7 +63,7 @@ func InitArticleHandler() *web.ArticleHandler {
 		dao.NewGORMArticleDAO,
 		service.NewArticleService,
 		web.NewArticleHandler,
-		repository.NewArticleRepository,
+		article.NewArticleRepository,
 	)
 	return &web.ArticleHandler{}
 }

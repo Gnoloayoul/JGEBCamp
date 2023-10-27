@@ -113,7 +113,7 @@ func TestUserServiceIn_Login(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			svc := NewUserService(tc.mock(ctrl))
+			svc := NewUserService(tc.mock(ctrl), nil)
 			u, err := svc.Login(context.Background(), tc.email, tc.password)
 
 			assert.Equal(t, tc.wantErr, err)
@@ -166,7 +166,7 @@ func TestUserServiceIn_Login1(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			server := NewUserService(tc.mock(ctrl))
+			server := NewUserService(tc.mock(ctrl), nil)
 			u, err := server.Login(context.Background(), tc.email, tc.password)
 
 			assert.Equal(t, tc.wantErr, err)

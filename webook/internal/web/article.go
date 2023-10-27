@@ -92,7 +92,7 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 		h.l.Error("未发现用户的 session 信息")
 		return
 	}
-	id, err := h.svc.Save(ctx, domain.Article{
+	id, err := h.svc.Publish(ctx, domain.Article{
 		Id: req.Id,
 		Title:   req.Title,
 		Content: req.Content,

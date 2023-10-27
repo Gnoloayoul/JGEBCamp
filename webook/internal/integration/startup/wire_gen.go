@@ -8,6 +8,7 @@ package startup
 
 import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
@@ -39,7 +40,7 @@ func InitWebServer() *gin.Engine {
 	wechatHandlerConfig := InitWechatHandlerConfig()
 	oAuth2WechatHandler := web.NewWechatHandler(wechatService, userService, wechatHandlerConfig, handler)
 	articleDAO := dao.NewGORMArticleDAO(gormDB)
-	articleRepository := repository.NewArticleRepository(articleDAO)
+	articleRepository := article.NewArticleRepository(articleDAO)
 	articleService := service.NewArticleService(articleRepository)
 	articleHandler := web.NewArticleHandler(articleService, loggerV1)
 	engine := ioc.InitwebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
@@ -49,7 +50,7 @@ func InitWebServer() *gin.Engine {
 func InitArticleHandler() *web.ArticleHandler {
 	gormDB := InitTestDB()
 	articleDAO := dao.NewGORMArticleDAO(gormDB)
-	articleRepository := repository.NewArticleRepository(articleDAO)
+	articleRepository := article.NewArticleRepository(articleDAO)
 	articleService := service.NewArticleService(articleRepository)
 	loggerV1 := InitLog()
 	articleHandler := web.NewArticleHandler(articleService, loggerV1)

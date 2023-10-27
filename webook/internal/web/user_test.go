@@ -167,7 +167,7 @@ func TestUserHandler_SignUp(t *testing.T) {
 			server := gin.Default()
 
 			// 没用上 CodeSvc
-			h := NewUserHandler(tc.mock(ctrl), nil)
+			h := NewUserHandler(tc.mock(ctrl), nil, nil)
 			h.RegisterRoutes(server)
 
 			// 构建请求
@@ -341,7 +341,7 @@ func TestUserHandler_SignUp1(t *testing.T) {
 
 			server := gin.Default()
 
-			h := NewUserHandler(tc.mock(ctrl), nil)
+			h := NewUserHandler(tc.mock(ctrl), nil, nil)
 			h.RegisterRoutes(server)
 
 			req, err := http.NewRequest(http.MethodPost, "/users/signup", bytes.NewBuffer([]byte(tc.reqBody)))
@@ -494,7 +494,7 @@ func TestUserHandler_LoginSMS(t *testing.T) {
 			server := gin.Default()
 
 			us, cs := tc.mock(ctrl)
-			uh := NewUserHandler(us, cs)
+			uh := NewUserHandler(us, cs, nil)
 			uh.RegisterRoutes(server)
 
 			req, err := http.NewRequest(http.MethodPost, "/users/login_sms/code/loginsms", bytes.NewBuffer([]byte(tc.reqBody)))
@@ -563,7 +563,7 @@ func TestUserHandler_LoginSMS2(t *testing.T) {
 			server := gin.Default()
 
 			us, cs := tc.mock(ctrl)
-			uh := NewUserHandler(us, cs)
+			uh := NewUserHandler(us, cs, nil)
 			uh.RegisterRoutes(server)
 
 			req, err := http.NewRequest(http.MethodPost, "/users/login_sms/code/loginsms", bytes.NewBuffer([]byte(tc.reqBody)))
