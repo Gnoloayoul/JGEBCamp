@@ -62,32 +62,32 @@ func (mr *MockHandlerMockRecorder) ClearToken(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearToken", reflect.TypeOf((*MockHandler)(nil).ClearToken), ctx)
 }
 
-// ExtractTokenString mocks base method.
-func (m *MockHandler) ExtractTokenString(ctx *gin.Context) string {
+// ExtractToken mocks base method.
+func (m *MockHandler) ExtractToken(ctx *gin.Context) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ExtractTokenString", ctx)
+	ret := m.ctrl.Call(m, "ExtractToken", ctx)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// ExtractTokenString indicates an expected call of ExtractTokenString.
-func (mr *MockHandlerMockRecorder) ExtractTokenString(ctx interface{}) *gomock.Call {
+// ExtractToken indicates an expected call of ExtractToken.
+func (mr *MockHandlerMockRecorder) ExtractToken(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtractTokenString", reflect.TypeOf((*MockHandler)(nil).ExtractTokenString), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtractToken", reflect.TypeOf((*MockHandler)(nil).ExtractToken), ctx)
 }
 
 // SetJWTToken mocks base method.
-func (m *MockHandler) SetJWTToken(ctx *gin.Context, ssid string, uid int64) error {
+func (m *MockHandler) SetJWTToken(ctx *gin.Context, uid int64, ssid string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetJWTToken", ctx, ssid, uid)
+	ret := m.ctrl.Call(m, "SetJWTToken", ctx, uid, ssid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SetJWTToken indicates an expected call of SetJWTToken.
-func (mr *MockHandlerMockRecorder) SetJWTToken(ctx, ssid, uid interface{}) *gomock.Call {
+func (mr *MockHandlerMockRecorder) SetJWTToken(ctx, uid, ssid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetJWTToken", reflect.TypeOf((*MockHandler)(nil).SetJWTToken), ctx, ssid, uid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetJWTToken", reflect.TypeOf((*MockHandler)(nil).SetJWTToken), ctx, uid, ssid)
 }
 
 // SetLoginToken mocks base method.
