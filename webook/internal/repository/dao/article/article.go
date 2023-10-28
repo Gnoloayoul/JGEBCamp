@@ -10,6 +10,7 @@ import (
 type ArticleDAO interface {
 	Insert(ctx context.Context, art Article) (int64, error)
 	UpdateBYId(ctx context.Context, article Article) error
+	Sync(ctx context.Context, article Article) (int64, error)
 }
 
 type GORMArticleDAO struct {
@@ -48,6 +49,24 @@ func (dao *GORMArticleDAO) UpdateBYId(ctx context.Context, art Article) error {
 		return fmt.Errorf("更新失败，可能是创作者非法 Id %d, author_id %d", art.Id, art.AuthorId)
 	}
 	return res.Error
+}
+
+func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error) {
+	// 先操作制作库(此时应该是表)，后操作线上库(此时应该是表)
+	// 在事务内部，这里采用了闭包形态
+	// GORM 帮助我们管理了事务的生命周期
+	// Begin， Rollback 和 Commit 都不需要操心
+	err := dao.db.Transaction(func(tx *gorm.DB) error {
+		var (
+			id = art.Id
+			err error
+		)
+		txDAO := NewGORMArticleDAO(tx)
+		if  id > 0 {
+			err = txDAO.UpdateBYId(ctx, art)
+
+		}
+	})
 }
 
 // Article

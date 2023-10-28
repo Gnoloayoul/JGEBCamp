@@ -1,5 +1,21 @@
 package article
 
-type ReaderDao interface {
+import(
+	"context"
+	"gorm.io/gorm"
+)
 
+type ReaderDao interface {
+	Upsert(ctx context.Context, art Article) error
+}
+
+// PublishArticle
+// 代表线上库
+// (同库不同表)
+type PublishArticle struct {
+	Article
+}
+
+func NewReaderDAO(db *gorm.DB) ReaderDao {
+	panic("v")
 }
