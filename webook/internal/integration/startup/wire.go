@@ -7,6 +7,7 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
+	article2 "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
 	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
@@ -28,7 +29,7 @@ func InitWebServer() *gin.Engine {
 		userSvcProvider,
 
 		cache.NewCodeRedisCache,
-		dao.NewGORMArticleDAO,
+		article2.NewGORMArticleDAO,
 		repository.NewCodeRepository,
 		article.NewArticleRepository,
 
@@ -60,7 +61,7 @@ func InitWebServer() *gin.Engine {
 
 func InitArticleHandler() *web.ArticleHandler {
 	wire.Build(thirdProvider,
-		dao.NewGORMArticleDAO,
+		article2.NewGORMArticleDAO,
 		service.NewArticleService,
 		web.NewArticleHandler,
 		article.NewArticleRepository,

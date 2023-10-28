@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/integration/startup"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao/article"
 	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -65,13 +65,13 @@ func (s *ArticleTestSuite) TestEdit() {
 			},
 			after: func(t *testing.T) {
 				//  验证数据库
-				var art dao.Article
+				var art article.Article
 				err := s.db.Where("id=?", 1).First(&art).Error
 				assert.NoError(t, err)
 				assert.True(t, art.Ctime > 0)
 				assert.True(t, art.Utime > 0)
 				art.Ctime, art.Utime = 0, 0
-				assert.Equal(t, dao.Article{
+				assert.Equal(t, article.Article{
 					Id:       1,
 					Title:    "my title",
 					Content:  "my context",
@@ -92,7 +92,7 @@ func (s *ArticleTestSuite) TestEdit() {
 			name: "修改已有帖子，并保存",
 			before: func(t *testing.T) {
 				// 提前准备数据
-				err := s.db.Create(dao.Article{
+				err := s.db.Create(article.Article{
 					Id:       2,
 					Title:    "my title",
 					Content:  "my content",
@@ -104,13 +104,13 @@ func (s *ArticleTestSuite) TestEdit() {
 			},
 			after: func(t *testing.T) {
 				//  验证数据库
-				var art dao.Article
+				var art article.Article
 				err := s.db.Where("id=?", 2).First(&art).Error
 				assert.NoError(t, err)
 				// 验证确实有更新
 				assert.True(t, art.Utime > 234)
 				art.Utime = 0
-				assert.Equal(t, dao.Article{
+				assert.Equal(t, article.Article{
 					Id:       2,
 					Title:    "new title",
 					Content:  "new context",
@@ -133,7 +133,7 @@ func (s *ArticleTestSuite) TestEdit() {
 			name: "修改别人帖子",
 			before: func(t *testing.T) {
 				// 提前准备数据
-				err := s.db.Create(dao.Article{
+				err := s.db.Create(article.Article{
 					Id:       3,
 					Title:    "my title",
 					Content:  "my content",
@@ -147,10 +147,10 @@ func (s *ArticleTestSuite) TestEdit() {
 			},
 			after: func(t *testing.T) {
 				//  验证数据库
-				var art dao.Article
+				var art article.Article
 				err := s.db.Where("id=?", 3).First(&art).Error
 				assert.NoError(t, err)
-				assert.Equal(t, dao.Article{
+				assert.Equal(t, article.Article{
 					Id:       3,
 					Title:    "my title",
 					Content:  "my context",

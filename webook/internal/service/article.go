@@ -47,11 +47,7 @@ func (a *articleService) Save(ctx context.Context, art domain.Article) (int64, e
 }
 
 func (a *articleService) Publish(ctx context.Context, art domain.Article) (int64, error) {
-	//// 制作库
-	//id, err := a.repo.Create(ctx, art)
-	//// 线上库呢
-	//a.repo.SyncToLiveDB(ctx, art)
-	panic("nil")
+	return a.repo.Sync(ctx, art)
 }
 
 func (a *articleService) PublishV1(ctx context.Context, art domain.Article) (int64, error) {
