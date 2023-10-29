@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -11,7 +12,9 @@ type ArticleDAO interface {
 	Insert(ctx context.Context, art Article) (int64, error)
 	UpdateBYId(ctx context.Context, article Article) error
 	Sync(ctx context.Context, article Article) (int64, error)
+	Upsert(ctx context.Context, art PublishArticle) error
 }
+
 
 type GORMArticleDAO struct {
 	db *gorm.DB
@@ -56,18 +59,51 @@ func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error)
 	// 在事务内部，这里采用了闭包形态
 	// GORM 帮助我们管理了事务的生命周期
 	// Begin， Rollback 和 Commit 都不需要操心
+	var (
+		id = art.Id
+	)
+	// tx -> Transaction, 也有人缩写成 trx
 	err := dao.db.Transaction(func(tx *gorm.DB) error {
-		var (
-			id = art.Id
-			err error
-		)
+		var err error
 		txDAO := NewGORMArticleDAO(tx)
 		if  id > 0 {
 			err = txDAO.UpdateBYId(ctx, art)
-
+		} else {
+			id, err = txDAO.Insert(ctx, art)
 		}
+		if err != nil {
+			return err
+		}
+
+		// 要操作线上库了
+		return txDAO.Upsert(ctx, PublishArticle{Article: art})
 	})
+	return id, err
 }
+
+// Upsert
+// Insert or Update
+// 在 db 上实现
+func (dao *GORMArticleDAO) Upsert(ctx context.Context, art PublishArticle) error {
+	now := time.Now().UnixMilli()
+	art.Ctime, art.Utime = now, now
+	// 插入
+	// OnConflict 数据冲突了
+	err := dao.db.Clauses(clause.OnConflict{
+		// 用 GORM—Mysql 只需要关心这里
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"title":   art.Title,
+			"content": art.Content,
+			"utime":   now,
+	}),
+	}).Create(&art).Error
+	// 在 Mysql 里最终生成的语句是这
+	// INSERT xxx ON DUPLICATE KEY UPDATE XXX
+	// 正常而言，一条 SQL， 是不需要开启的
+	// 但要小心 auto commit： 自动提交
+	return err
+}
+
 
 // Article
 // [制作库]
