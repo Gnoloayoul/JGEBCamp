@@ -2,6 +2,7 @@ package article
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -12,7 +13,8 @@ type ArticleDAO interface {
 	Insert(ctx context.Context, art Article) (int64, error)
 	UpdateBYId(ctx context.Context, article Article) error
 	Sync(ctx context.Context, article Article) (int64, error)
-	Upsert(ctx context.Context, art PublishArticle) error
+	Upsert(ctx context.Context, art PublishedArticle) error
+	SyncStatus(ctx context.Context, id int64, author int64, status uint8) error
 }
 
 
@@ -24,6 +26,35 @@ func NewGORMArticleDAO(db *gorm.DB) ArticleDAO {
 	return &GORMArticleDAO{
 		db: db,
 	}
+}
+
+func (dao *GORMArticleDAO) SyncStatus(ctx context.Context, id int64, author int64, status uint8) error {
+	now := time.Now().UnixMilli()
+	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		res := tx.Model(&Article{}).
+			Where("id=? AND author_id=?", id, author).
+			Updates(map[string]any{
+				"status": status,
+				"utime": now,
+		})
+		if res.Error != nil {
+			// 数据库有问题
+			return res.Error
+		}
+		if res.RowsAffected != 1 {
+			// 要么 ID 是错的，要么作者不对
+			// 后者情况下，就要小心，可能有人在搞系统
+			// 没必要再用 ID 搜索数据库来区分这两种情况
+			// 用 prometheus 打点，只要频繁出现，就告警，然后手工介入排查
+			return fmt.Errorf("可能有人在搞系统, 误操作非自己的文章， uid：%d, aid: %d", author, id)
+		}
+		return tx.Model(&Article{}).
+			Where("id=?", id).
+			Updates(map[string]any{
+				"status": status,
+				"utime": now,
+			}).Error
+	})
 }
 
 func (dao *GORMArticleDAO) Insert(ctx context.Context, art Article) (int64, error) {
@@ -41,6 +72,7 @@ func (dao *GORMArticleDAO) UpdateBYId(ctx context.Context, art Article) error {
 		Updates(map[string]any{
 			"title":   art.Title,
 			"content": art.Content,
+			"status": art.Status,
 			"utime":   art.Utime,
 		})
 	// 要不要检查是不是真的更新了？
@@ -76,7 +108,7 @@ func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error)
 		}
 
 		// 要操作线上库了
-		return txDAO.Upsert(ctx, PublishArticle{Article: art})
+		return txDAO.Upsert(ctx, PublishedArticle{Article: art})
 	})
 	return id, err
 }
@@ -84,7 +116,7 @@ func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error)
 // Upsert
 // Insert or Update
 // 在 db 上实现
-func (dao *GORMArticleDAO) Upsert(ctx context.Context, art PublishArticle) error {
+func (dao *GORMArticleDAO) Upsert(ctx context.Context, art PublishedArticle) error {
 	now := time.Now().UnixMilli()
 	art.Ctime, art.Utime = now, now
 	// 插入
@@ -94,6 +126,7 @@ func (dao *GORMArticleDAO) Upsert(ctx context.Context, art PublishArticle) error
 		DoUpdates: clause.Assignments(map[string]interface{}{
 			"title":   art.Title,
 			"content": art.Content,
+			"status": art.Status,
 			"utime":   now,
 	}),
 	}).Create(&art).Error
@@ -115,6 +148,7 @@ type Article struct {
 	Content string `gorm:"type=BLOB"`
 	// 仅仅给 AuthorId 上索引
 	AuthorId int64 `gorm:"index"`
+	Status uint8
 	Ctime    int64
 	Utime    int64
 }

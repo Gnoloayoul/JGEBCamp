@@ -5,9 +5,61 @@ type Article struct {
 	Title   string
 	Content string
 	Author  Author
+	Status ArticleStatus
 }
 
 type Author struct {
 	Id   int64
 	Name string
 }
+
+type ArticleStatus uint8
+
+type ArticleStatusV2 string
+
+const (
+	// ArticleStatusUnknown
+	// 用来避免零值问题（当收到一个零，是用户没传呢，还是传的就是0）
+	ArticleStatusUnknown ArticleStatus = iota
+	ArticleStatusUnpublished
+	ArticleStatusPublished
+	ArticleStatusPrivate
+)
+
+func (s ArticleStatus) ToUint8() uint8 {
+	return uint8(s)
+}
+
+func (s ArticleStatus) NonPublished() bool {
+	return s != ArticleStatusUnpublished
+}
+
+func (s ArticleStatus) Valid() bool {
+	return s.ToUint8() > 0
+}
+
+func (s ArticleStatus) String() string {
+	switch s {
+	case ArticleStatusPrivate:
+		return "private"
+	case ArticleStatusUnpublished:
+		return "unpublished"
+	case ArticleStatusPublished:
+		return "published"
+	default:
+		return "unknown"
+	}
+}
+
+
+// 如果状态很复杂，有很多行为（就是要搞很多方法），状态里面需要一些额外字段
+// 就用这个（V1）版本
+
+type ArticleStatusV1 struct{
+	Val uint8
+	Name string
+}
+
+var (
+	ArticleStatusV1Unknown = ArticleStatusV1{Val: 0, Name: "unknown"}
+)

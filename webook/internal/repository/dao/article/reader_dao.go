@@ -9,10 +9,10 @@ type ReaderDao interface {
 	Upsert(ctx context.Context, art Article) error
 }
 
-// PublishArticle
+// PublishedArticle
 // 代表线上库
 // (同库不同表)
-type PublishArticle struct {
+type PublishedArticle struct {
 	Article
 }
 

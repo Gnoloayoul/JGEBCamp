@@ -15,6 +15,7 @@ type ArticleRepository interface {
 	// Sync 存储并同步数据
 	Sync(ctx context.Context, art domain.Article) (int64, error)
 	//FindById(ctx context.Context, id int64) domain.Article
+	SyncStatus(ctx context.Context, id int64, author int64, status domain.ArticleStatus) (int64, error)
 }
 
 type CachedArticleRepository struct {
@@ -43,6 +44,7 @@ func (c *CachedArticleRepository) Create(ctx context.Context, art domain.Article
 		Title:    art.Title,
 		Content:  art.Content,
 		AuthorId: art.Author.Id,
+		Status: art.Status.ToUint8(),
 	})
 }
 
@@ -52,12 +54,18 @@ func (c *CachedArticleRepository) Update(ctx context.Context, art domain.Article
 		Title:    art.Title,
 		Content:  art.Content,
 		AuthorId: art.Author.Id,
+		Status: art.Status.ToUint8(),
 	})
 }
 
 func (c *CachedArticleRepository) Sync(ctx context.Context, art domain.Article) (int64, error) {
 	return c.dao.Sync(ctx, c.toEntity(art))
 }
+
+func (c *CachedArticleRepository) SyncStatus(ctx context.Context, id int64, author int64, status domain.ArticleStatus) (int64, error) {
+	return c.dao.SyncStatus(ctx, id, author, status.ToUint8())
+}
+
 
 func (c *CachedArticleRepository) SyncV1(ctx context.Context, art domain.Article) (int64, error) {
 	var (
@@ -127,5 +135,6 @@ func (c *CachedArticleRepository) toEntity(art domain.Article) dao.Article {
 		Title: art.Title,
 		Content: art.Content,
 		AuthorId: art.Author.Id,
+		Status: art.Status.ToUint8(),
 	}
 }
