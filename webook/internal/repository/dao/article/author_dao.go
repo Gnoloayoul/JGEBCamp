@@ -5,11 +5,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type AuthorDao interface {
+type AuthorDAO interface {
 	Insert(ctx context.Context, art Article) (int64, error)
 	UpdateBYId(ctx context.Context, article Article) error
 }
 
-func NewAuthorDAO(db *gorm.DB) AuthorDao {
-	panic("v")
+func NewAuthorDAO(db *gorm.DB) AuthorDAO {
+	panic("implement me")
 }

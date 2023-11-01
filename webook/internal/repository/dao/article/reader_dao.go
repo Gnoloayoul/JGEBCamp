@@ -5,17 +5,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type ReaderDao interface {
+type ReaderDAO interface {
 	Upsert(ctx context.Context, art Article) error
+	UpsertV2(ctx context.Context, art PublishedArticle) error
 }
 
-// PublishedArticle
-// 代表线上库
-// (同库不同表)
-type PublishedArticle struct {
-	Article
-}
-
-func NewReaderDAO(db *gorm.DB) ReaderDao {
-	panic("v")
+func NewReaderDAO(db *gorm.DB) ReaderDAO {
+	panic("implement me")
 }

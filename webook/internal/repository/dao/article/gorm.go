@@ -8,16 +8,31 @@ import (
 	"time"
 )
 
-type ArticleDAO interface {
-	Insert(ctx context.Context, art Article) (int64, error)
-	UpdateBYId(ctx context.Context, article Article) error
-	Sync(ctx context.Context, article Article) (int64, error)
-	Upsert(ctx context.Context, art PublishedArticle) error
-	SyncStatus(ctx context.Context, id int64, author int64, status uint8) error
-}
-
 type GORMArticleDAO struct {
 	db *gorm.DB
+}
+
+func (dao *GORMArticleDAO) GetByAuthor(ctx context.Context, author int64, offset, limit int) ([]Article, error) {
+	var arts []Article
+	err := dao.db.WithContext(ctx).Model(&Article{}).
+		Where("author_id = ?", author).
+		Offset(offset).
+		Limit(limit).
+		Order("utime DESC").
+		Find(&arts).Error
+	return arts, err
+}
+
+func (dao *GORMArticleDAO) GetPubById(ctx context.Context, id int64) (PublishedArticle, error) {
+	var pub PublishedArticle
+	err := dao.db.WithContext(ctx).
+		Where("id = ?", id).
+		First(&pub).Error
+	return pub, err
+}
+
+func (dao *GORMArticleDAO) GetById(ctx context.Context, id int64) (Article, error) {
+	panic("implement me")
 }
 
 func NewGORMArticleDAO(db *gorm.DB) ArticleDAO {
@@ -53,35 +68,6 @@ func (dao *GORMArticleDAO) SyncStatus(ctx context.Context, id int64, author int6
 				"utime":  now,
 			}).Error
 	})
-}
-
-func (dao *GORMArticleDAO) Insert(ctx context.Context, art Article) (int64, error) {
-	now := time.Now().UnixMilli()
-	art.Ctime, art.Utime = now, now
-	err := dao.db.WithContext(ctx).Create(&art).Error
-	return art.Id, err
-}
-
-func (dao *GORMArticleDAO) UpdateBYId(ctx context.Context, art Article) error {
-	now := time.Now().UnixMilli()
-	art.Utime = now
-	res := dao.db.WithContext(ctx).Model(&art).
-		Where("id=? AND author_id=?", art.Id, art.AuthorId).
-		Updates(map[string]any{
-			"title":   art.Title,
-			"content": art.Content,
-			"status":  art.Status,
-			"utime":   art.Utime,
-		})
-	// 要不要检查是不是真的更新了？
-	// 更新行数
-	if res.Error != nil {
-		return res.Error
-	}
-	if res.RowsAffected == 0 {
-		return fmt.Errorf("更新失败，可能是创作者非法 Id %d, author_id %d", art.Id, art.AuthorId)
-	}
-	return res.Error
 }
 
 func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error) {
@@ -135,17 +121,31 @@ func (dao *GORMArticleDAO) Upsert(ctx context.Context, art PublishedArticle) err
 	return err
 }
 
-// Article
-// [制作库]
-type Article struct {
-	Id int64 `gorm:"primaryKey,autoIncrement"`
-	// 限定长度：1024
-	Title string `gorm:"type=varchar(1024)"`
-	// BLOB：mysql 中适合存大文本数据的数据类型
-	Content string `gorm:"type=BLOB"`
-	// 仅仅给 AuthorId 上索引
-	AuthorId int64 `gorm:"index"`
-	Status   uint8
-	Ctime    int64
-	Utime    int64
+func (dao *GORMArticleDAO) Insert(ctx context.Context, art Article) (int64, error) {
+	now := time.Now().UnixMilli()
+	art.Ctime, art.Utime = now, now
+	err := dao.db.WithContext(ctx).Create(&art).Error
+	return art.Id, err
+}
+
+func (dao *GORMArticleDAO) UpdateById(ctx context.Context, art Article) error {
+	now := time.Now().UnixMilli()
+	art.Utime = now
+	res := dao.db.WithContext(ctx).Model(&art).
+		Where("id=? AND author_id=?", art.Id, art.AuthorId).
+		Updates(map[string]any{
+			"title":   art.Title,
+			"content": art.Content,
+			"status":  art.Status,
+			"utime":   art.Utime,
+		})
+	// 要不要检查是不是真的更新了？
+	// 更新行数
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return fmt.Errorf("更新失败，可能是创作者非法 Id %d, author_id %d", art.Id, art.AuthorId)
+	}
+	return res.Error
 }

@@ -24,7 +24,7 @@ type CachedArticleRepository struct {
 
 	// V1 操作两个 dao
 	readerDao dao.ReaderDao
-	authorDao dao.AuthorDao
+	authorDao dao.AuthorDAO
 
 	// V2用
 	// 耦合了 DAO 操作的东西
