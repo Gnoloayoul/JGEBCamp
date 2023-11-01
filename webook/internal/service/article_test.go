@@ -13,14 +13,14 @@ import (
 )
 
 func Test_articleService_Publish(t *testing.T) {
-	testCases := []struct{
+	testCases := []struct {
 		name string
 		mock func(ctrl *gomock.Controller) (article.ArticleAuthorRepository, article.ArticleReaderRepository)
 
 		art domain.Article
-		
+
 		wantErr error
-		wantId int64
+		wantId  int64
 	}{
 		{
 			name: "新建发表成功",
@@ -29,7 +29,7 @@ func Test_articleService_Publish(t *testing.T) {
 				reader := artrepomocks.NewMockArticleReaderRepository(ctrl)
 
 				author.EXPECT().Create(gomock.Any(), domain.Article{
-					Title: "我的标题",
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -37,8 +37,8 @@ func Test_articleService_Publish(t *testing.T) {
 				}).Return(int64(1), nil)
 
 				reader.EXPECT().Save(gomock.Any(), domain.Article{
-					Id: 1,
-					Title: "我的标题",
+					Id:      1,
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -48,13 +48,13 @@ func Test_articleService_Publish(t *testing.T) {
 				return author, reader
 			},
 			art: domain.Article{
-				Title: "我的标题",
+				Title:   "我的标题",
 				Content: "我的内容",
 				Author: domain.Author{
 					Id: 123,
 				},
 			},
-			wantId: 1,
+			wantId:  1,
 			wantErr: nil,
 		},
 		{
@@ -64,8 +64,8 @@ func Test_articleService_Publish(t *testing.T) {
 				reader := artrepomocks.NewMockArticleReaderRepository(ctrl)
 
 				author.EXPECT().Update(gomock.Any(), domain.Article{
-					Id: 2,
-					Title: "我的标题",
+					Id:      2,
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -73,8 +73,8 @@ func Test_articleService_Publish(t *testing.T) {
 				}).Return(nil)
 
 				reader.EXPECT().Save(gomock.Any(), domain.Article{
-					Id: 2,
-					Title: "我的标题",
+					Id:      2,
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -84,14 +84,14 @@ func Test_articleService_Publish(t *testing.T) {
 				return author, reader
 			},
 			art: domain.Article{
-				Id: 2,
-				Title: "我的标题",
+				Id:      2,
+				Title:   "我的标题",
 				Content: "我的内容",
 				Author: domain.Author{
 					Id: 123,
 				},
 			},
-			wantId: 2,
+			wantId:  2,
 			wantErr: nil,
 		},
 		{
@@ -101,8 +101,8 @@ func Test_articleService_Publish(t *testing.T) {
 				reader := artrepomocks.NewMockArticleReaderRepository(ctrl)
 
 				author.EXPECT().Update(gomock.Any(), domain.Article{
-					Id: 2,
-					Title: "我的标题",
+					Id:      2,
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -112,14 +112,14 @@ func Test_articleService_Publish(t *testing.T) {
 				return author, reader
 			},
 			art: domain.Article{
-				Id: 2,
-				Title: "我的标题",
+				Id:      2,
+				Title:   "我的标题",
 				Content: "我的内容",
 				Author: domain.Author{
 					Id: 123,
 				},
 			},
-			wantId: 0,
+			wantId:  0,
 			wantErr: errors.New("保存失败"),
 		},
 		{
@@ -129,8 +129,8 @@ func Test_articleService_Publish(t *testing.T) {
 				reader := artrepomocks.NewMockArticleReaderRepository(ctrl)
 
 				author.EXPECT().Update(gomock.Any(), domain.Article{
-					Id: 2,
-					Title: "我的标题",
+					Id:      2,
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -138,8 +138,8 @@ func Test_articleService_Publish(t *testing.T) {
 				}).Return(nil)
 
 				reader.EXPECT().Save(gomock.Any(), domain.Article{
-					Id: 2,
-					Title: "我的标题",
+					Id:      2,
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -147,25 +147,25 @@ func Test_articleService_Publish(t *testing.T) {
 				}).Return(int64(0), errors.New("保存失败"))
 
 				reader.EXPECT().Save(gomock.Any(), domain.Article{
-					Id: 2,
-					Title: "我的标题",
+					Id:      2,
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
 					},
-				}).Return(int64(2),nil)
+				}).Return(int64(2), nil)
 
 				return author, reader
 			},
 			art: domain.Article{
-				Id: 2,
-				Title: "我的标题",
+				Id:      2,
+				Title:   "我的标题",
 				Content: "我的内容",
 				Author: domain.Author{
 					Id: 123,
 				},
 			},
-			wantId: 2,
+			wantId:  2,
 			wantErr: nil,
 		},
 		{
@@ -175,8 +175,8 @@ func Test_articleService_Publish(t *testing.T) {
 				reader := artrepomocks.NewMockArticleReaderRepository(ctrl)
 
 				author.EXPECT().Update(gomock.Any(), domain.Article{
-					Id: 2,
-					Title: "我的标题",
+					Id:      2,
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -184,8 +184,8 @@ func Test_articleService_Publish(t *testing.T) {
 				}).Return(nil)
 
 				reader.EXPECT().Save(gomock.Any(), domain.Article{
-					Id: 2,
-					Title: "我的标题",
+					Id:      2,
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -195,19 +195,19 @@ func Test_articleService_Publish(t *testing.T) {
 				return author, reader
 			},
 			art: domain.Article{
-				Id: 2,
-				Title: "我的标题",
+				Id:      2,
+				Title:   "我的标题",
 				Content: "我的内容",
 				Author: domain.Author{
 					Id: 123,
 				},
 			},
-			wantId: 0,
+			wantId:  0,
 			wantErr: errors.New("保存失败"),
 		},
 	}
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			author, reader := tc.mock(ctrl)

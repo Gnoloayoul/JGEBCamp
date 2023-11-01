@@ -92,12 +92,11 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 		return
 	}
 
-
 	// TODO: 检测输入
 
 	// 调用 svc 的代码
 	id, err := h.svc.Save(ctx, domain.Article{
-		Id: req.Id,
+		Id:      req.Id,
 		Title:   req.Title,
 		Content: req.Content,
 		Author: domain.Author{
@@ -138,7 +137,7 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 		return
 	}
 	id, err := h.svc.Publish(ctx, domain.Article{
-		Id: req.Id,
+		Id:      req.Id,
 		Title:   req.Title,
 		Content: req.Content,
 		Author: domain.Author{
@@ -162,7 +161,7 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 }
 
 type ArticleReq struct {
-	Id	int64 `json:"id"`
+	Id      int64  `json:"id"`
 	Title   string `json:"title"`
 	Content string `json:"content"`
 }

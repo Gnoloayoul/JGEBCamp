@@ -34,7 +34,7 @@ func TestArticleHandler_Publish(t *testing.T) {
 			mock: func(ctrl *gomock.Controller) service.ArticleService {
 				svc := svcmocks.NewMockArticleService(ctrl)
 				svc.EXPECT().Publish(gomock.Any(), domain.Article{
-					Title: "我的标题",
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -53,7 +53,7 @@ func TestArticleHandler_Publish(t *testing.T) {
 			wantCode: 200,
 			wantRes: Result{
 				Data: float64(1),
-				Msg: "ok",
+				Msg:  "ok",
 			},
 		},
 		{
@@ -61,7 +61,7 @@ func TestArticleHandler_Publish(t *testing.T) {
 			mock: func(ctrl *gomock.Controller) service.ArticleService {
 				svc := svcmocks.NewMockArticleService(ctrl)
 				svc.EXPECT().Publish(gomock.Any(), domain.Article{
-					Title: "我的标题",
+					Title:   "我的标题",
 					Content: "我的内容",
 					Author: domain.Author{
 						Id: 123,
@@ -80,7 +80,7 @@ func TestArticleHandler_Publish(t *testing.T) {
 			wantCode: 200,
 			wantRes: Result{
 				Code: 5,
-				Msg: "系统错误",
+				Msg:  "系统错误",
 			},
 		},
 	}

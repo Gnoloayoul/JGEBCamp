@@ -1,11 +1,11 @@
 package domain
 
 type Article struct {
-	Id int64
+	Id      int64
 	Title   string
 	Content string
 	Author  Author
-	Status ArticleStatus
+	Status  ArticleStatus
 }
 
 type Author struct {
@@ -51,12 +51,11 @@ func (s ArticleStatus) String() string {
 	}
 }
 
-
 // 如果状态很复杂，有很多行为（就是要搞很多方法），状态里面需要一些额外字段
 // 就用这个（V1）版本
 
-type ArticleStatusV1 struct{
-	Val uint8
+type ArticleStatusV1 struct {
+	Val  uint8
 	Name string
 }
 

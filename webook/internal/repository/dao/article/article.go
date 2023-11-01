@@ -2,7 +2,6 @@ package article
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -16,7 +15,6 @@ type ArticleDAO interface {
 	Upsert(ctx context.Context, art PublishedArticle) error
 	SyncStatus(ctx context.Context, id int64, author int64, status uint8) error
 }
-
 
 type GORMArticleDAO struct {
 	db *gorm.DB
@@ -35,8 +33,8 @@ func (dao *GORMArticleDAO) SyncStatus(ctx context.Context, id int64, author int6
 			Where("id=? AND author_id=?", id, author).
 			Updates(map[string]any{
 				"status": status,
-				"utime": now,
-		})
+				"utime":  now,
+			})
 		if res.Error != nil {
 			// 数据库有问题
 			return res.Error
@@ -52,7 +50,7 @@ func (dao *GORMArticleDAO) SyncStatus(ctx context.Context, id int64, author int6
 			Where("id=?", id).
 			Updates(map[string]any{
 				"status": status,
-				"utime": now,
+				"utime":  now,
 			}).Error
 	})
 }
@@ -72,7 +70,7 @@ func (dao *GORMArticleDAO) UpdateBYId(ctx context.Context, art Article) error {
 		Updates(map[string]any{
 			"title":   art.Title,
 			"content": art.Content,
-			"status": art.Status,
+			"status":  art.Status,
 			"utime":   art.Utime,
 		})
 	// 要不要检查是不是真的更新了？
@@ -98,7 +96,7 @@ func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error)
 	err := dao.db.Transaction(func(tx *gorm.DB) error {
 		var err error
 		txDAO := NewGORMArticleDAO(tx)
-		if  id > 0 {
+		if id > 0 {
 			err = txDAO.UpdateBYId(ctx, art)
 		} else {
 			id, err = txDAO.Insert(ctx, art)
@@ -126,9 +124,9 @@ func (dao *GORMArticleDAO) Upsert(ctx context.Context, art PublishedArticle) err
 		DoUpdates: clause.Assignments(map[string]interface{}{
 			"title":   art.Title,
 			"content": art.Content,
-			"status": art.Status,
+			"status":  art.Status,
 			"utime":   now,
-	}),
+		}),
 	}).Create(&art).Error
 	// 在 Mysql 里最终生成的语句是这
 	// INSERT xxx ON DUPLICATE KEY UPDATE XXX
@@ -136,7 +134,6 @@ func (dao *GORMArticleDAO) Upsert(ctx context.Context, art PublishedArticle) err
 	// 但要小心 auto commit： 自动提交
 	return err
 }
-
 
 // Article
 // [制作库]
@@ -148,7 +145,7 @@ type Article struct {
 	Content string `gorm:"type=BLOB"`
 	// 仅仅给 AuthorId 上索引
 	AuthorId int64 `gorm:"index"`
-	Status uint8
+	Status   uint8
 	Ctime    int64
 	Utime    int64
 }

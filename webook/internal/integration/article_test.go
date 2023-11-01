@@ -78,7 +78,7 @@ func (s *ArticleTestSuite) TestEdit() {
 					Title:    "my title",
 					Content:  "my context",
 					AuthorId: 123,
-					Status: domain.ArticleStatusPublished.ToUint8(),
+					Status:   domain.ArticleStatusPublished.ToUint8(),
 				}, art)
 			},
 			art: Article{
@@ -102,7 +102,7 @@ func (s *ArticleTestSuite) TestEdit() {
 					AuthorId: 123,
 					Ctime:    123,
 					Utime:    234,
-					Status: domain.ArticleStatusPublished.ToUint8(),
+					Status:   domain.ArticleStatusPublished.ToUint8(),
 				}).Error
 				assert.NoError(t, err)
 			},
@@ -120,7 +120,7 @@ func (s *ArticleTestSuite) TestEdit() {
 					Content:  "new context",
 					Ctime:    123,
 					AuthorId: 123,
-					Status: domain.ArticleStatusUnpublished.ToUint8(),
+					Status:   domain.ArticleStatusUnpublished.ToUint8(),
 				}, art)
 			},
 			art: Article{
@@ -139,9 +139,9 @@ func (s *ArticleTestSuite) TestEdit() {
 			before: func(t *testing.T) {
 				// 提前准备数据
 				err := s.db.Create(article.Article{
-					Id:       3,
-					Title:    "my title",
-					Content:  "my content",
+					Id:      3,
+					Title:   "my title",
+					Content: "my content",
 					// 用户的123，但帖子是789的
 					// 在模拟修改别人的帖子
 					AuthorId: 789,
@@ -162,7 +162,7 @@ func (s *ArticleTestSuite) TestEdit() {
 					Ctime:    123,
 					Utime:    234,
 					AuthorId: 789,
-					Status: domain.ArticleStatusPublished.ToUint8(),
+					Status:   domain.ArticleStatusPublished.ToUint8(),
 				}, art)
 			},
 			art: Article{

@@ -21,7 +21,7 @@ type articleService struct {
 	// v1用 与上面的互斥
 	author article.ArticleAuthorRepository
 	reader article.ArticleReaderRepository
-	l logger.LoggerV1
+	l      logger.LoggerV1
 }
 
 func NewArticleService(repo article.ArticleRepository) ArticleService {
@@ -35,7 +35,7 @@ func NewArticleServiceV1(author article.ArticleAuthorRepository,
 	return &articleService{
 		author: author,
 		reader: reader,
-		l: l,
+		l:      l,
 	}
 }
 

@@ -1,6 +1,6 @@
 package article
 
-import(
+import (
 	"context"
 	"gorm.io/gorm"
 )

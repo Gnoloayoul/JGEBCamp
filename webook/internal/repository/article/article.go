@@ -6,6 +6,7 @@ import (
 	dao "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao/article"
 	"gorm.io/gorm"
 )
+
 // repository 应该是 cache 与 dao （或者一些高级操作的）的胶水
 // 事务概念应该在 DAO 这一层
 
@@ -44,7 +45,7 @@ func (c *CachedArticleRepository) Create(ctx context.Context, art domain.Article
 		Title:    art.Title,
 		Content:  art.Content,
 		AuthorId: art.Author.Id,
-		Status: art.Status.ToUint8(),
+		Status:   art.Status.ToUint8(),
 	})
 }
 
@@ -54,7 +55,7 @@ func (c *CachedArticleRepository) Update(ctx context.Context, art domain.Article
 		Title:    art.Title,
 		Content:  art.Content,
 		AuthorId: art.Author.Id,
-		Status: art.Status.ToUint8(),
+		Status:   art.Status.ToUint8(),
 	})
 }
 
@@ -66,10 +67,9 @@ func (c *CachedArticleRepository) SyncStatus(ctx context.Context, id int64, auth
 	return c.dao.SyncStatus(ctx, id, author, status.ToUint8())
 }
 
-
 func (c *CachedArticleRepository) SyncV1(ctx context.Context, art domain.Article) (int64, error) {
 	var (
-		id = art.Id
+		id  = art.Id
 		err error
 	)
 	artn := c.toEntity(art)
@@ -106,7 +106,7 @@ func (c *CachedArticleRepository) SyncV2(ctx context.Context, art domain.Article
 	reader := dao.NewReaderDAO(tx)
 
 	var (
-		id = art.Id
+		id  = art.Id
 		err error
 	)
 	artn := c.toEntity(art)
@@ -131,10 +131,10 @@ func (c *CachedArticleRepository) SyncV2(ctx context.Context, art domain.Article
 
 func (c *CachedArticleRepository) toEntity(art domain.Article) dao.Article {
 	return dao.Article{
-		Id: art.Id,
-		Title: art.Title,
-		Content: art.Content,
+		Id:       art.Id,
+		Title:    art.Title,
+		Content:  art.Content,
 		AuthorId: art.Author.Id,
-		Status: art.Status.ToUint8(),
+		Status:   art.Status.ToUint8(),
 	}
 }
