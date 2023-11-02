@@ -32,7 +32,11 @@ func (dao *GORMArticleDAO) GetPubById(ctx context.Context, id int64) (PublishedA
 }
 
 func (dao *GORMArticleDAO) GetById(ctx context.Context, id int64) (Article, error) {
-	panic("implement me")
+	var art Article
+	err := dao.db.WithContext(ctx).Model(&Article{}).
+		Where("id = ?", id).
+		First(&art).Error
+	return art, err
 }
 
 func NewGORMArticleDAO(db *gorm.DB) ArticleDAO {
