@@ -46,14 +46,10 @@ func NewGORMArticleDAO(db *gorm.DB) ArticleDAO {
 }
 
 func (dao *GORMArticleDAO) SyncStatus(ctx context.Context, id int64, author int64, status uint8) error {
-	now := time.Now().UnixMilli()
 	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		res := tx.Model(&Article{}).
 			Where("id=? AND author_id=?", id, author).
-			Updates(map[string]any{
-				"status": status,
-				"utime":  now,
-			})
+			Update("status", status)
 		if res.Error != nil {
 			// 数据库有问题
 			return res.Error
@@ -63,14 +59,20 @@ func (dao *GORMArticleDAO) SyncStatus(ctx context.Context, id int64, author int6
 			// 后者情况下，就要小心，可能有人在搞系统
 			// 没必要再用 ID 搜索数据库来区分这两种情况
 			// 用 prometheus 打点，只要频繁出现，就告警，然后手工介入排查
-			return fmt.Errorf("可能有人在搞系统, 误操作非自己的文章， uid：%d, aid: %d", author, id)
+			return ErrPossibleIncorrectAuthor
 		}
-		return tx.Model(&Article{}).
-			Where("id=?", id).
-			Updates(map[string]any{
-				"status": status,
-				"utime":  now,
-			}).Error
+
+		res = tx.Model(&PublishedArticle{}).
+			Where("id=? AND author_id=?", id, author).
+			Update("status", status)
+		if res.Error != nil {
+			// 数据库有问题
+			return res.Error
+		}
+		if res.RowsAffected != 1 {
+			return ErrPossibleIncorrectAuthor
+		}
+		return nil
 	})
 }
 
