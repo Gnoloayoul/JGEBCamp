@@ -77,30 +77,46 @@ func (dao *GORMArticleDAO) SyncStatus(ctx context.Context, id int64, author int6
 }
 
 func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error) {
+	tx := dao.db.WithContext(ctx).Begin()
+	now := time.Now().UnixMilli()
+	defer tx.Rollback()
+	txDAO := NewGORMArticleDAO(tx)
+
 	// 先操作制作库(此时应该是表)，后操作线上库(此时应该是表)
 	// 在事务内部，这里采用了闭包形态
 	// GORM 帮助我们管理了事务的生命周期
 	// Begin， Rollback 和 Commit 都不需要操心
 	var (
 		id = art.Id
+		err error
 	)
-	// tx -> Transaction, 也有人缩写成 trx
-	err := dao.db.Transaction(func(tx *gorm.DB) error {
-		var err error
-		txDAO := NewGORMArticleDAO(tx)
-		if id > 0 {
-			err = txDAO.UpdateBYId(ctx, art)
-		} else {
-			id, err = txDAO.Insert(ctx, art)
-		}
-		if err != nil {
-			return err
-		}
+	if id == 0 {
+		id, err = txDAO.Insert(ctx, art)
+	} else {
+		err = txDAO.UpdateById(ctx, art)
+	}
+	if err != nil {
+		return 0, err
+	}
+	art.Id = id
+	publishedArt := PublishedArticle(art)
+	publishedArt.Utime = now
+	publishedArt.Ctime = now
+	err = tx.Clauses(clause.OnConflict{
 
-		// 要操作线上库了
-		return txDAO.Upsert(ctx, PublishedArticle{Article: art})
-	})
-	return id, err
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"title": art.Title,
+			"content": art.Content,
+			"status": art.Status,
+			"utime": now,
+		}),
+	}).Create(&publishedArt).Error
+	if err != nil {
+		return 0, err
+	}
+	tx.Commit()
+	return id, tx.Error
 }
 
 // Upsert
