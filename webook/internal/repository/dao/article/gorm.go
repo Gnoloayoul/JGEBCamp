@@ -2,7 +2,7 @@ package article
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -119,6 +119,69 @@ func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error)
 	return id, tx.Error
 }
 
+func (dao *GORMArticleDAO) SyncClosure(ctx context.Context, art Article) (int64, error) {
+	var (
+		id = art.Id
+	)
+	err := dao.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		now := time.Now().UnixMilli()
+		txDAO := NewGORMArticleDAO(tx)
+		if id == 0 {
+			id, err = txDAO.Insert(ctx, art)
+		} else {
+			err = txDAO.UpdateById(ctx, art)
+		}
+		if err != nil {
+			return err
+		}
+		art.Id = id
+		publishedArt := art
+		publishedArt.Utime = now
+		publishedArt.Ctime = now
+		return tx.Clauses(clause.OnConflict{
+
+			Columns: []clause.Column{{Name: "id"}},
+			DoUpdates: clause.Assignments(map[string]interface{}{
+				"title": art.Title,
+				"content": art.Content,
+				"status": art.Status,
+				"utime": now,
+			}),
+		}).Create(&publishedArt).Error
+	})
+	return id, err
+}
+
+func (dao *GORMArticleDAO) Insert(ctx context.Context, art Article) (int64, error) {
+	now := time.Now().UnixMilli()
+	art.Ctime, art.Utime = now, now
+	err := dao.db.WithContext(ctx).Create(&art).Error
+	return art.Id, err
+}
+
+func (dao *GORMArticleDAO) UpdateById(ctx context.Context, art Article) error {
+	now := time.Now().UnixMilli()
+	res := dao.db.WithContext(ctx).Model(&Article{}).
+		Where("id=? AND author_id=?", art.Id, art.AuthorId).
+		Updates(map[string]any{
+			"title":   art.Title,
+			"content": art.Content,
+			"status":  art.Status,
+			"utime":   now,
+		})
+	// 要不要检查是不是真的更新了？
+	// 更新行数
+	err := res.Error
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected == 0 {
+		return errors.New("更新数据失败")
+	}
+	return nil
+}
+
 // Upsert
 // Insert or Update
 // 在 db 上实现
@@ -141,33 +204,4 @@ func (dao *GORMArticleDAO) Upsert(ctx context.Context, art PublishedArticle) err
 	// 正常而言，一条 SQL， 是不需要开启的
 	// 但要小心 auto commit： 自动提交
 	return err
-}
-
-func (dao *GORMArticleDAO) Insert(ctx context.Context, art Article) (int64, error) {
-	now := time.Now().UnixMilli()
-	art.Ctime, art.Utime = now, now
-	err := dao.db.WithContext(ctx).Create(&art).Error
-	return art.Id, err
-}
-
-func (dao *GORMArticleDAO) UpdateById(ctx context.Context, art Article) error {
-	now := time.Now().UnixMilli()
-	art.Utime = now
-	res := dao.db.WithContext(ctx).Model(&art).
-		Where("id=? AND author_id=?", art.Id, art.AuthorId).
-		Updates(map[string]any{
-			"title":   art.Title,
-			"content": art.Content,
-			"status":  art.Status,
-			"utime":   art.Utime,
-		})
-	// 要不要检查是不是真的更新了？
-	// 更新行数
-	if res.Error != nil {
-		return res.Error
-	}
-	if res.RowsAffected == 0 {
-		return fmt.Errorf("更新失败，可能是创作者非法 Id %d, author_id %d", art.Id, art.AuthorId)
-	}
-	return res.Error
 }
