@@ -68,7 +68,39 @@ func (m *MongoDBDAO) GetPubById(ctx context.Context, id int64) (PublishedArticle
 }
 
 func (m *MongoDBDAO) Sync(ctx context.Context, art Article) (int64, error) {
+	// 没法引入事务的概念
+	// 首先：保存制作库
+	var (
+		id = art.Id
+		err error
+	)
+	if id > 0 {
+		err = m.UpdateById(ctx, art)
+	} else {
+		id, err = m.Insert(ctx, art)
+	}
+	if err != nil {
+		return 0, err
+	}
+	art.Id = id
+	// 然后： 操作线上库, upsert 语义
+	now := time.Now().UnixMilli()
+	art.Utime = now
+	//update := bson.E{"$set", art}
+	//upsert := bson.E{"$setOnInsert", bson.D{bson.E{"ctime", now}}}
+	updateV1 := bson.M{
+		// 更新：如果不存在，就是插入
+		"$set": PublishedArticle(art),
+		// 在插入的时候，要插入 ctime
+		"$setOnInsert": bson.M{"ctime": now},
+	}
 
+	filter := bson.M{"id": art.Id}
+	_, err = m.liveCol.UpdateOne(ctx, filter,
+		//bson.D{update, upsert},
+		updateV1,
+		options.Update().SetUpsert(true))
+	return id, err
 }
 
 func (m *MongoDBDAO) SyncStatus(ctx context.Context, author, id int64, status uint8) error {
