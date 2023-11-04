@@ -2,6 +2,7 @@ package article
 
 import (
 	"context"
+	"errors"
 	// snowflake 雪花算法
 	"github.com/bwmarrin/snowflake"
 	"go.mongodb.org/mongo-driver/bson"
@@ -21,6 +22,8 @@ type MongoDBDAO struct {
 }
 
 func (m *MongoDBDAO) Insert(ctx context.Context, art Article) (int64, error) {
+	now := time.Now().UnixMilli()
+	art.Ctime, art.Utime = now, now
 	// 没有自增主键
 	// GLOBAL UNIFY ID (GUID, 全局唯一ID)
 	// 这里使用雪花算法生成主键
@@ -34,7 +37,22 @@ func (m *MongoDBDAO) Insert(ctx context.Context, art Article) (int64, error) {
 }
 
 func (m *MongoDBDAO) UpdateById(ctx context.Context, art Article) error {
-	panic("implement me")
+	// 操作制作库
+	filter := bson.M{"id": art.Id}
+	update := bson.D{bson.E{"$set", bson.M{
+		"title": art.Title,
+		"comtent": art.Content,
+		"utime": time.Now().UnixMilli(),
+		"status": art.Status,
+	}}}
+	res, err := m.col.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	if res.ModifiedCount == 0 {
+		return errors.New("更新数据失败")
+	}
+	return nil
 }
 
 func (m *MongoDBDAO) GetByAuthor(ctx context.Context, author int64, offset, limit int) ([]Article, error) {
@@ -50,7 +68,7 @@ func (m *MongoDBDAO) GetPubById(ctx context.Context, id int64) (PublishedArticle
 }
 
 func (m *MongoDBDAO) Sync(ctx context.Context, art Article) (int64, error) {
-	panic("implement me")
+
 }
 
 func (m *MongoDBDAO) SyncStatus(ctx context.Context, author, id int64, status uint8) error {

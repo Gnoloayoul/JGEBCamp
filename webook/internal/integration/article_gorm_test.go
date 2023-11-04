@@ -1,3 +1,5 @@
+//go:build e2e
+
 package integration
 
 import (
@@ -9,7 +11,6 @@ import (
 	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
 	"net/http"
@@ -19,33 +20,34 @@ import (
 
 // ArticleTestSuite
 // 集成测试套件
-type ArticleTestSuite struct {
+type ArticleGORMHandlerTestSuite struct {
 	suite.Suite
 	server *gin.Engine
 	db     *gorm.DB
 }
 
-func (s *ArticleTestSuite) SetupSuite() {
+func (s *ArticleGORMHandlerTestSuite) SetupSuite() {
 	// 在所有测试执行之前，初始化一些内容
 	s.server = gin.Default()
 	s.server.Use(func(ctx *gin.Context) {
 		ctx.Set("claims", &ijwt.UserClaims{
 			Uid: 123,
 		})
+		context.Next()
 	})
 	s.db = startup.InitTestDB()
-	artHdl := startup.InitArticleHandler()
+	hdl := startup.InitArticleHandler(article.NewGORMArticleDAO(s.db))
 	// 注册好了路由
-	artHdl.RegisterRoutes(s.server)
+	hdl.RegisterRoutes(s.server)
 }
 
-func (s *ArticleTestSuite) TearDownTest() {
-	// 清空所有数据，并且自增主键恢复到 1
-	s.db.Exec("TRUNCATE TABLE articles")
-	s.db.Exec("TRUNCATE TABLE published_articles")
+func (s *ArticleGORMHandlerTestSuite) TearDownTest() {
+	err := s.db.Exec("TRUNCATE TABLE `articles`").Error
+	assert.NoError(s.T(), err)
+	s.db.Exec("TRUNCATE TABLE `published_articles`")
 }
 
-func (s *ArticleTestSuite) TestEdit() {
+func (s *ArticleGORMHandlerTestSuite) TestArticleHandle_Edit() {
 	t := s.T()
 	testCases := []struct {
 		name string
@@ -68,8 +70,7 @@ func (s *ArticleTestSuite) TestEdit() {
 			after: func(t *testing.T) {
 				//  验证数据库
 				var art article.Article
-				err := s.db.Where("id=?", 1).First(&art).Error
-				assert.NoError(t, err)
+				s.db.Where("author_id = ?", 123).First(&art)
 				assert.True(t, art.Ctime > 0)
 				assert.True(t, art.Utime > 0)
 				art.Ctime, art.Utime = 0, 0
@@ -88,14 +89,13 @@ func (s *ArticleTestSuite) TestEdit() {
 			wantCode: http.StatusOK,
 			wantRes: Result[int64]{
 				Data: 1,
-				Msg:  "ok",
 			},
 		},
 		{
 			name: "修改已有帖子，并保存",
 			before: func(t *testing.T) {
 				// 提前准备数据
-				err := s.db.Create(article.Article{
+				s.db.Create(&article.Article{
 					Id:       2,
 					Title:    "my title",
 					Content:  "my content",
@@ -103,14 +103,12 @@ func (s *ArticleTestSuite) TestEdit() {
 					Ctime:    123,
 					Utime:    234,
 					Status:   domain.ArticleStatusPublished.ToUint8(),
-				}).Error
-				assert.NoError(t, err)
+				})
 			},
 			after: func(t *testing.T) {
 				//  验证数据库
 				var art article.Article
-				err := s.db.Where("id=?", 2).First(&art).Error
-				assert.NoError(t, err)
+				s.db.Where("id = ?", 2).First(&art)
 				// 验证确实有更新
 				assert.True(t, art.Utime > 234)
 				art.Utime = 0
@@ -131,14 +129,13 @@ func (s *ArticleTestSuite) TestEdit() {
 			wantCode: http.StatusOK,
 			wantRes: Result[int64]{
 				Data: 2,
-				Msg:  "ok",
 			},
 		},
 		{
 			name: "修改别人帖子",
 			before: func(t *testing.T) {
 				// 提前准备数据
-				err := s.db.Create(article.Article{
+				s.db.Create(&article.Article{
 					Id:      3,
 					Title:   "my title",
 					Content: "my content",
@@ -147,14 +144,12 @@ func (s *ArticleTestSuite) TestEdit() {
 					AuthorId: 789,
 					Ctime:    123,
 					Utime:    234,
-				}).Error
-				assert.NoError(t, err)
+				})
 			},
 			after: func(t *testing.T) {
 				//  验证数据库
 				var art article.Article
-				err := s.db.Where("id=?", 3).First(&art).Error
-				assert.NoError(t, err)
+				s.db.Where("id=?", 3).First(&art)
 				assert.Equal(t, article.Article{
 					Id:       3,
 					Title:    "my title",
@@ -186,7 +181,7 @@ func (s *ArticleTestSuite) TestEdit() {
 			reqBody, err := json.Marshal(tc.art)
 			assert.NoError(t, err)
 			req, err := http.NewRequest(http.MethodPost, "/articles/edit", bytes.NewBuffer(reqBody))
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			// 数据是 JSON 格式
 			req.Header.Set("Content-Type", "application/json")
 			// 这里你就可以继续使用 req
@@ -198,19 +193,21 @@ func (s *ArticleTestSuite) TestEdit() {
 			s.server.ServeHTTP(resp, req)
 
 			assert.Equal(t, tc.wantCode, resp.Code)
-			if resp.Code != 200 {
+			if resp.Code != http.StatusOK {
 				return
 			}
+			// 反序列化为结果
+			// 利用泛型来限定结果必须是 int64
 			var webRes Result[int64]
-			err = json.NewDecoder(resp.Body).Decode(&webRes)
-			require.NoError(t, err)
+			err = json.Unmarshal(resp.Body.Bytes(), &webRes)
+			assert.NoError(t, err)
 			assert.Equal(t, tc.wantRes, webRes)
 			tc.after(t)
 		})
 	}
 }
 
-func (s *ArticleTestSuite) TestPublish() {
+func (s *ArticleGORMHandlerTestSuite) TestArticle_Publish() {
 	t := s.T()
 
 	testCases := []struct {
@@ -233,38 +230,19 @@ func (s *ArticleTestSuite) TestPublish() {
 			after: func(t *testing.T) {
 				// 验证一下数据
 				var art article.Article
-				err := s.db.Where("author_id = ?", 123).First(&art).Error
-				assert.NoError(t, err)
-				// 确保已经生成了主键
-				assert.True(t, art.Id > 0)
+				s.db.Where("author_id = ?", 123).First(&art)
+				assert.Equal(t, "hello，你好", art.Title)
+				assert.Equal(t, "随便试试", art.Content)
+				assert.Equal(t, int64(123), art.AuthorId)
 				assert.True(t, art.Ctime > 0)
 				assert.True(t, art.Utime > 0)
-				art.Ctime = 0
-				art.Utime = 0
-				art.Id = 0
-				assert.Equal(t, article.Article{
-					Title:    "hello，你好",
-					Content:  "随便试试",
-					AuthorId: 123,
-					Status:   uint8(domain.ArticleStatusPublished),
-				}, art)
 				var publishedArt article.PublishedArticle
-				err = s.db.Where("author_id = ?", 123).First(&publishedArt).Error
-				assert.NoError(t, err)
-				assert.True(t, publishedArt.Id > 0)
+				s.db.Where("author_id = ?", 123).First(&publishedArt)
+				assert.Equal(t, "hello，你好", publishedArt.Title)
+				assert.Equal(t, "随便试试", publishedArt.Content)
+				assert.Equal(t, int64(123), publishedArt.AuthorId)
 				assert.True(t, publishedArt.Ctime > 0)
 				assert.True(t, publishedArt.Utime > 0)
-				publishedArt.Ctime = 0
-				publishedArt.Utime = 0
-				publishedArt.Id = 0
-				assert.Equal(t, article.PublishedArticle{
-					Article: article.Article{
-						Title:    "hello，你好",
-						Content:  "随便试试",
-						AuthorId: 123,
-						Status:   uint8(domain.ArticleStatusPublished),
-					},
-				}, publishedArt)
 			},
 			req: Article{
 				Title:   "hello，你好",
@@ -272,7 +250,6 @@ func (s *ArticleTestSuite) TestPublish() {
 			},
 			wantCode: 200,
 			wantResult: Result[int64]{
-				Msg:  "OK",
 				Data: 1,
 			},
 		},
@@ -281,49 +258,33 @@ func (s *ArticleTestSuite) TestPublish() {
 			name: "更新帖子并新发表",
 			before: func(t *testing.T) {
 				// 模拟已经存在的帖子
-				err := s.db.Create(&article.Article{
+				s.db.Create(&article.Article{
 					Id:       2,
 					Title:    "我的标题",
 					Content:  "我的内容",
 					Ctime:    456,
 					Utime:    234,
 					AuthorId: 123,
-					Status:   uint8(domain.ArticleStatusUnpublished),
-				}).Error
-				assert.NoError(t, err)
+				})
 			},
 			after: func(t *testing.T) {
 				// 验证一下数据
 				var art article.Article
 				s.db.Where("id = ?", 2).First(&art)
+				assert.Equal(t, "新的标题", art.Title)
+				assert.Equal(t, "新的内容", art.Content)
+				assert.Equal(t, int64(123), art.AuthorId)
+				// 创建时间没变
+				assert.Equal(t, int64(456), art.Ctime)
 				// 更新时间变了
 				assert.True(t, art.Utime > 234)
-				art.Utime = 0
-				// 创建时间没变
-				assert.Equal(t, article.Article{
-					Id:       2,
-					Ctime:    456,
-					Status:   uint8(domain.ArticleStatusPublished),
-					Content:  "新的内容",
-					Title:    "新的标题",
-					AuthorId: 123,
-				}, art)
-
 				var publishedArt article.PublishedArticle
 				s.db.Where("id = ?", 2).First(&publishedArt)
+				assert.Equal(t, "新的标题", art.Title)
+				assert.Equal(t, "新的内容", art.Content)
+				assert.Equal(t, int64(123), art.AuthorId)
 				assert.True(t, publishedArt.Ctime > 0)
 				assert.True(t, publishedArt.Utime > 0)
-				publishedArt.Ctime = 0
-				publishedArt.Utime = 0
-				assert.Equal(t, article.PublishedArticle{
-					Article: article.Article{
-						Id:       2,
-						Status:   uint8(domain.ArticleStatusPublished),
-						Content:  "新的内容",
-						Title:    "新的标题",
-						AuthorId: 123,
-					},
-				}, publishedArt)
 			},
 			req: Article{
 				Id:      2,
@@ -332,7 +293,6 @@ func (s *ArticleTestSuite) TestPublish() {
 			},
 			wantCode: 200,
 			wantResult: Result[int64]{
-				Msg:  "OK",
 				Data: 2,
 			},
 		},
@@ -346,49 +306,31 @@ func (s *ArticleTestSuite) TestPublish() {
 					Ctime:    456,
 					Utime:    234,
 					AuthorId: 123,
-					Status:   uint8(domain.ArticleStatusPublished),
 				}
-				err := s.db.Create(&art).Error
-				assert.NoError(t, err)
-				part := article.PublishedArticle{
-					Article: art,
-				}
-				err = s.db.Create(&part).Error
-				assert.NoError(t, err)
+				s.db.Create(&art)
+				part := article.PublishedArticle(art)
+				s.db.Create(&part)
 			},
 			after: func(t *testing.T) {
 				var art article.Article
-				err := s.db.Where("id = ?", 3).First(&art).Error
-				assert.NoError(t, err)
+				s.db.Where("id = ?", 3).First(&art)
+				assert.Equal(t, "新的标题", art.Title)
+				assert.Equal(t, "新的内容", art.Content)
+				assert.Equal(t, int64(123), art.AuthorId)
+				// 创建时间没变
+				assert.Equal(t, int64(456), art.Ctime)
 				// 更新时间变了
 				assert.True(t, art.Utime > 234)
-				art.Utime = 0
-				// 创建时间没变
-				assert.Equal(t, article.Article{
-					Id:       3,
-					Ctime:    456,
-					Status:   uint8(domain.ArticleStatusPublished),
-					Content:  "新的内容",
-					Title:    "新的标题",
-					AuthorId: 123,
-				}, art)
 
-				var publishedArt article.PublishedArticle
-				err = s.db.Where("id = ?", 3).First(&publishedArt).Error
-				assert.NoError(t, err)
-				assert.True(t, publishedArt.Ctime > 0)
-				assert.True(t, publishedArt.Utime > 0)
-				publishedArt.Ctime = 0
-				publishedArt.Utime = 0
-				assert.Equal(t, article.PublishedArticle{
-					Article: article.Article{
-						Id:       3,
-						Status:   uint8(domain.ArticleStatusPublished),
-						Content:  "新的内容",
-						Title:    "新的标题",
-						AuthorId: 123,
-					},
-				}, publishedArt)
+				var part article.PublishedArticle
+				s.db.Where("id = ?", 3).First(&part)
+				assert.Equal(t, "新的标题", part.Title)
+				assert.Equal(t, "新的内容", part.Content)
+				assert.Equal(t, int64(123), part.AuthorId)
+				// 创建时间没变
+				assert.Equal(t, int64(456), part.Ctime)
+				// 更新时间变了
+				assert.True(t, part.Utime > 234)
 			},
 			req: Article{
 				Id:      3,
@@ -397,7 +339,6 @@ func (s *ArticleTestSuite) TestPublish() {
 			},
 			wantCode: 200,
 			wantResult: Result[int64]{
-				Msg:  "OK",
 				Data: 3,
 			},
 		},
@@ -414,16 +355,14 @@ func (s *ArticleTestSuite) TestPublish() {
 					AuthorId: 789,
 				}
 				s.db.Create(&art)
-				part := article.PublishedArticle{
-					Article: article.Article{
-						Id:       4,
-						Title:    "我的标题",
-						Content:  "我的内容",
-						Ctime:    456,
-						Utime:    234,
-						AuthorId: 789,
-					},
-				}
+				part := article.PublishedArticle(article.Article{
+					Id:       4,
+					Title:    "我的标题",
+					Content:  "我的内容",
+					Ctime:    456,
+					Utime:    234,
+					AuthorId: 789,
+				})
 				s.db.Create(&part)
 			},
 			after: func(t *testing.T) {
@@ -490,12 +429,12 @@ func (s *ArticleTestSuite) TestPublish() {
 	}
 }
 
-func (s *ArticleTestSuite) TestABC() {
+func (s *ArticleGORMHandlerTestSuite) TestABC() {
 	s.T().Log("hello， 这里是测试套件")
 }
 
-func TestAriticle(t *testing.T) {
-	suite.Run(t, &ArticleTestSuite{})
+func TestGORMArticle(t *testing.T) {
+	suite.Run(t, &ArticleGORMHandlerTestSuite{})
 }
 
 type Article struct {
@@ -504,8 +443,3 @@ type Article struct {
 	Content string `json:"content"`
 }
 
-type Result[T any] struct {
-	Code int    `json:"code"`
-	Msg  string `json:"msg"`
-	Data T      `json:data`
-}
