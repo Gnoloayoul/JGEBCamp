@@ -87,7 +87,7 @@ func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error)
 	// GORM 帮助我们管理了事务的生命周期
 	// Begin， Rollback 和 Commit 都不需要操心
 	var (
-		id = art.Id
+		id  = art.Id
 		err error
 	)
 	if id == 0 {
@@ -106,10 +106,10 @@ func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error)
 
 		Columns: []clause.Column{{Name: "id"}},
 		DoUpdates: clause.Assignments(map[string]interface{}{
-			"title": art.Title,
+			"title":   art.Title,
 			"content": art.Content,
-			"status": art.Status,
-			"utime": now,
+			"status":  art.Status,
+			"utime":   now,
 		}),
 	}).Create(&publishedArt).Error
 	if err != nil {
@@ -143,10 +143,10 @@ func (dao *GORMArticleDAO) SyncClosure(ctx context.Context, art Article) (int64,
 
 			Columns: []clause.Column{{Name: "id"}},
 			DoUpdates: clause.Assignments(map[string]interface{}{
-				"title": art.Title,
+				"title":   art.Title,
 				"content": art.Content,
-				"status": art.Status,
-				"utime": now,
+				"status":  art.Status,
+				"utime":   now,
 			}),
 		}).Create(&publishedArt).Error
 	})

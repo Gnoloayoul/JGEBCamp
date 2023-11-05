@@ -32,7 +32,7 @@ func TestMongo(t *testing.T) {
 
 	mdb := client.Database("webook")
 	col := mdb.Collection("articles")
-	defer func(){
+	defer func() {
 		// 全清数据
 		_, err = col.DeleteMany(ctx, bson.D{})
 	}()
@@ -111,14 +111,14 @@ func TestMongo(t *testing.T) {
 
 	// bson: 建索引
 	col.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.M{"id": 1},
+		Keys:    bson.M{"id": 1},
 		Options: options.Index().SetUnique(true),
 	})
 
 	// bson: 建索引 写法2
 	idxRex, err := col.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys: bson.M{"id": 1},
+			Keys:    bson.M{"id": 1},
 			Options: options.Index().SetUnique(true),
 		},
 		{
@@ -132,7 +132,6 @@ func TestMongo(t *testing.T) {
 	assert.NoError(t, err)
 	// *DeleteResult.DeletedCount: The number of documents deleted 删除了多少行
 	fmt.Println(delRes.DeletedCount)
-
 
 }
 

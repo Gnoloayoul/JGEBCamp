@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	dao "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao/article"
+	"github.com/ecodeclub/ekit/slice"
 	"gorm.io/gorm"
+	"time"
 )
 
 // repository 应该是 cache 与 dao （或者一些高级操作的）的胶水
@@ -17,6 +19,7 @@ type ArticleRepository interface {
 	Sync(ctx context.Context, art domain.Article) (int64, error)
 	//FindById(ctx context.Context, id int64) domain.Article
 	SyncStatus(ctx context.Context, id int64, author int64, status domain.ArticleStatus) (int64, error)
+	List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error)
 }
 
 type CachedArticleRepository struct {
@@ -32,6 +35,8 @@ type CachedArticleRepository struct {
 	// 要么只能利用 db 开始事务之后，创建基于事务的 dao
 	// 或者，直接去掉 DAO 这一层，在 repository 的实现中，直接操作数据库 db
 	db *gorm.DB
+
+	cashe Cache
 }
 
 func NewArticleRepository(dao dao.ArticleDAO) ArticleRepository {
@@ -39,6 +44,35 @@ func NewArticleRepository(dao dao.ArticleDAO) ArticleRepository {
 		dao: dao,
 	}
 }
+
+func (c *CachedArticleRepository) List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error) {
+	// 只缓存这一页
+	if offset == 0 && limit <= 100 {
+		c.C
+	}
+	res, err :=  c.dao.GetByAuthor(ctx, uid, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	return slice.Map[dao.Article, domain.Article](res, func(idx int, src dao.Article){
+		return c.toDomain(src)
+	}), nil
+}
+
+func (c *CachedArticleRepository) toDomain(art dao.Article) domain.Article {
+	return domain.Article{
+		Id:      art.Id,
+		Title:   art.Title,
+		Status:  domain.ArticleStatus(art.Status),
+		Content: art.Content,
+		Author: domain.Author{
+			Id: art.AuthorId,
+		},
+		Ctime: time.UnixMilli(art.Ctime),
+		Utime: time.UnixMilli(art.Utime),
+	}
+}
+
 
 func (c *CachedArticleRepository) Create(ctx context.Context, art domain.Article) (int64, error) {
 	return c.dao.Insert(ctx, dao.Article{

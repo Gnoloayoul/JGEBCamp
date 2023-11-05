@@ -4,16 +4,19 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/ginx"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
+	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 var _ handler = (*ArticleHandler)(nil)
 
 type ArticleHandler struct {
-	svc service.ArticleService
-	l   logger.LoggerV1
+	svc  service.ArticleService
+	l    logger.LoggerV1
 }
 
 func NewArticleHandler(svc service.ArticleService, l logger.LoggerV1) *ArticleHandler {
@@ -28,6 +31,10 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 	g.POST("/withdraw", h.WithDraw)
 	g.POST("/edit", h.Edit)
 	g.POST("/publish", h.Publish)
+	// 创作者的查询接口
+	// 这是获取数据的接口，按照理论上来说（遵循 RESTful 规则），应该是用 GET 方法
+	g.POST("/list",
+		ginx.WrapBodyAndToken[ListReq, ijwt.UserClaims](h.List))
 }
 
 func (h *ArticleHandler) WithDraw(ctx *gin.Context) {
@@ -160,8 +167,33 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 	})
 }
 
-type ArticleReq struct {
-	Id      int64  `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+func (h *ArticleHandler) List(ctx *gin.Context, req ListReq, uc ijwt.UserClaims) (ginx.Result, error) {
+	res, err := h.svc.List(ctx ,uc.Id, req.Offset, req.Limit)
+	if err != nil {
+		return ginx.Result{
+			Code: 5,
+			Msg: "系统错误",
+		}, nil
+	}
+	// 在列表页，不显示全文，只显示一个“摘要”
+	// 比如说，简单的摘要就是 前几句话
+	// 强大的摘要是 AI 帮忙生成的
+	return ginx.Result{
+		Data: slice.Map[domain.Article, ArticleVO](res,
+			func(idx int, src domain.Article) ArticleVO {
+				return ArticleVO{
+					Id: src.Id,
+					Title: src.Title,
+					Abstract: src.Abstract(),
+					Status: src.Status.ToUint8(),
+					// 这个列表请求，不需要返回内容
+					// Content: src.Content
+					// 这个是创作者看自己的文章列表，也不需要这个字段
+					// Author: src.Author
+					Ctime: src.Ctime.Format(time.DateTime),
+					Utime: src.Utime.Format(time.DateTime),
+				}
+			}),
+	}, nil
 }
+
