@@ -2,11 +2,11 @@ package web
 
 import (
 	"fmt"
-	"gitee.com/geekbang/basic-go/webook/internal/domain"
-	"gitee.com/geekbang/basic-go/webook/internal/service"
-	ijwt "gitee.com/geekbang/basic-go/webook/internal/web/jwt"
-	"gitee.com/geekbang/basic-go/webook/pkg/ginx"
-	"gitee.com/geekbang/basic-go/webook/pkg/logger"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/domain"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/service"
+	ijwt "github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/web/jwt"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/pkg/ginx"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/pkg/logger"
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"

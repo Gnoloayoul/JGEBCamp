@@ -40,14 +40,13 @@ type CachedArticleRepository struct {
 	db *gorm.DB
 
 	cache cache.ArticleCache
-	l logger.LoggerV1
+	l     logger.LoggerV1
 }
 
 func (c *CachedArticleRepository) GetById(ctx context.Context, id int64) (domain.Article, error) {
-	res, err :=  c.dao.GetById(ctx, id)
+	res, err := c.dao.GetById(ctx, id)
 	if err != nil {
 		return domain.Article{}, err
 	}
 	return c.toDomain(res), nil
 }
-

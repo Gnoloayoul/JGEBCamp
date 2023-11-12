@@ -8,8 +8,8 @@ type Article struct {
 	Content string
 	Author  Author
 	Status  ArticleStatus
-	Ctime time.Time
-	Utime time.Time
+	Ctime   time.Time
+	Utime   time.Time
 }
 
 func (a Article) Abstract() string {

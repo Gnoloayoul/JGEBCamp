@@ -17,8 +17,8 @@ import (
 var _ handler = (*ArticleHandler)(nil)
 
 type ArticleHandler struct {
-	svc  service.ArticleService
-	l    logger.LoggerV1
+	svc service.ArticleService
+	l   logger.LoggerV1
 }
 
 func NewArticleHandler(svc service.ArticleService, l logger.LoggerV1) *ArticleHandler {
@@ -219,11 +219,11 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 }
 
 func (h *ArticleHandler) List(ctx *gin.Context, req ListReq, uc ijwt.UserClaims) (ginx.Result, error) {
-	res, err := h.svc.List(ctx ,uc.Id, req.Offset, req.Limit)
+	res, err := h.svc.List(ctx, uc.Id, req.Offset, req.Limit)
 	if err != nil {
 		return ginx.Result{
 			Code: 5,
-			Msg: "系统错误",
+			Msg:  "系统错误",
 		}, nil
 	}
 	// 在列表页，不显示全文，只显示一个“摘要”
@@ -233,10 +233,10 @@ func (h *ArticleHandler) List(ctx *gin.Context, req ListReq, uc ijwt.UserClaims)
 		Data: slice.Map[domain.Article, ArticleVO](res,
 			func(idx int, src domain.Article) ArticleVO {
 				return ArticleVO{
-					Id: src.Id,
-					Title: src.Title,
+					Id:       src.Id,
+					Title:    src.Title,
 					Abstract: src.Abstract(),
-					Status: src.Status.ToUint8(),
+					Status:   src.Status.ToUint8(),
 					// 这个列表请求，不需要返回内容
 					// Content: src.Content
 					// 这个是创作者看自己的文章列表，也不需要这个字段
@@ -247,4 +247,3 @@ func (h *ArticleHandler) List(ctx *gin.Context, req ListReq, uc ijwt.UserClaims)
 			}),
 	}, nil
 }
-
