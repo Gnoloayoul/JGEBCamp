@@ -1,0 +1,19 @@
+@startuml
+    title 找出点赞数前N的数据1
+    participant User
+    participant Gin
+    participant "数据库" as MySQL #red
+    autonumber
+    User -> Gin: 发起请求获取前N点赞量最高的文章
+    activate Gin #blue
+    note left: start
+    Gin -> MySQL: 执行数据库查询
+    activate Gin #FFBBBB
+    Gin <-- MySQL: 返回查询结果
+    deactivate Gin
+    Gin-->>User: 返回文章列表
+    deactivate Gin
+    note over User
+    https://blog.csdn.net/hacker_empire/article/details/127209955
+    end note
+@enduml
