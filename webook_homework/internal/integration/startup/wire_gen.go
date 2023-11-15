@@ -7,15 +7,15 @@
 package startup
 
 import (
-	"gitee.com/geekbang/basic-go/webook/internal/repository"
-	article2 "gitee.com/geekbang/basic-go/webook/internal/repository/article"
-	"gitee.com/geekbang/basic-go/webook/internal/repository/cache"
-	"gitee.com/geekbang/basic-go/webook/internal/repository/dao"
-	"gitee.com/geekbang/basic-go/webook/internal/repository/dao/article"
-	"gitee.com/geekbang/basic-go/webook/internal/service"
-	"gitee.com/geekbang/basic-go/webook/internal/web"
-	"gitee.com/geekbang/basic-go/webook/internal/web/jwt"
-	"gitee.com/geekbang/basic-go/webook/ioc"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/repository"
+	article2 "github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/repository/article"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/repository/cache"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/repository/dao"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/repository/dao/article"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/service"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/web"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/web/jwt"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/ioc"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
