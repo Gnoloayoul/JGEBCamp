@@ -3,7 +3,6 @@
 package startup
 
 import (
-	"github.com/Gnoloayoul/JGEBCamp/webook_homework/ioc"
 	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/repository"
 	article2 "github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/repository/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/repository/cache"
@@ -12,6 +11,7 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/service"
 	"github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/web"
 	ijwt "github.com/Gnoloayoul/JGEBCamp/webook_homework/internal/web/jwt"
+	"github.com/Gnoloayoul/JGEBCamp/webook_homework/ioc"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )

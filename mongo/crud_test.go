@@ -42,6 +42,7 @@ func TestMongo(t *testing.T) {
 		Title:   "我的标题",
 		Content: "我的内容",
 	})
+	assert.NoError(t, err)
 	fmt.Printf("id: %s", res.InsertedID)
 
 	// bson
@@ -69,14 +70,12 @@ func TestMongo(t *testing.T) {
 	updateRes, err := col.UpdateMany(ctx, filter, set)
 	assert.NoError(t, err)
 	// *UpdateResult.ModifiedCount 更新了多少行数据（计数）
-	fmt.Println(updateRes.ModifiedCount)
-
-	// bson: 直接用结构体来更新
+	fmt.Println("affected update1", updateRes.ModifiedCount)
+	// bson: 更新 写法2 用结构体来更新
 	updateRes, err = col.UpdateMany(ctx, filter, bson.D{
-		bson.E{Key: "$set", Value: Article{Title: "新的标题2", AuthorId: 123456}}})
+		bson.E{Key: "$set", Value: Article{Title: "我的标题", AuthorId: 123456}}})
 	assert.NoError(t, err)
-	// *UpdateResult.ModifiedCount 更新了多少行数据（计数）
-	fmt.Println(updateRes.ModifiedCount)
+	fmt.Println("affected update2", updateRes.ModifiedCount)
 
 	// bson: 复合条件查询 or
 	// 写法1
@@ -93,7 +92,7 @@ func TestMongo(t *testing.T) {
 	// bson: 复合条件查询 and
 	// 写法1
 	and := bson.A{bson.D{bson.E{"id", 123}},
-		bson.D{bson.E{"title", "我的标题1"}}}
+		bson.D{bson.E{"title", "我的标题"}}}
 	// 写法2
 	//and := bson.A{bson.M{"id": 123}, bson.M{"title": 我的标题1}}
 	andRes, err := col.Find(ctx, bson.D{bson.E{"$and", and}})
@@ -109,6 +108,14 @@ func TestMongo(t *testing.T) {
 	err = inRes.All(ctx, &resArt)
 	assert.NoError(t, err)
 
+	inRes, err = col.Find(ctx, in, options.Find().SetProjection(bson.M{
+		"id":    1,
+		"title": 1,
+	}))
+	resArt = []Article{}
+	err = inRes.All(ctx, &resArt)
+	assert.NoError(t, err)
+
 	// bson: 建索引
 	col.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys:    bson.M{"id": 1},
@@ -116,7 +123,7 @@ func TestMongo(t *testing.T) {
 	})
 
 	// bson: 建索引 写法2
-	idxRex, err := col.Indexes().CreateMany(ctx, []mongo.IndexModel{
+	idxRes, err := col.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys:    bson.M{"id": 1},
 			Options: options.Index().SetUnique(true),
@@ -126,6 +133,7 @@ func TestMongo(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
+	fmt.Println(idxRes)
 
 	// bson: 删除
 	delRes, err := col.DeleteOne(ctx, filter)
@@ -144,3 +152,5 @@ type Article struct {
 	Ctime    int64  `bson:"ctime,omitempty"`
 	Utime    int64  `bson:"utime,omitempty"`
 }
+
+//TODO: 6-2

@@ -14,7 +14,7 @@ import (
 type ArticleGORMFuncTestSuite struct {
 	suite.Suite
 	server *gin.Engine
-	db *gorm.DB
+	db     *gorm.DB
 }
 
 func (s *ArticleGORMFuncTestSuite) SetupSuite() {
@@ -36,12 +36,12 @@ func (s *ArticleGORMFuncTestSuite) TearDownTest() {
 	s.db.Exec("TRUNCATE TABLE `published_articles`")
 }
 
-func (s *ArticleGORMFuncTestSuite)Test_findN() {
+func (s *ArticleGORMFuncTestSuite) Test_findN() {
 	t := s.T()
-	testCase := []struct{
-		name string
+	testCase := []struct {
+		name   string
 		before func(t *testing.T)
-		after func(t *testing.T)
+		after  func(t *testing.T)
 		req
 	}
 }

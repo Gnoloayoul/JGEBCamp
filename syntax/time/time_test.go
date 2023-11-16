@@ -12,13 +12,13 @@ func TestTick(t *testing.T) {
 	// 这一句防gorutine泄露
 	defer tm.Stop()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	done := false
 	for !done {
 		select {
-		case <- ctx.Done():
+		case <-ctx.Done():
 			done = true
 			t.Log("over time, or cancel")
 		case now := <-tm.C:

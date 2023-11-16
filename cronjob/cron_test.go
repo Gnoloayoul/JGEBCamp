@@ -24,9 +24,7 @@ func TestCronJob(t *testing.T) {
 	//TODO: 试一试封装：保证一次只运行一次任务
 }
 
-
 type myJob struct {
-	
 }
 
 func (m myJob) Run() {
