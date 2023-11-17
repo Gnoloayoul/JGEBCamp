@@ -26,7 +26,7 @@ func TestMongo(t *testing.T) {
 		// 执行失败
 		Failed: func(ctx context.Context, failedEvent *event.CommandFailedEvent) {},
 	}
-	ops := options.Client().ApplyURI("mongodb://root:example@150.109.159.152:27017").SetMonitor(monitor)
+	ops := options.Client().ApplyURI("mongodb://root:example@43.128.23.122:27017").SetMonitor(monitor)
 	client, err := mongo.Connect(ctx, ops)
 	assert.NoError(t, err)
 
@@ -47,20 +47,20 @@ func TestMongo(t *testing.T) {
 
 	// bson
 	// 找 id = 123
-	filter := bson.D{bson.E{Key: "id", Value: "123"}}
+	filter := bson.D{bson.E{Key: "id", Value: 123}}
 	var art Article
 	err = col.FindOne(ctx, filter).Decode(&art)
 	assert.NoError(t, err)
-	fmt.Printf("find1： %v \n", art)
+	fmt.Printf("查找第一种写法： %#v \n", art)
 
 	// 绝对会翻车的写法2
 	art = Article{}
 	err = col.FindOne(ctx, Article{Id: 123}).Decode(&art)
 	if err == mongo.ErrNoDocuments {
-		fmt.Println("find2： 没有数据")
+		fmt.Println("查找第二种写法： 没有数据")
 	}
 	assert.NoError(t, err)
-	fmt.Printf("find2： %v \n", art)
+	fmt.Printf("查找第二种写法： %#v \n", art)
 
 	// bson：更新
 	set := bson.D{bson.E{Key: "$set",
