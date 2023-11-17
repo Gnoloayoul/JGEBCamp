@@ -26,7 +26,7 @@ func TestMongo(t *testing.T) {
 		// 执行失败
 		Failed: func(ctx context.Context, failedEvent *event.CommandFailedEvent) {},
 	}
-	ops := options.Client().ApplyURI("mongodb://root:example@localhost:27017").SetMonitor(monitor)
+	ops := options.Client().ApplyURI("mongodb://root:example@150.109.159.152:27017").SetMonitor(monitor)
 	client, err := mongo.Connect(ctx, ops)
 	assert.NoError(t, err)
 
@@ -43,7 +43,7 @@ func TestMongo(t *testing.T) {
 		Content: "我的内容",
 	})
 	assert.NoError(t, err)
-	fmt.Printf("id: %s", res.InsertedID)
+	fmt.Printf("初始设的 id: %s", res.InsertedID)
 
 	// bson
 	// 找 id = 123
@@ -51,16 +51,16 @@ func TestMongo(t *testing.T) {
 	var art Article
 	err = col.FindOne(ctx, filter).Decode(&art)
 	assert.NoError(t, err)
-	fmt.Printf("%v \n", art)
+	fmt.Printf("find1： %v \n", art)
 
 	// 绝对会翻车的写法2
 	art = Article{}
 	err = col.FindOne(ctx, Article{Id: 123}).Decode(&art)
 	if err == mongo.ErrNoDocuments {
-		fmt.Println("没有数据")
+		fmt.Println("find2： 没有数据")
 	}
 	assert.NoError(t, err)
-	fmt.Printf("%v \n", art)
+	fmt.Printf("find2： %v \n", art)
 
 	// bson：更新
 	set := bson.D{bson.E{Key: "$set",
@@ -133,13 +133,13 @@ func TestMongo(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
-	fmt.Println(idxRes)
+	fmt.Println("由写法2建的索引： ", idxRes)
 
 	// bson: 删除
-	delRes, err := col.DeleteOne(ctx, filter)
+	delRes, err := col.DeleteMany(ctx, filter)
 	assert.NoError(t, err)
 	// *DeleteResult.DeletedCount: The number of documents deleted 删除了多少行
-	fmt.Println(delRes.DeletedCount)
+	fmt.Println("deleted", delRes.DeletedCount)
 
 }
 
