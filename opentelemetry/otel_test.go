@@ -25,23 +25,36 @@ func TestServer(t *testing.T) {
 
 	// 准备2
 	porp := newPropagator()
-	otel.SetTextMapPropagator(prop)
+	otel.SetTextMapPropagator(porp)
 
 	// 准备3
 	tp, err := newTranceProvider(res)
 	require.NoError(t, err)
 	defer tp.Shutdown(context.Background())
-	otel.SetTraceProcider(tp)
+	otel.SetTracerProvider(tp)
 
 	server := gin.Default()
-	server.GET("test", func(ginCtx *gin.Context) {
+	server.GET("/test", func(ginCtx *gin.Context) {
+		// 这个 Tracer 的名字，最好设置为唯一的，比如说用所在包名
+		tracer := otel.Tracer("opentelemtry")
 
+		var ctx context.Context = ginCtx
+		ctx, span := tracer.Start(ctx, "top-span")
+		defer span.End()
+
+		span.AddEvent("event-1")
+		time.Sleep(time.Second)
+		ctx, subSpan := tracer.Start(ctx, "sub-span")
+		defer subSpan.End()
+		time.Sleep(time.Millisecond * 300)
+		subSpan.SetAttributes(attribute.String("key1", "value1"))
+		ginCtx.String(http.StatusOK, "ok")
 	})
 	server.Run(":8082")
 
 }
 
-func newResource(serviceName, serviceVersion string) (*resource.Resouce, error) {
+func newResource(serviceName, serviceVersion string) (*resource.Resource, error) {
 	return resource.Merge(resource.Default(),
 		resource.NewWithAttributes(semconv.SchemaURL,
 			semconv.ServiceName(serviceName),
@@ -49,6 +62,24 @@ func newResource(serviceName, serviceVersion string) (*resource.Resouce, error) 
 			))
 }
 
-newPropagator
+func newPropagator() propagation.TextMapPropagator {
+	return propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+		)
+}
 
-newTranceProvider
+func newTranceProvider(res *resource.Resource) (*trace.TracerProvider, error) {
+	exporter, err := zipkin.New(
+		"http://localhost:9411/api/v2/spans")
+	if err != nil {
+		return nil, err
+	}
+
+	traceProvider := trace.NewTracerProvider(
+		trace.WithBatcher(exporter,
+			trace.WithBatchTimeout(time.Second)),
+		trace.WithResource(res),
+	)
+	return traceProvider, nil
+}
