@@ -59,14 +59,14 @@ func newResource(serviceName, serviceVersion string) (*resource.Resource, error)
 		resource.NewWithAttributes(semconv.SchemaURL,
 			semconv.ServiceName(serviceName),
 			semconv.ServiceVersion(serviceVersion),
-			))
+		))
 }
 
 func newPropagator() propagation.TextMapPropagator {
 	return propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
-		)
+	)
 }
 
 func newTranceProvider(res *resource.Resource) (*trace.TracerProvider, error) {

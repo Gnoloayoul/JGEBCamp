@@ -22,7 +22,7 @@ func TestConsumer(t *testing.T) {
 	//ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	ctx, cancel := context.WithCancel(context.Background())
 	//defer cancel()
-	time.AfterFunc(time.Minute * 10, func() {
+	time.AfterFunc(time.Minute*10, func() {
 		cancel()
 	})
 	err = consumer.Consume(ctx,
@@ -79,9 +79,7 @@ func (t testConsumerGroupHandler) ConsumeClaim(
 	}
 }
 
-func (t testConsumerGroupHandler) ConsumeClaimV1(
-
-) error {
+func (t testConsumerGroupHandler) ConsumeClaimV1() error {
 
 }
 
