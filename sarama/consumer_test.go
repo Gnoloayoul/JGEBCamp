@@ -35,7 +35,14 @@ type testConsumerGroupHandler struct {
 }
 
 func (t testConsumerGroupHandler) Setup(session sarama.ConsumerGroupSession) error {
+	// topic => 偏移量
+	partitions := session.Claims()["test_topic"]
 
+	for _, part := range partitions {
+		session.ResetOffset("test_topic", part,
+			sarama.OffsetOldest, "")
+	}
+	return nil
 }
 
 func (t testConsumerGroupHandler) Cleanup(session sarama.ConsumerGroupSession) error {
@@ -73,14 +80,40 @@ func (t testConsumerGroupHandler) ConsumeClaim(
 					return nil
 				}
 				last = msg
+				eg.Go(func() error {
+					// 我就在这里消费
+					time.Sleep(time.Second)
+					// 你在这里重试
+					log.Println(string(msg.Value))
+					return nil
+				})
 			}
 		}
-
+		cancle()
+		err := eg.Wait()
+		if err != nil {
+			// 这边能怎么办？
+			// 记录日志
+			continue
+		}
+		// 就这样
+		if last != nil {
+			session.MarkMessage(last, "")
+		}
 	}
 }
 
-func (t testConsumerGroupHandler) ConsumeClaimV1() error {
-
+func (t testConsumerGroupHandler) ConsumeClaimV1(
+	// 代表的是你和Kafka 的会话（从建立连接到连接彻底断掉的那一段时间）
+	session sarama.ConsumerGroupSession,
+	claim sarama.ConsumerGroupClaim) error {
+	msgs := claim.Messages()
+	for msg := range msgs {
+		log.Println(string(msg.Value))
+		session.MarkMessage(msg, "")
+	}
+	// 当 msgs 被人关了，也就是要退出消费逻辑，就会来到这里
+	return nil
 }
 
 type MyBizMsg struct {
