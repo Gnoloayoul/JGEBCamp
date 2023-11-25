@@ -2,10 +2,11 @@ package article
 
 import (
 	"context"
-	"gitee.com/geekbang/basic-go/webook/pkg/saramax"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/saramax"
 	"github.com/IBM/sarama"
+	"time"
 )
 
 type InteractiveReadEventBatchConsumer struct {
@@ -51,7 +52,15 @@ func (r *InteractiveReadEventBatchConsumer) Consume(
 	for _, evt := range ts {
 		ids = append(ids, evt.Aid)
 		bizs = append(bizs, "article")
-
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	err := r.repo.BatchIncrReadCnt(ctx, bizs, ids)
+	if err != nil {
+		r.l.Error("",
+			logger.Field{Key: "ids", Value: ids},
+			logger.Error(err))
+	}
+	return nil
 }
 
