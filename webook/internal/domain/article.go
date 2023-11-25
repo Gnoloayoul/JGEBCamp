@@ -78,3 +78,4 @@ type ArticleStatusV1 struct {
 var (
 	ArticleStatusV1Unknown = ArticleStatusV1{Val: 0, Name: "unknown"}
 )
+
