@@ -49,7 +49,7 @@ func (b *BatchHandler[T]) ConsumeClaim(session sarama.ConsumerGroupSession,
 				done = true
 			case msg, ok := <-msgsCh:
 				if !ok {
-					cancle()
+					cancel()
 					// 代表消费者被关闭了
 					return nil
 				}
