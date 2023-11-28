@@ -44,8 +44,18 @@ func (c *CachedReadCntRepository) IncrReadCnt(ctx context.Context, biz string, b
 	return c.cache.IncrReadCntIfPresent(ctx, biz, bizId)
 }
 
+// BatchIncrReadCnt
+// bizs 和 ids 的长度必须相等
 func (c *CachedReadCntRepository) BatchIncrReadCnt(ctx context.Context, biz []string, bizId []int64) error {
-	panic("implement me")
+	// 我在这里要不要检测 bizs 和 ids 的长度是否相等？
+	err := c.dao.BatchIncrReadCnt(ctx, bizs, bizId)
+	if err != nil {
+		return err
+	}
+	// 你也要批量的去修改 redis，所以就要去改 lua 脚本
+	// c.cache.IncrReadCntIfPresent()
+	// TODO, 等我写新的 lua 脚本/或者用 pipeline
+	return nil
 }
 
 func (c *CachedReadCntRepository) IncrLike(ctx context.Context, biz string, bizId, uid int64) error {
@@ -68,11 +78,51 @@ func (c *CachedReadCntRepository) DecrLike(ctx context.Context, biz string, bizI
 }
 
 func (c *CachedReadCntRepository) AddCollectionItem(ctx context.Context, biz string, bizId, cid int64, uid int64) error {
-	panic("implement me")
+	// 这个地方，你要不要考虑缓存收藏夹？
+	// 以及收藏夹里面的内容
+	// 用户会频繁访问他的收藏夹，那么你就应该缓存，不然你就不需要
+	// 一个东西要不要缓存，你就看用户会不会频繁访问（反复访问）
+	err := c.dao.InsertCollectionBiz(ctx, dao.UserCollectionBiz{
+		Cid:   cid,
+		Biz:   biz,
+		BizId: bizId,
+		Uid:   uid,
+	})
+	if err != nil {
+		return err
+	}
+	// 收藏个数（有多少个人收藏了这个 biz + bizId)
+	return c.cache.IncrCollectCntIfPresent(ctx, biz, bizId)
 }
 
 func (c *CachedReadCntRepository) Get(ctx context.Context, biz string, bizId int64) (domain.Interactive, error) {
-	panic("implement me")
+	// 要从缓存拿出来阅读数，点赞数和收藏数
+	intr, err := c.cache.Get(ctx, biz, bizId)
+	if err == nil {
+		return intr, nil
+	}
+
+	// 但不是所有的结构体都是可比较的
+	//if intr == (domain.Interactive{}) {
+	//
+	//}
+	// 在这里查询数据库
+	daoIntr, err := c.dao.Get(ctx, biz, bizId)
+	if err != nil {
+		return domain.Interactive{}, err
+	}
+	intr = c.toDomain(daoIntr)
+	go func() {
+		er := c.cache.Set(ctx, biz, bizId, intr)
+		// 记录日志
+		if er != nil {
+			c.l.Error("回写缓存失败",
+				logger.String("biz", biz),
+				logger.Int64("bizId", bizId),
+			)
+		}
+	}()
+	return intr, nil
 }
 
 func (c *CachedReadCntRepository) Liked(ctx context.Context, biz string, id int64, uid int64) (bool, error) {
@@ -105,5 +155,51 @@ func (c *CachedReadCntRepository) AddRecord(ctx context.Context, aid int64, uid 
 	panic("implement me")
 }
 
+// UpdateCnt 这不是好的实践
+func (c *CachedReadCntRepository) UpdateCnt(intr *dao.Interactive) {
+	intr.LikeCnt = 30
+}
+
+// UpdateCntV1 凑合的实践
+func (c *CachedReadCntRepository) UpdateCntV1(intr dao.Interactive) dao.Interactive {
+	intr.LikeCnt = 30
+	return intr
+}
+
+// 正常来说，参数必然不用指针：方法不要修改参数，通过返回值来修改参数
+// 返回值就看情况。如果是指针实现了接口，那么就返回指针
+// 如果返回值很大，你不想值传递引发复制问题，那么还是返回指针
+// 返回结构体
+
+// 最简原则：
+// 1. 接收器永远用指针
+// 2. 输入输出都用结构体
+func (c *CachedReadCntRepository) toDomain(intr dao.Interactive) domain.Interactive {
+	return domain.Interactive{
+		LikeCnt:    intr.LikeCnt,
+		CollectCnt: intr.CollectCnt,
+		ReadCnt:    intr.ReadCnt,
+	}
+}
+
+func (c *CachedReadCntRepository) GetCollection() (domain.Collection, error) {
+	items, err := c.dao.(*dao.GORMInteractiveDAO).GetItems()
+	if err != nil {
+		return domain.Collection{}, err
+	}
+	// 用 items 来构造一个 Collection
+	return domain.Collection{
+		Name: items[0].Cname,
+	}, nil
+}
+
+func NewCachedInteractiveRepository(dao dao.InteractiveDAO,
+	cache cache.InteractiveCache, l logger.LoggerV1) InteractiveRepository {
+	return &CachedReadCntRepository{
+		dao:   dao,
+		cache: cache,
+		l:     l,
+	}
+}
 
 
