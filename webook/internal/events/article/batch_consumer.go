@@ -11,7 +11,7 @@ import (
 
 type InteractiveReadEventBatchConsumer struct {
 	client sarama.Client
-	repo repository.InteractiveRepository
+	repo   repository.InteractiveRepository
 	l      logger.LoggerV1
 }
 
@@ -21,8 +21,8 @@ func NewInteractiveReadEventBatchConsumer(
 	l logger.LoggerV1) *InteractiveReadEventBatchConsumer {
 	return &InteractiveReadEventBatchConsumer{
 		client: client,
-		repo: repo,
-		l: l,
+		repo:   repo,
+		l:      l,
 	}
 }
 
@@ -63,4 +63,3 @@ func (r *InteractiveReadEventBatchConsumer) Consume(
 	}
 	return nil
 }
-

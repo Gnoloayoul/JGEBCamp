@@ -9,20 +9,20 @@ import (
 )
 
 type BatchHandler[T any] struct {
-	l logger.LoggerV1
+	l  logger.LoggerV1
 	fn func(msgs []*sarama.ConsumerMessage, ts []T) error
 	// 用 option 模式来设置这个 batchSize 和 duration
-	batchSize int
+	batchSize     int
 	batchDuration time.Duration
 }
 
 func NewBatchHandler[T any](l logger.LoggerV1,
 	fn func(msgs []*sarama.ConsumerMessage, ts []T) error) *BatchHandler {
 	return &BatchHandler[T]{
-		l: l,
-		fn: fn,
+		l:             l,
+		fn:            fn,
 		batchDuration: time.Second,
-		batchSize: 10,
+		batchSize:     10,
 	}
 }
 

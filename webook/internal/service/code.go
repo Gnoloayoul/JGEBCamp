@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service/sms"
+	"go.uber.org/atomic"
 	"math/rand"
 )
 
-const codeTplId = "1877556"
+var codeTplId atomic.String = atomic.String{}
 
 var (
 	ErrCodeVerifyTooManyTimes = repository.ErrCodeVerifyTooManyTimes
@@ -30,6 +31,7 @@ type CodeServiceIn struct {
 }
 
 func NewCodeService(repo repository.CodeRepository, smsSvc sms.Service) CodeService {
+	codeTplId.Store("1877556")
 	return &CodeServiceIn{
 		repo:   repo,
 		smsSvc: smsSvc,
@@ -49,7 +51,10 @@ func (svc *CodeServiceIn) Send(ctx context.Context,
 		return err
 	}
 
-	err = svc.smsSvc.Send(ctx, codeTplId, []string{code}, phone)
+	err = svc.smsSvc.Send(ctx, codeTplId.Load(), []string{code}, phone)
+	if err != nil {
+		err = fmt.Errorf("发送短信出现异常 %w", err)
+	}
 	//if err != nil {
 	// 这个地方怎么办？
 	// 这意味着，Redis 有这个验证码，但是不好意思，

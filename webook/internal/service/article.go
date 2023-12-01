@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
+	events "github.com/Gnoloayoul/JGEBCamp/webook/internal/events/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
-	"github.com/gin-gonic/gin"
 	"time"
 )
 
@@ -16,6 +16,7 @@ type ArticleService interface {
 	PublishV1(ctx context.Context, art domain.Article) (int64, error)
 	List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error)
 	GetById(ctx context.Context, id int64) (domain.Article, error)
+	GetPublishedById(ctx context.Context, id, uid int64) (domain.Article, error)
 }
 
 type articleService struct {
@@ -25,20 +26,22 @@ type articleService struct {
 	author article.ArticleAuthorRepository
 	reader article.ArticleReaderRepository
 	l      logger.LoggerV1
+	producer events.Producer
+
+	ch chan readInfo
 }
 
-func (a *articleService) GetById(ctx context.Context, id int64) (domain.Article, error) {
-	return a.repo.GetById(ctx, id)
+type readInfo struct {
+	uid int64
+	aid int64
 }
 
-func NewArticleService(repo article.ArticleRepository) ArticleService {
+func NewArticleService(repo article.ArticleRepository, l logger.LoggerV1, producer events.Producer) ArticleService {
 	return &articleService{
 		repo: repo,
+		producer: producer,
+		l: l,
 	}
-}
-
-func (a *articleService) List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error) {
-	return a.repo.List(ctx, uid, offset, limit)
 }
 
 func NewArticleServiceV1(author article.ArticleAuthorRepository,
@@ -50,6 +53,83 @@ func NewArticleServiceV1(author article.ArticleAuthorRepository,
 	}
 }
 
+func NewArticleServiceV2(repo article.ArticleRepository,
+	l logger.LoggerV1,
+	producer events.Producer) ArticleService {
+	ch := make(chan readInfo, 10)
+	go func() {
+		for {
+			uids := make([]int64, 0, 10)
+			aids := make([]int64, 0, 10)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			for i := 0; i < 10; i++ {
+				select {
+				case info, ok := <-ch:
+					if !ok {
+						cancel()
+						return
+					}
+					uids = append(uids, info.uid)
+					aids = append(aids, info.aid)
+				case <-ctx.Done():
+					break
+				}
+			}
+			cancel()
+			ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+			producer.ProduceReadEventV1(ctx, events.ReadEventV1{
+				Uids: uids,
+				Aids: aids,
+			})
+			cancel()
+		}
+	}()
+	return &articleService{
+		repo:     repo,
+		producer: producer,
+		l:        l,
+		ch:       ch,
+	}
+}
+
+func (svc *articleService) GetPublishedById(ctx context.Context, id, uid int64) (domain.Article, error) {
+	// 另一个选项，在这里组装 Author，调用 UserService
+	art, err := svc.repo.GetPublishedById(ctx, id)
+	if err == nil {
+		go func() {
+			// 生产者也可以通过改批量来提高性能
+			er := svc.producer.ProduceReadEvent(
+				ctx,
+				events.ReadEvent{
+					// 即便你的消费者要用 art 的里面的数据，
+					// 让它去查询，你不要在 event 里面带
+					Uid: uid,
+					Aid: id,
+				})
+			if er == nil {
+				svc.l.Error("发送读者阅读事件失败")
+			}
+		}()
+
+		go func() {
+			// 改批量的做法
+			svc.ch <- readInfo{
+				aid: id,
+				uid: uid,
+			}
+		}()
+	}
+	return art, err
+}
+
+func (a *articleService) GetById(ctx context.Context, id int64) (domain.Article, error) {
+	return a.repo.GetById(ctx, id)
+}
+
+func (a *articleService) List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error) {
+	return a.repo.List(ctx, uid, offset, limit)
+}
+
 func (a *articleService) Save(ctx context.Context, art domain.Article) (int64, error) {
 	art.Status = domain.ArticleStatusUnpublished
 	if art.Id > 0 {
@@ -57,6 +137,16 @@ func (a *articleService) Save(ctx context.Context, art domain.Article) (int64, e
 		return art.Id, err
 	}
 	return a.repo.Create(ctx, art)
+}
+
+func (a *articleService) update(ctx context.Context, art domain.Article) error {
+	// 只要你不更新 author_id
+	// 但是性能比较差
+	//artInDB := a.repo.FindById(ctx, art.Id)
+	//if art.Author.Id != artInDB.Author.Id {
+	//	return errors.New("更新别人的数据")
+	//}
+	return a.repo.Update(ctx, art)
 }
 
 func (a *articleService) WithDraw(ctx context.Context, art domain.Article) error {

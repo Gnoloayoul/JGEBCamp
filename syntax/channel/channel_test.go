@@ -60,7 +60,6 @@ func TestChannelClose(t *testing.T) {
 	val, ok = <-ch
 	t.Log("第三次取", val, ok)
 
-
 }
 
 // 安全关闭
@@ -73,8 +72,8 @@ func SafeClose(ch chan int) {
 
 // 这个 ch 一定是 MyStruct 来关
 type MyStruct struct {
-	ch chan struct{}
-	ctx context.Context
+	ch        chan struct{}
+	ctx       context.Context
 	closeOnce sync.Once
 }
 
@@ -198,5 +197,4 @@ func TestGoroutineChRead(t *testing.T) {
 }
 
 type BigObj struct {
-
 }

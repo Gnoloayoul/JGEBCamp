@@ -1,7 +1,7 @@
 package domain
 
 type Resource struct {
-	Biz string
+	Biz   string
 	BizId int64
 }
 

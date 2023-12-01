@@ -29,19 +29,19 @@ type CachedUserRepository struct {
 	cache cache.UserCache
 }
 
+func NewUserRepository(dao dao.UserDAO, c cache.UserCache) UserRepository {
+	return &CachedUserRepository{
+		dao:   dao,
+		cache: c,
+	}
+}
+
 func (r *CachedUserRepository) FindByWechat(ctx context.Context, openID string) (domain.User, error) {
 	u, err := r.dao.FindByWechat(ctx, openID)
 	if err != nil {
 		return domain.User{}, err
 	}
 	return r.entityToDomain(u), nil
-}
-
-func NewUserRepository(dao dao.UserDAO, c cache.UserCache) UserRepository {
-	return &CachedUserRepository{
-		dao:   dao,
-		cache: c,
-	}
 }
 
 func (r *CachedUserRepository) FindByEmail(ctx context.Context, email string) (domain.User, error) {

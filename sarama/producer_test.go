@@ -37,11 +37,11 @@ func TestAsyncProducer(t *testing.T) {
 		for {
 			msg := &sarama.ProducerMessage{
 				Topic: "test_topic",
-				Key: sarama.StringEncoder("oid-123"),
+				Key:   sarama.StringEncoder("oid-123"),
 				Value: sarama.StringEncoder("Hello, 这是一条信息 A"),
 				Headers: []sarama.RecordHeader{
 					{
-						Key: []byte("trace_id"),
+						Key:   []byte("trace_id"),
 						Value: []byte("123465"),
 					},
 				},

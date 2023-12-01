@@ -108,7 +108,7 @@ func (m *MongoDBDAO) SyncStatus(ctx context.Context, author, id int64, status ui
 }
 
 func InitCollections(db *mongo.Database) error {
-	ctx, cancle := context.WithTimeout(context.Background(), time.Second*3)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 	index := []mongo.IndexModel{
 		{

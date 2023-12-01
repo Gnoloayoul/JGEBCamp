@@ -46,7 +46,7 @@ func (c *CachedReadCntRepository) IncrReadCnt(ctx context.Context, biz string, b
 
 // BatchIncrReadCnt
 // bizs 和 ids 的长度必须相等
-func (c *CachedReadCntRepository) BatchIncrReadCnt(ctx context.Context, biz []string, bizId []int64) error {
+func (c *CachedReadCntRepository) BatchIncrReadCnt(ctx context.Context, bizs []string, bizId []int64) error {
 	// 我在这里要不要检测 bizs 和 ids 的长度是否相等？
 	err := c.dao.BatchIncrReadCnt(ctx, bizs, bizId)
 	if err != nil {
@@ -201,5 +201,3 @@ func NewCachedInteractiveRepository(dao dao.InteractiveDAO,
 		l:     l,
 	}
 }
-
-

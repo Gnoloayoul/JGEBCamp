@@ -154,12 +154,3 @@ func (r *RedisInteractiveCache) key(biz string, bizId int64) string {
 //func (r *RedisInteractiveCache) keyPersonal(biz string, bizId int64) string {
 //	return fmt.Sprintf("interactive:personal:%s:%d:%d", biz, bizId, uid)
 //}
-
-
-
-
-
-
-
-
-

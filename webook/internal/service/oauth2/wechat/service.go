@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 )
@@ -79,6 +80,9 @@ func (s *service) VerifyCode(ctx context.Context, code string) (domain.WechatInf
 		return domain.WechatInfo{},
 			fmt.Errorf("微信返回错误响应，错误码：%d，错误信息：%s", res.ErrCode, res.ErrMsg)
 	}
+
+	zap.L().Info("调用微信，拿到用户信息",
+		zap.String("unionID", res.UnionID), zap.String("openID", res.OpenID))
 
 	return domain.WechatInfo{
 		OpenID:  res.OpenID,
