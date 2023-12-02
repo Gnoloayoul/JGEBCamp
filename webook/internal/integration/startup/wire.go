@@ -44,7 +44,7 @@ func InitWebServer() *gin.Engine {
 
 		// handler 部分
 		web.NewUserHandler,
-		web.NewWechatHandler,
+		web.NewOAuth2WechatHandler,
 		web.NewArticleHandler,
 		InitWechatHandlerConfig,
 		ijwt.NewRedisJwtHandler,

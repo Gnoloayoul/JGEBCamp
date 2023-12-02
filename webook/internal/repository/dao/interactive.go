@@ -348,6 +348,3 @@ func (dao *GORMInteractiveDAO) GetItems() ([]CollectionItem, error) {
 	err := dao.db.Raw("", 1, 2, 3).Find(&items).Error
 	return items, err
 }
-
-
-

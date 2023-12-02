@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/gob"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -21,6 +22,8 @@ func (l *LoginMiddlewareBuilder) IgnorePaths(path string) *LoginMiddlewareBuilde
 }
 
 func (l *LoginMiddlewareBuilder) Build() gin.HandlerFunc {
+	// 用 Go 的方式编码解码
+	gob.Register(time.Now())
 	return func(ctx *gin.Context) {
 		// 不用登陆校验的
 		for _, path := range l.paths {
@@ -44,7 +47,7 @@ func (l *LoginMiddlewareBuilder) Build() gin.HandlerFunc {
 		sess.Options(sessions.Options{
 			MaxAge: 60,
 		})
-		now := time.Now().UnixMilli()
+		now := time.Now()
 		// 还没刷新（刚登录还么刷新）
 		if updateTime == nil {
 			sess.Set("update_time", now)
@@ -54,9 +57,9 @@ func (l *LoginMiddlewareBuilder) Build() gin.HandlerFunc {
 			return
 		}
 		// 有
-		updateTimeVal, _ := updateTime.(int64)
+		updateTimeVal, _ := updateTime.(time.Time)
 
-		if now-updateTimeVal > 60*1000 {
+		if now.Sub(updateTimeVal) > 60*1000 {
 			sess.Set("update_time", now)
 			if err := sess.Save(); err != nil {
 				panic(err)

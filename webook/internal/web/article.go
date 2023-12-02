@@ -9,6 +9,7 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/sync/errgroup"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,12 +20,15 @@ var _ handler = (*ArticleHandler)(nil)
 type ArticleHandler struct {
 	svc service.ArticleService
 	l   logger.LoggerV1
+	intrSvc service.InteractiveService
+	biz     string
 }
 
 func NewArticleHandler(svc service.ArticleService, l logger.LoggerV1) *ArticleHandler {
 	return &ArticleHandler{
 		svc: svc,
 		l:   l,
+		biz: "article",
 	}
 }
 
@@ -38,6 +42,28 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 	g.POST("/list",
 		ginx.WrapBodyAndToken[ListReq, ijwt.UserClaims](h.List))
 	g.POST("/detail/:id", ginx.WrapToken[ijwt.UserClaims](h.Detail))
+
+	pub := g.Group("/pub")
+	pub.GET("/:id", h.PubDetail, func(ctx *gin.Context) {
+		// 增加阅读计数。
+		//go func() {
+		//	// 开一个 goroutine，异步去执行
+		//	er := a.intrSvc.IncrReadCnt(ctx, a.biz, art.Id)
+		//	if er != nil {
+		//		a.l.Error("增加阅读计数失败",
+		//			logger.Int64("aid", art.Id),
+		//			logger.Error(err))
+		//	}
+		//}()
+	})
+	// 点赞是这个接口，取消点赞也是这个接口
+	// RESTful 风格
+	//pub.POST("/like/:id", ginx.WrapBodyAndToken[LikeReq,
+	//	ijwt.UserClaims](h.Like))
+	pub.POST("/like", ginx.WrapBodyAndToken[LikeReq,
+		ijwt.UserClaims](h.Like))
+	//pub.POST("/cancel_like", ginx.WrapBodyAndToken[LikeReq,
+	//	ijwt.UserClaims](h.Like))
 }
 
 func (h *ArticleHandler) Detail(ctx *gin.Context, usr ijwt.UserClaims) (ginx.Result, error) {
@@ -112,7 +138,7 @@ func (h *ArticleHandler) WithDraw(ctx *gin.Context) {
 	err := h.svc.WithDraw(ctx, domain.Article{
 		Id: req.Id,
 		Author: domain.Author{
-			Id: claims.Uid,
+			Id: claims.Id,
 		},
 	})
 	if err != nil {
@@ -127,7 +153,6 @@ func (h *ArticleHandler) WithDraw(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, Result{
 		Msg:  "ok",
-		Data: req.Id,
 	})
 
 }
@@ -153,14 +178,7 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 	// TODO: 检测输入
 
 	// 调用 svc 的代码
-	id, err := h.svc.Save(ctx, domain.Article{
-		Id:      req.Id,
-		Title:   req.Title,
-		Content: req.Content,
-		Author: domain.Author{
-			Id: claims.Uid,
-		},
-	})
+	id, err := h.svc.Save(ctx, req.toDomain(claims.Id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
@@ -194,14 +212,7 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 		h.l.Error("未发现用户的 session 信息")
 		return
 	}
-	id, err := h.svc.Publish(ctx, domain.Article{
-		Id:      req.Id,
-		Title:   req.Title,
-		Content: req.Content,
-		Author: domain.Author{
-			Id: claims.Uid,
-		},
-	})
+	id, err := h.svc.Publish(ctx, req.toDomain(claims.Id))
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
@@ -213,7 +224,6 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, Result{
-		Msg:  "ok",
 		Data: id,
 	})
 }
@@ -247,3 +257,99 @@ func (h *ArticleHandler) List(ctx *gin.Context, req ListReq, uc ijwt.UserClaims)
 			}),
 	}, nil
 }
+
+func (a *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc ijwt.UserClaims) (ginx.Result, error) {
+	var err error
+	if req.Like {
+		err = a.intrSvc.Like(ctx, a.biz, req.Id, uc.Id)
+	} else {
+		err = a.intrSvc.CancelLike(ctx, a.biz, req.Id, uc.Id)
+	}
+
+	if err != nil {
+		return ginx.Result{
+			Code: 5,
+			Msg:  "系统错误",
+		}, err
+	}
+	return ginx.Result{Msg: "OK"}, nil
+}
+
+func (a *ArticleHandler) PubDetail(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.ParseInt(idstr, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 4,
+			Msg:  "参数错误",
+		})
+		a.l.Error("前端输入的 ID 不对", logger.Error(err))
+		return
+	}
+
+	uc := ctx.MustGet("users").(ijwt.UserClaims)
+	var eg errgroup.Group
+	var art domain.Article
+	eg.Go(func() error {
+
+		art, err = a.svc.GetPublishedById(ctx, id, uc.Id)
+		return err
+	})
+
+	var intr domain.Interactive
+	eg.Go(func() error {
+		// 这个地方可以容忍错误
+		intr, err = a.intrSvc.Get(ctx, a.biz, id, uc.Id)
+		// 这种是容错的写法
+		//if err != nil {
+		//	// 记录日志
+		//}
+		//return nil
+		return err
+	})
+
+	// 在这儿等，要保证前面两个
+	err = eg.Wait()
+	if err != nil {
+		// 代表查询出错了
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "系统错误",
+		})
+		return
+	}
+
+	// 增加阅读计数。
+	go func() {
+		// 你都异步了，怎么还说有巨大的压力呢？
+		// 开一个 goroutine，异步去执行
+		er := a.intrSvc.IncrReadCnt(ctx, a.biz, art.Id)
+		if er != nil {
+			a.l.Error("增加阅读计数失败",
+				logger.Int64("aid", art.Id),
+				logger.Error(err))
+		}
+	}()
+
+	// ctx.Set("art", art)
+
+	// 这个功能是不是可以让前端，主动发一个 HTTP 请求，来增加一个计数？
+	ctx.JSON(http.StatusOK, Result{
+		Data: ArticleVO{
+			Id:      art.Id,
+			Title:   art.Title,
+			Status:  art.Status.ToUint8(),
+			Content: art.Content,
+			// 要把作者信息带出去
+			Author:     art.Author.Name,
+			Ctime:      art.Ctime.Format(time.DateTime),
+			Utime:      art.Utime.Format(time.DateTime),
+			Liked:      intr.Liked,
+			Collected:  intr.Collected,
+			LikeCnt:    intr.LikeCnt,
+			ReadCnt:    intr.ReadCnt,
+			CollectCnt: intr.CollectCnt,
+		},
+	})
+}
+

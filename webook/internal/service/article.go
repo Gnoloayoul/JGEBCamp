@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=./article.go -package=svcmocks -destination=mocks/article_mock.go ArticleService
 type ArticleService interface {
 	Save(ctx context.Context, art domain.Article) (int64, error)
 	WithDraw(ctx context.Context, art domain.Article) error
@@ -23,9 +24,9 @@ type articleService struct {
 	repo article.ArticleRepository
 
 	// v1用 与上面的互斥
-	author article.ArticleAuthorRepository
-	reader article.ArticleReaderRepository
-	l      logger.LoggerV1
+	author   article.ArticleAuthorRepository
+	reader   article.ArticleReaderRepository
+	l        logger.LoggerV1
 	producer events.Producer
 
 	ch chan readInfo
@@ -38,9 +39,9 @@ type readInfo struct {
 
 func NewArticleService(repo article.ArticleRepository, l logger.LoggerV1, producer events.Producer) ArticleService {
 	return &articleService{
-		repo: repo,
+		repo:     repo,
 		producer: producer,
-		l: l,
+		l:        l,
 	}
 }
 

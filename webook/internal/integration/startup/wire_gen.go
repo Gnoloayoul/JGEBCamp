@@ -39,7 +39,7 @@ func InitWebServer() *gin.Engine {
 	userHandler := web.NewUserHandler(userService, codeService, handler)
 	wechatService := InitPhantomWechatService(loggerV1)
 	wechatHandlerConfig := InitWechatHandlerConfig()
-	oAuth2WechatHandler := web.NewWechatHandler(wechatService, userService, wechatHandlerConfig, handler)
+	oAuth2WechatHandler := web.NewOAuth2WechatHandler(wechatService, userService, wechatHandlerConfig, handler)
 	articleDAO := article2.NewGORMArticleDAO(gormDB)
 	articleRepository := article.NewArticleRepository(articleDAO)
 	articleService := service.NewArticleService(articleRepository)

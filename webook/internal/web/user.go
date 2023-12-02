@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/errs"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
 	regexp "github.com/dlclark/regexp2"
@@ -10,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -17,8 +19,6 @@ import (
 const (
 	userIdKey           = "userId"
 	bizLogin            = "login"
-	emailRegexPatten    = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
-	passwordRegexPatten = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
 )
 
 var _ handler = (*UserHandler)(nil)
@@ -35,8 +35,12 @@ type UserHandler struct {
 }
 
 func NewUserHandler(svc service.UserService, codeSvc service.CodeService, jwtHdl ijwt.Handler) *UserHandler {
-	emailExp := regexp.MustCompile(emailRegexPatten, regexp.None)
-	passwordExp := regexp.MustCompile(passwordRegexPatten, regexp.None)
+	const (
+		emailRegexPattern    = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"
+		passwordRegexPattern = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
+	)
+	emailExp := regexp.MustCompile(emailRegexPattern, regexp.None)
+	passwordExp := regexp.MustCompile(passwordRegexPattern, regexp.None)
 	return &UserHandler{
 		svc:         svc,
 		emailExp:    emailExp,
@@ -80,6 +84,7 @@ func (u *UserHandler) LogoutJWT(ctx *gin.Context) {
 }
 
 func (u *UserHandler) RefreshToken(ctx *gin.Context) {
+	ctx.Request.Context()
 	//  只有在这里拿出的，才是 refresh_token
 	refreshToken := u.ExtractToken(ctx)
 	var rc ijwt.RefreshClaims
@@ -87,11 +92,14 @@ func (u *UserHandler) RefreshToken(ctx *gin.Context) {
 		return ijwt.RTKey, nil
 	})
 	if err != nil || !token.Valid {
+		zap.L().Error("系统异常", zap.Error(err))
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 	err = u.CheckSession(ctx, rc.Ssid)
 	if err != nil {
+		// 信息量不足
+		zap.L().Error("系统异常", zap.Error(err))
 		// redis 出问题， 或者你已经退出登录
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
@@ -100,6 +108,11 @@ func (u *UserHandler) RefreshToken(ctx *gin.Context) {
 	err = u.SetJWTToken(ctx, rc.Uid, rc.Ssid)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
+		zap.L().Error("系统异常", zap.Error(err))
+		// 正常来说，msg 的部分就应该包含足够的定位信息
+		zap.L().Error("ijoihpidf 设置 JWT token 出现异常",
+			zap.Error(err),
+			zap.String("method", "UserHandler:RefreshToken"))
 		return
 	}
 	ctx.JSON(http.StatusOK, Result{
@@ -123,7 +136,13 @@ func (u *UserHandler) LoginSMS(ctx *gin.Context) {
 			Code: 5,
 			Msg:  "系统错误",
 		})
-		zap.L().Error("校验验证码出错", zap.Error(err))
+		zap.L().Error("校验验证码出错", zap.Error(err),
+			// 不能这样打，因为手机号码是敏感数据，你不能达到日志里面
+			// 打印加密后的串
+			// 脱敏，152****1234
+			zap.String("手机号码", req.Phone))
+		// 最多最多就这样
+		zap.L().Debug("", zap.String("手机号码", req.Phone))
 		return
 	}
 	if !ok {
@@ -185,10 +204,14 @@ func (u *UserHandler) SendLoginSMSCode(ctx *gin.Context) {
 			Msg: "发送成功",
 		})
 	case service.ErrCodeSendTooMany:
+		zap.L().Warn("短信发送太频繁",
+			zap.Error(err))
 		ctx.JSON(http.StatusOK, Result{
 			Msg: "发送太频繁，请稍后再试",
 		})
 	default:
+		zap.L().Error("短信发送失败",
+			zap.Error(err))
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
 			Msg:  "系统错误",
@@ -238,11 +261,14 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 		return
 	}
 
-	err = u.svc.SignUp(c, domain.User{
+	err = u.svc.SignUp(c.Request.Context(), domain.User{
 		Email:    req.Email,
 		Password: req.Password,
 	})
 	if err == service.ErrUserDuplicateEmail {
+		// 这是复用
+		span := trace.SpanFromContext(c.Request.Context())
+		span.AddEvent("邮件冲突")
 		c.String(http.StatusOK, "邮箱冲突")
 		return
 	}
@@ -305,7 +331,10 @@ func (u *UserHandler) Login(c *gin.Context) {
 	}
 	user, err := u.svc.Login(c, req.Email, req.Password)
 	if err == service.ErrInvalidUserOrPassword {
-		c.String(http.StatusOK, "用户名或者密码不对")
+		c.JSON(http.StatusOK, Result{
+			Code: errs.UserInvalidOrPassword,
+			Msg:  "用户不存在或者密码错误",
+		})
 		return
 	}
 	if err != nil {
@@ -403,7 +432,20 @@ func (u *UserHandler) ProfileJWT(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(claims.Uid)
+	fmt.Println(claims.Id)
 
 	c.String(http.StatusOK, "你的 profile")
+}
+
+func (u *UserHandler) Logout(ctx *gin.Context) {
+	sess := sessions.Default(ctx)
+	// 我可以随便设置值了
+	// 你要放在 session 里面的值
+	sess.Options(sessions.Options{
+		//Secure: true,
+		//HttpOnly: true,
+		MaxAge: -1,
+	})
+	sess.Save()
+	ctx.String(http.StatusOK, "退出登录成功")
 }

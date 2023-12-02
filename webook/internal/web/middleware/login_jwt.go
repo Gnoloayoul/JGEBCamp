@@ -49,7 +49,7 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 		}
 
 		// err 为 nil， token 不为 nil
-		if token == nil || !token.Valid || claims.Uid == 0 {
+		if token == nil || !token.Valid || claims.Id == 0 {
 			// 没登陆
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return

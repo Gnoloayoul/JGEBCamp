@@ -16,6 +16,7 @@ var (
 	ErrCodeSendTooMany        = repository.ErrCodeSendTooMany
 )
 
+//go:generate mockgen -source=./code.go -package=svcmocks -destination=mocks/code_mock.go CodeService
 type CodeService interface {
 	Send(ctx context.Context,
 		// 区别业务场景

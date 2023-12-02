@@ -99,7 +99,7 @@ func (h *RedisJwtHandler) ExtractToken(ctx *gin.Context) string {
 func (h *RedisJwtHandler) SetJWTToken(ctx *gin.Context, uid int64,
 	ssid string) error {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, UserClaims{
-		Uid:       Id,
+		Id:       uid,
 		Ssid:      ssid,
 		UserAgent: ctx.GetHeader("User-Agent"),
 		RegisteredClaims: jwt.RegisteredClaims{

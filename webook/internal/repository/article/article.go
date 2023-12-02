@@ -28,7 +28,7 @@ type ArticleRepository interface {
 }
 
 type CachedArticleRepository struct {
-	dao dao.ArticleDAO
+	dao      dao.ArticleDAO
 	userRepo repository.UserRepository
 
 	// V1 操作两个 dao
@@ -148,7 +148,6 @@ func (repo *CachedArticleRepository) SyncV1(ctx context.Context, art domain.Arti
 	err = repo.readerDao.Upsert(ctx, artn)
 	return id, err
 }
-
 
 func (repo *CachedArticleRepository) SyncStatus(ctx context.Context, id int64, author int64, status domain.ArticleStatus) error {
 	return repo.dao.SyncStatus(ctx, id, author, uint8(status))
