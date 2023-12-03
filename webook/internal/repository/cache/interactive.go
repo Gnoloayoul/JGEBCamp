@@ -21,7 +21,7 @@ const (
 	fieldLikeCnt    = "like_cnt"
 )
 
-//go:generate mockgen -source=./interactve.go -package=cachemocks -destination=mocks/interactve.mock.go InteractiveCache
+//go:generate mockgen -source=./interactive.go -package=cachemocks -destination=mocks/interactve_mock.go InteractiveCache
 type InteractiveCache interface {
 
 	// IncrReadCntIfPresent 如果在缓存中有对应的数据，就 +1

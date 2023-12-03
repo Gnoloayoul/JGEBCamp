@@ -23,6 +23,7 @@ var luaSetCode string
 //go:embed lua/verify_code.lua
 var luaVerifyCode string
 
+//go:generate mockgen -source=./code.go -package=cachemocks -destination=mocks/code_mock.go CodeCache
 type CodeCache interface {
 	Set(ctx context.Context, biz, phone, code string) error
 	Verify(ctx context.Context, biz, phone, inputCode string) (bool, error)

@@ -18,4 +18,3 @@ func (h *ObservabilityHandler) RegisterRoutes(server *gin.Engine) {
 		ctx.String(http.StatusOK, "OK")
 	})
 }
-

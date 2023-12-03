@@ -9,7 +9,7 @@ import (
 
 var ErrRecordNotFound = gorm.ErrRecordNotFound
 
-//go:generate mockgen -source=./interactive.go -package=daomocks -destination=mocks/interactive.mock.go InteractiveDAO
+//go:generate mockgen -source=./interactive.go -package=daomocks -destination=mocks/interactive_mock.go InteractiveDAO
 type InteractiveDAO interface {
 	IncrReadCnt(ctx context.Context, biz string, bizId int64) error
 	InsertLikeInfo(ctx context.Context, biz string, bizId, uid int64) error

@@ -15,6 +15,8 @@ const urlPatten = "https://open.weixin.qq.com/connect/qrconnect?appid=%s&redirec
 
 var redirectURL = url.PathEscape("https://meoying.com/oauth2/wechat/callback")
 
+
+//go:generate mockgen -source=./service.go -package=wechatmocks -destination=mocks/service_mock.go Service
 type Service interface {
 	AuthURL(ctx context.Context, state string) (string, error)
 	VerifyCode(ctx context.Context, code string) (domain.WechatInfo, error)

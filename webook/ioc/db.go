@@ -80,9 +80,6 @@ func InitDB(l logger.LoggerV1) *gorm.DB {
 	//return db
 	//})
 
-
-
-
 	err = dao.InitTable(db)
 	if err != nil {
 		panic(err)
@@ -212,7 +209,6 @@ func (c *Callbacks) after(typ string) func(db *gorm.DB) {
 			Observe(float64(time.Since(startTime).Milliseconds()))
 	}
 }
-
 
 type gormLoggerFunc func(msg string, fields ...logger.Field)
 

@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	userIdKey           = "userId"
-	bizLogin            = "login"
+	userIdKey = "userId"
+	bizLogin  = "login"
 )
 
 var _ handler = (*UserHandler)(nil)

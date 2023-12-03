@@ -15,6 +15,7 @@ import (
 // repository 应该是 cache 与 dao （或者一些高级操作的）的胶水
 // 事务概念应该在 DAO 这一层
 
+//go:generate mockgen -source=./article.go -package=artrepomocks -destination=mocks/article_mock.go ArticleRepository
 type ArticleRepository interface {
 	Create(ctx context.Context, art domain.Article) (int64, error)
 	Update(ctx context.Context, art domain.Article) error

@@ -39,7 +39,6 @@ func InitWebServer() *App {
 		cache.NewUserCache,
 		cache.NewCodeRedisCache,
 
-
 		// repository
 		repository.NewUserRepository,
 		repository.NewCodeRepository,

@@ -15,6 +15,7 @@ var (
 	ErrUserNotFound  = gorm.ErrRecordNotFound
 )
 
+//go:generate mockgen -source=./user.go -package=daomocks -destination=mocks/user_mock.go UserDAO
 type UserDAO interface {
 	FindByEmail(ctx context.Context, email string) (User, error)
 	FindByPhone(ctx context.Context, phone string) (User, error)

@@ -5,6 +5,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+//go:generate mockgen -source=./types.go -package=jwtmocks -destination=mocks/types_mock.go Handler
 type Handler interface {
 	SetLoginToken(ctx *gin.Context, uid int64) error
 	SetJWTToken(ctx *gin.Context, uid int64, ssid string) error

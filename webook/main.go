@@ -131,7 +131,6 @@ func initViper() {
 	//otherViper.SetConfigType("json")
 }
 
-
 func initViperV1() {
 	cfile := pflag.String("config",
 		"config/config.yaml", "指定配置文件路径")

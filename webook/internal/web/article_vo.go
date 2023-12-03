@@ -32,8 +32,8 @@ type ArticleVO struct {
 	Liked     bool `json:"liked"`
 	Collected bool `json:"collected"`
 
-	Ctime  string `json:"ctime"`
-	Utime  string `json:"utime"`
+	Ctime string `json:"ctime"`
+	Utime string `json:"utime"`
 }
 
 type ListReq struct {

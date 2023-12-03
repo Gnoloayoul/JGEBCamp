@@ -33,7 +33,7 @@ func NewOAuth2WechatHandler(svc wechat.Service,
 		userSvc:  userSvc,
 		stateKey: []byte("95osj3fUD7fo0mlYdDbncXz4VD2igvf1"),
 		//cfg:      cfg,
-		Handler:  jwtHdl,
+		Handler: jwtHdl,
 	}
 }
 
