@@ -8,6 +8,7 @@ import (
 
 func TestCronJob(t *testing.T) {
 	expr := cron.New(cron.WithSeconds())
+	// 通过 AddJob/AddFunc 来添加任务，该方法是线程安全的
 	expr.AddJob("@every 1s", myJob{})
 	expr.AddFunc("@every 3s", func() {
 		t.Log("开始")

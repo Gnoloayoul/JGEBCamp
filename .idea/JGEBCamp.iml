@@ -6,5 +6,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="geektime-basic-go" />
+    <orderEntry type="module" module-name="geektime-basic-go" />
   </component>
 </module>

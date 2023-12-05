@@ -7,6 +7,7 @@ package svcmocks
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	domain "github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	gomock "go.uber.org/mock/gomock"
@@ -78,6 +79,21 @@ func (m *MockArticleService) List(ctx context.Context, uid int64, offset, limit 
 func (mr *MockArticleServiceMockRecorder) List(ctx, uid, offset, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockArticleService)(nil).List), ctx, uid, offset, limit)
+}
+
+// ListPub mocks base method.
+func (m *MockArticleService) ListPub(ctx context.Context, start time.Time, offset, limit int) ([]domain.Article, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPub", ctx, start, offset, limit)
+	ret0, _ := ret[0].([]domain.Article)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPub indicates an expected call of ListPub.
+func (mr *MockArticleServiceMockRecorder) ListPub(ctx, start, offset, limit interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPub", reflect.TypeOf((*MockArticleService)(nil).ListPub), ctx, start, offset, limit)
 }
 
 // Publish mocks base method.
