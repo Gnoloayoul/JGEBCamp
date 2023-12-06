@@ -12,11 +12,11 @@ import (
 
 func TestRankingTopN(t *testing.T) {
 	now := time.Now()
-	testCases := []struct{
+	testCases := []struct {
 		name string
 		mock func(ctrl *gomock.Controller) (ArticleService, InteractiveService)
 
-		wantErr error
+		wantErr  error
 		wantArts []domain.Article
 	}{
 		{
@@ -26,10 +26,10 @@ func TestRankingTopN(t *testing.T) {
 				// 最简单，一批就搞完
 				artSvc.EXPECT().ListPub(gomock.Any(), gomock.Any(), 0, 3).
 					Return([]domain.Article{
-					{Id: 1, Utime: now, Ctime: now},
-					{Id: 2, Utime: now, Ctime: now},
-					{Id: 3, Utime: now, Ctime: now},
-				}, nil)
+						{Id: 1, Utime: now, Ctime: now},
+						{Id: 2, Utime: now, Ctime: now},
+						{Id: 3, Utime: now, Ctime: now},
+					}, nil)
 				artSvc.EXPECT().ListPub(gomock.Any(), gomock.Any(), 3, 3).
 					Return([]domain.Article{}, nil)
 				intrSvc := svcmocks.NewMockInteractiveService(ctrl)

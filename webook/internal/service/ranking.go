@@ -14,7 +14,7 @@ type RankingService interface {
 	TopN(ctx context.Context) error
 }
 
-func (svc *BatchRankingService) TopN(ctx interface{}) error {
+func (svc *BatchRankingService) TopN(ctx context.Context) error {
 	// 调下面的来topN
 	arts, err := svc.topN(ctx)
 	if err != nil {
@@ -25,7 +25,7 @@ func (svc *BatchRankingService) TopN(ctx interface{}) error {
 	return nil
 }
 
-func (svc *BatchRankingService) topN(ctx interface{}) ([]domain.Article, error) {
+func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, error) {
 	// 我只取七天内的数据
 	now := time.Now()
 	// 先拿一批数据
@@ -44,7 +44,6 @@ func (svc *BatchRankingService) topN(ctx interface{}) ([]domain.Article, error) 
 				return -1
 			}
 		})
-
 
 	for {
 		// 先拿一批
@@ -67,7 +66,7 @@ func (svc *BatchRankingService) topN(ctx interface{}) ([]domain.Article, error) 
 			intr := intrs[art.Id]
 			score := svc.scoreFunc(art.Utime, intr.LikeCnt)
 			err = topN.Enqueue(Score{
-				art: art,
+				art:   art,
 				score: score,
 			})
 			// 这种写法，要求 topN 已经满了
@@ -75,7 +74,7 @@ func (svc *BatchRankingService) topN(ctx interface{}) ([]domain.Article, error) 
 				val, _ := topN.Dequeue()
 				if val.score < score {
 					err = topN.Enqueue(Score{
-						art: art,
+						art:   art,
 						score: score,
 					})
 				} else {
@@ -125,5 +124,3 @@ func NewBatchRankingService(artSvc ArticleService, intrSvc InteractiveService) *
 		},
 	}
 }
-
-
