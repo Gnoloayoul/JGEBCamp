@@ -59,11 +59,8 @@ func (b *CronJobBuilder) Build(job Job) cron.Job {
 	})
 }
 
-
 type cronJobFuncAdapter func() error
 
 func (c cronJobFuncAdapter) Run() {
 	_ = c()
 }
-
-
