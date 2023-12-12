@@ -15,7 +15,48 @@ type JobDAO interface {
 }
 
 func (g *GORMJobDAO) Preempt(ctx context.Context) (Job, error) {
-
+	// 高并发情况下，大部分都是陪太子读书
+	// 100 个 goroutine
+	// 要转几次？ 所有 goroutine 执行的循环次数加在一起是
+	// 1+2+3+4 +5 + ... + 99 + 100
+	// 特定一个 goroutine，最差情况下，要循环一百次
+	db := g.db.WithContext(ctx)
+	for {
+		now := time.Now()
+		var j Job
+		// 分布式任务调度系统
+		// 1. 一次拉一批，我一次性取出 100 条来，然后，我随机从某一条开始，向后开始抢占
+		// 2. 我搞个随机偏移量，0-100 生成一个随机偏移量。兜底：第一轮没查到，偏移量回归到 0
+		// 3. 我搞一个 id 取余分配，status = ? AND next_time <=? AND id%10 = ? 兜底：不加余数条件，取next_time 最老的
+		err := db.WithContext(ctx).Where("status = ? AND next_time <= ?", jobStatusWaiting, now).
+			First(&j).Error
+		// 你找到了，可以被抢占的
+		// 找到之后你要干嘛？你要抢占
+		if err != nil {
+			// // 没有任务。从这里返回
+			return Job{}, err
+		}
+		// 两个 goroutine 都拿到 id =1 的数据
+		// 能不能用 utime?
+		// 乐观锁，CAS 操作，compare AND Swap
+		// 有一个很常见的面试刷亮点：就是用乐观锁取代 FOR UPDATE
+		// 面试套路（性能优化）：曾将用了 FOR UPDATE =>性能差，还会有死锁 => 我优化成了乐观锁
+		res := db.Where("id = ? AND version = ?",
+			j.Id, j.Version).Model(&Job{}).
+			Updates(map[string]any{
+				"status": jobStatusRunning,
+				"utime": now,
+				"version": j.Version + 1,
+		})
+		if res.Error != nil {
+			return Job{}, err
+		}
+		if res.RowsAffected == 0 {
+			// 抢占失败，你只能说，我要继续下一轮
+			continue
+		}
+		return j, nil
+	}
 }
 
 func (g *GORMJobDAO) Release(ctx context.Context, id int64) error {
