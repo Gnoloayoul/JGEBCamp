@@ -29,9 +29,6 @@ var rankingServiceSet = wire.NewSet(
 	service.NewBatchRankingService,
 	)
 
-
-
-
 func InitWebServer() *App {
 	wire.Build(
 		// 最底层的第三方依赖
@@ -41,8 +38,8 @@ func InitWebServer() *App {
 		ioc.NewConsumers,
 		ioc.NewSyncProducer,
 
-		interactiveSvcProvider,
 		rankingServiceSet,
+		interactiveSvcProvider,
 		ioc.InitJobs,
 		ioc.InitRankingJob,
 

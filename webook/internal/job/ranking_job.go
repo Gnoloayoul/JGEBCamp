@@ -39,8 +39,10 @@ func (r *RankingJob) Name() string {
 
 // 按时间调度的，三分钟一次
 func (r *RankingJob) Run() error {
+	//【本地锁】 上锁 and defer 解锁
 	r.localLock.Lock()
 	defer r.localLock.Unlock()
+	//【分布式锁】 如何保证能能拿到这锁并一直保持着？
 	if r.lock == nil {
 		// 说明你没拿到锁，你得试着拿锁
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
