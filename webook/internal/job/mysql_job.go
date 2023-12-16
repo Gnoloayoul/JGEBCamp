@@ -37,20 +37,18 @@ func NewLocalFuncExecutor() *LocalFuncExecutor {
 // Scheduler
 // 调度器
 type Scheduler struct {
-	execs map[string]Executor
-	svc service.JobService
-	l logger.LoggerV1
+	execs   map[string]Executor
+	svc     service.JobService
+	l       logger.LoggerV1
 	limiter *semaphore.Weighted
 }
 
 func NewScheduler(svc service.JobService, l logger.LoggerV1) *Scheduler {
 	return &Scheduler{svc: svc, l: l,
 		limiter: semaphore.NewWeighted(200),
-		execs: make(map[string]Executor)}
+		execs:   make(map[string]Executor)}
 }
 
 func (s *Scheduler) RegisterExecutor(exec Executor) {
 	s.execs[exec.Name()] = exec
 }
-
-

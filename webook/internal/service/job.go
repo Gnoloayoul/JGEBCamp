@@ -14,9 +14,9 @@ type JobService interface {
 }
 
 type cronJobService struct {
-	repo repository.JobRepository
+	repo            repository.JobRepository
 	refreshInterval time.Duration
-	l logger.LoggerV1
+	l               logger.LoggerV1
 }
 
 func (p *cronJobService) Preempt(ctx context.Context) (domain.Job, error) {
@@ -39,9 +39,12 @@ func (p *cronJobService) Preempt(ctx context.Context) (domain.Job, error) {
 }
 
 func (p *cronJobService) ResetNextTime(ctx context.Context, j domain.Job) error {
-	panic("implement me")
+	next := j.NextTime()
+	if next.IsZero() {
+		return p.repo.Stop(ctx, j.Id)
+	}
+	return p.repo.UpdateNextTime(ctx, j.Id, next)
 }
-
 
 func (p *cronJobService) refresh(id int64) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -57,4 +60,3 @@ func (p *cronJobService) refresh(id int64) {
 			logger.Int64("jid", id))
 	}
 }
-

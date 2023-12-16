@@ -6,11 +6,11 @@ import (
 )
 
 type Job struct {
-	Id int64
-	Name string
-	Cron string
-	Executor string
-	Cfg string
+	Id         int64
+	Name       string
+	Cron       string
+	Executor   string
+	Cfg        string
 	CancelFunc func() error
 }
 

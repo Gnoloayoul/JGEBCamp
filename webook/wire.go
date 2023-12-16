@@ -21,13 +21,13 @@ var interactiveSvcProvider = wire.NewSet(
 	repository.NewCachedInteractiveRepository,
 	dao.NewGORMInteractiveDAO,
 	cache.NewRedisInteractiveCache,
-	)
+)
 
 var rankingServiceSet = wire.NewSet(
 	repository.NewCachedRankingRepository,
 	cache.NewRankingRedisCache,
 	service.NewBatchRankingService,
-	)
+)
 
 func InitWebServer() *App {
 	wire.Build(
@@ -50,7 +50,6 @@ func InitWebServer() *App {
 		// dao
 		dao.NewUserDAO,
 		article3.NewGORMArticleDAO,
-
 
 		// cache
 		cache.NewUserCache,

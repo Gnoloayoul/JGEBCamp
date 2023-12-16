@@ -21,9 +21,9 @@ func (p *PreemptCronJobRepository) Preempt(ctx context.Context) (domain.Job, err
 		return domain.Job{}, err
 	}
 	return domain.Job{
-		Cfg: j.Cfg,
-		Id: j.Id,
-		Name: j.Name,
+		Cfg:      j.Cfg,
+		Id:       j.Id,
+		Name:     j.Name,
 		Executor: j.Executor,
 	}, nil
 }
@@ -47,4 +47,3 @@ func (p *PreemptCronJobRepository) Stop(ctx context.Context, id int64) error {
 type PreemptCronJobRepository struct {
 	dao dao.JobDAO
 }
-

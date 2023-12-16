@@ -28,4 +28,3 @@ func InitLocalFuncExecutor(svc service.RankingService) *job.LocalFuncExecutor {
 	})
 	return res
 }
-

@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	"github.com/ecodeclub/ekit/queue"
 	"github.com/ecodeclub/ekit/slice"
-	"log"
 	"math"
 	"time"
 )
@@ -21,8 +21,7 @@ func (svc *BatchRankingService) TopN(ctx context.Context) error {
 		return err
 	}
 	// 在这里，存起来
-	log.Println(arts)
-	return nil
+	return svc.repo.ReplaceTopN(ctx, arts)
 }
 
 func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, error) {
@@ -73,7 +72,7 @@ func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, err
 			if err == queue.ErrOutOfCapacity {
 				val, _ := topN.Dequeue()
 				if val.score < score {
-					err = topN.Enqueue(Score{
+					_ = topN.Enqueue(Score{
 						art:   art,
 						score: score,
 					})
@@ -83,7 +82,8 @@ func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, err
 			}
 		}
 		// 一批已经处理完了，问题来了，我要不要进入下一批？我怎么知道还有没有？
-		if len(arts) < svc.batchSize {
+		if len(arts) < svc.batchSize ||
+			now.Sub(arts[len(arts) - 1].Utime).Hours() > 7 * 24 {
 			// 我这一批都没取够，我当然可以肯定没有下一批了
 			break
 		}
@@ -106,6 +106,7 @@ func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, err
 type BatchRankingService struct {
 	artSvc    ArticleService
 	intrSvc   InteractiveService
+	repo repository.RankingRepository
 	batchSize int
 	n         int
 	// scoreFunc 不能返回负数
@@ -113,14 +114,15 @@ type BatchRankingService struct {
 	scoreFunc func(t time.Time, likeCnt int64) float64
 }
 
-func NewBatchRankingService(artSvc ArticleService, intrSvc InteractiveService) *BatchRankingService {
+func NewBatchRankingService(artSvc ArticleService, intrSvc InteractiveService) RankingService {
 	return &BatchRankingService{
 		artSvc:    artSvc,
 		intrSvc:   intrSvc,
 		batchSize: 100,
 		n:         100,
 		scoreFunc: func(t time.Time, likeCnt int64) float64 {
-			return float64(likeCnt-1) / math.Pow(float64(likeCnt+2), 1.5)
+			sec := time.Since(t).Seconds()
+			return float64(likeCnt-1) / math.Pow(float64(sec+2), 1.5)
 		},
 	}
 }

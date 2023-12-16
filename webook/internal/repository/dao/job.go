@@ -44,10 +44,10 @@ func (g *GORMJobDAO) Preempt(ctx context.Context) (Job, error) {
 		res := db.Where("id = ? AND version = ?",
 			j.Id, j.Version).Model(&Job{}).
 			Updates(map[string]any{
-				"status": jobStatusRunning,
-				"utime": now,
+				"status":  jobStatusRunning,
+				"utime":   now,
 				"version": j.Version + 1,
-		})
+			})
 		if res.Error != nil {
 			return Job{}, err
 		}
@@ -66,29 +66,29 @@ func (g *GORMJobDAO) Release(ctx context.Context, id int64) error {
 	return g.db.WithContext(ctx).Model(&Job{}).Where("id = ?", id).
 		Updates(map[string]any{
 			"status": jobStatusWaiting,
-			"utime": time.Now().UnixMilli(),
+			"utime":  time.Now().UnixMilli(),
 		}).Error
 }
 
 func (g *GORMJobDAO) UpdateUtime(ctx context.Context, id int64) error {
 	return g.db.WithContext(ctx).Model(&Job{}).
 		Where("id = ?", id).Updates(map[string]any{
-			"utime": time.Now().UnixMilli(),
+		"utime": time.Now().UnixMilli(),
 	}).Error
 }
 
 func (g *GORMJobDAO) UpdateNextTime(ctx context.Context, id int64, next time.Time) error {
 	return g.db.WithContext(ctx).Model(&Job{}).
 		Where("id = ?", id).Updates(map[string]any{
-			"next_time": next.UnixMilli(),
+		"next_time": next.UnixMilli(),
 	}).Error
 }
 
 func (g *GORMJobDAO) Stop(ctx context.Context, id int64) error {
 	return g.db.WithContext(ctx).
 		Where("id = ?", id).Updates(map[string]any{
-			"status": jobStatusPaused,
-			"utime": time.Now().UnixMilli(),
+		"status": jobStatusPaused,
+		"utime":  time.Now().UnixMilli(),
 	}).Error
 }
 
