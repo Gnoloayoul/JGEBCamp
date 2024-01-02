@@ -77,6 +77,7 @@ func (r *RankingJob) Run() error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
 	defer cancel()
+	// 在上面抢完一堆锁后，这才开始运行真正的业务：计算热榜
 	return r.svc.TopN(ctx)
 }
 
