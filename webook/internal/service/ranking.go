@@ -83,7 +83,7 @@ func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, err
 		}
 		// 一批已经处理完了，问题来了，我要不要进入下一批？我怎么知道还有没有？
 		if len(arts) < svc.batchSize ||
-			now.Sub(arts[len(arts) - 1].Utime).Hours() > 7 * 24 {
+			now.Sub(arts[len(arts)-1].Utime).Hours() > 7*24 {
 			// 我这一批都没取够，我当然可以肯定没有下一批了
 			break
 		}
@@ -106,7 +106,7 @@ func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, err
 type BatchRankingService struct {
 	artSvc    ArticleService
 	intrSvc   InteractiveService
-	repo repository.RankingRepository
+	repo      repository.RankingRepository
 	batchSize int
 	n         int
 	// scoreFunc 不能返回负数
