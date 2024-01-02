@@ -8,7 +8,9 @@ import (
 
 type JobDAO interface {
 	Preempt(ctx context.Context) (Job, error)
+	PreemptV1(ctx context.Context) (Job, error)
 	Release(ctx context.Context, id int64) error
+	ReleaseV1(ctx context.Context, id int64, status int) error
 	UpdateUtime(ctx context.Context, id int64) error
 	UpdateNextTime(ctx context.Context, id int64, next time.Time) error
 	Stop(ctx context.Context, id int64) error
@@ -59,11 +61,58 @@ func (g *GORMJobDAO) Preempt(ctx context.Context) (Job, error) {
 	}
 }
 
+func (g *GORMJobDAO) PreemptV1(ctx context.Context) (Job, error) {
+	db := g.db.WithContext(ctx)
+	for {
+		now := time.Now()
+		var j Job
+		// 试着拿一下别人已经拿走执行但自己节点崩了的job
+		// 有这job就不用新拿job
+		errf := db.WithContext(ctx).Where("status = ?", jobStatusRunning).
+			First(&j).Error
+		var err error
+		if errf != nil {
+			err = db.WithContext(ctx).Where("status = ? AND next_time <= ?", jobStatusWaiting, now).
+				First(&j).Error
+			if err != nil {
+				return Job{}, err
+			}
+		}
+		res := db.Where("id = ? AND version = ?",
+			j.Id, j.Version).Model(&Job{}).
+			Updates(map[string]any{
+				"status":  jobStatusRunning,
+				"utime":   now,
+				"version": j.Version + 1,
+			})
+		if res.Error != nil {
+			return Job{}, err
+		}
+		if res.RowsAffected == 0 {
+			continue
+		}
+		return j, nil
+	}
+}
+
 func (g *GORMJobDAO) Release(ctx context.Context, id int64) error {
 	// 这里有一个问题。你要不要检测 status 或者 version?
 	// WHERE version = ?
 	// 要。你们的作业记得修改
 	return g.db.WithContext(ctx).Model(&Job{}).Where("id = ?", id).
+		Updates(map[string]any{
+			"status": jobStatusWaiting,
+			"utime":  time.Now().UnixMilli(),
+		}).Error
+}
+
+// ReleaseV1
+// 比起 Release ，增加了对 status 的检测
+func (g *GORMJobDAO) ReleaseV1(ctx context.Context, id int64, status int) error {
+	// 这里有一个问题。你要不要检测 status 或者 version?
+	// WHERE version = ?
+	// 要。你们的作业记得修改
+	return g.db.WithContext(ctx).Model(&Job{}).Where("id = ? AND status = ?", id, status).
 		Updates(map[string]any{
 			"status": jobStatusWaiting,
 			"utime":  time.Now().UnixMilli(),
