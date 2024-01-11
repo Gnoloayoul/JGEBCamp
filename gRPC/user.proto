@@ -1,0 +1,37 @@
+syntax="proto3";
+
+option go_package="github.com/Gnoloayoul/JGEBCamp/gRPC";
+
+message User {
+  int64 id = 1;
+  string name = 2;
+  string info = 3;
+  map<string, string> abt = 4;
+  repeated string nickName = 5;
+  optional string age = 6;
+  oneof contests {
+      string phone = 7;
+      string email = 8;
+  }
+  Gender gender = 9;
+}
+
+enum Gender {
+  Unknown = 0;
+  Male = 1;
+  Female = 2;
+}
+
+
+service UserSvc {
+  rpc GetById(GetByIdRep) returns (GetByIdResp);
+}
+
+message GetByIdRep {
+  int64 id = 1;
+}
+
+message GetByIdResp {
+  User user = 1;
+}
+
