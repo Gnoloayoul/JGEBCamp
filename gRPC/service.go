@@ -16,11 +16,11 @@ func (s *Server) GetById(ctx context.Context, request *GetByIdRep) (*GetByIdResp
 		list := map[int64]*GetByIdResp {
 			123: &GetByIdResp{User: &User{
 				Id: 123,
-				Name: "abcd",
+				Name: "Bob",
 			}},
 			456: &GetByIdResp{User: &User{
 				Id: 456,
-				Name: "AAAA",
+				Name: "Alice",
 			}},
 		}
 
