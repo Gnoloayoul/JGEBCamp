@@ -247,6 +247,10 @@ type Interactive struct {
 	Biz string `gorm:"uniqueIndex:biz_id_type;type:varchar(128)"`
 	// 这个是阅读计数
 	ReadCnt    int64
+	// 点赞前100方法1：直接在 LikeCnt 上建索引
+	// 使用语句 SELECT * FROM interactives ORDER BY like_cnt limit 0, 100
+	// 优化写法：添加一个过滤条件，比如点赞数要超1000才能算进排行表，SELECT * FROM interactives WHERE like_cnt > 1000 ORDER BY like_cnt limit 0, 100
+	// 如果只要 biz_id 和 biz_type ，那么就建立联合索引<like_cnt, biz_id, biz_type>， 总之联合索引中的 like_cnt 一定得在前
 	LikeCnt    int64
 	CollectCnt int64
 	Ctime      int64
