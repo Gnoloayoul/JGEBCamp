@@ -7,11 +7,12 @@
 package startup
 
 import (
+	article3 "github.com/Gnoloayoul/JGEBCamp/webook/internal/events/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
+	article2 "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
-	article2 "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao/article"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
@@ -38,22 +39,25 @@ func InitWebServer() *gin.Engine {
 	codeService := service.NewCodeService(codeRepository, smsService)
 	userHandler := web.NewUserHandler(userService, codeService, handler)
 	wechatService := InitPhantomWechatService(loggerV1)
-	wechatHandlerConfig := InitWechatHandlerConfig()
-	oAuth2WechatHandler := web.NewOAuth2WechatHandler(wechatService, userService, wechatHandlerConfig, handler)
-	articleDAO := article2.NewGORMArticleDAO(gormDB)
-	articleRepository := article.NewArticleRepository(articleDAO)
-	articleService := service.NewArticleService(articleRepository)
+	oAuth2WechatHandler := web.NewOAuth2WechatHandler(wechatService, userService, handler)
+	articleDAO := article.NewGORMArticleDAO(gormDB)
+	articleRepository := article2.NewArticleRepository(articleDAO, loggerV1)
+	client := InitKafka()
+	syncProducer := NewSyncProducer(client)
+	producer := article3.NewKafkaProducer(syncProducer)
+	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
 	articleHandler := web.NewArticleHandler(articleService, loggerV1)
 	engine := ioc.InitwebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
 	return engine
 }
 
-func InitArticleHandler() *web.ArticleHandler {
-	gormDB := InitTestDB()
-	articleDAO := article2.NewGORMArticleDAO(gormDB)
-	articleRepository := article.NewArticleRepository(articleDAO)
-	articleService := service.NewArticleService(articleRepository)
+func InitArticleHandler(dao2 article.ArticleDAO) *web.ArticleHandler {
 	loggerV1 := InitLog()
+	articleRepository := article2.NewArticleRepository(dao2, loggerV1)
+	client := InitKafka()
+	syncProducer := NewSyncProducer(client)
+	producer := article3.NewKafkaProducer(syncProducer)
+	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
 	articleHandler := web.NewArticleHandler(articleService, loggerV1)
 	return articleHandler
 }
@@ -77,6 +81,11 @@ func InitJwtHdl() jwt.Handler {
 
 // wire.go:
 
-var thirdProvider = wire.NewSet(InitRedis, InitTestDB, InitLog)
+var thirdProvider = wire.NewSet(InitRedis,
+	NewSyncProducer,
+	InitKafka,
+	InitTestDB, InitLog)
 
 var userSvcProvider = wire.NewSet(dao.NewUserDAO, cache.NewUserCache, repository.NewUserRepository, service.NewUserService)
+
+var articleSvcProvider = wire.NewSet(article.NewGORMArticleDAO, article2.NewArticleRepository, service.NewArticleService)

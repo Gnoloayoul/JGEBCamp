@@ -11,6 +11,7 @@ import (
 	repository2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository"
 	cache2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/cache"
 	dao2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
+	service2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/service"
 	article3 "github.com/Gnoloayoul/JGEBCamp/webook/internal/events/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	article2 "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
@@ -21,6 +22,7 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/ioc"
+	"github.com/google/wire"
 )
 
 import (
@@ -59,9 +61,21 @@ func InitWebServer() *App {
 	interactiveRepository := repository2.NewCachedInteractiveRepository(interactiveDAO, interactiveCache, loggerV1)
 	interactiveReadEventBatchConsumer := events.NewInteractiveReadEventBatchConsumer(client, interactiveRepository, loggerV1)
 	v2 := ioc.NewConsumers(interactiveReadEventBatchConsumer)
+	interactiveService := service2.NewInteractiveService(interactiveRepository, loggerV1)
+	rankingService := service.NewBatchRankingService(articleService, interactiveService)
+	rlockClient := ioc.InitRLockClient(cmdable)
+	rankingJob := ioc.InitRankingJob(rankingService, rlockClient, loggerV1)
+	cron := ioc.InitJobs(loggerV1, rankingJob)
 	app := &App{
 		web:       engine,
 		consumers: v2,
+		cron:      cron,
 	}
 	return app
 }
+
+// wire.go:
+
+var interactiveSvcProvider = wire.NewSet(service2.NewInteractiveService, repository2.NewCachedInteractiveRepository, dao2.NewGORMInteractiveDAO, cache2.NewRedisInteractiveCache)
+
+var rankingServiceSet = wire.NewSet(repository.NewCachedRankingRepository, cache.NewRankingRedisCache, service.NewBatchRankingService)

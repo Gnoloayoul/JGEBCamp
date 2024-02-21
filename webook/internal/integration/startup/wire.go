@@ -3,11 +3,12 @@
 package startup
 
 import (
+	article3 "github.com/Gnoloayoul/JGEBCamp/webook/internal/events/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
+	article2 "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
-	article2 "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao/article"
+	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/service"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web"
 	ijwt "github.com/Gnoloayoul/JGEBCamp/webook/internal/web/jwt"
@@ -16,23 +17,31 @@ import (
 	"github.com/google/wire"
 )
 
-var thirdProvider = wire.NewSet(InitRedis, InitTestDB, InitLog)
+var thirdProvider = wire.NewSet(InitRedis,
+	NewSyncProducer,
+	InitKafka,
+	InitTestDB, InitLog)
+
 var userSvcProvider = wire.NewSet(
 	dao.NewUserDAO,
 	cache.NewUserCache,
 	repository.NewUserRepository,
 	service.NewUserService)
 
+var articleSvcProvider = wire.NewSet(
+	article.NewGORMArticleDAO,
+	article2.NewArticleRepository,
+	service.NewArticleService)
+
 func InitWebServer() *gin.Engine {
 	wire.Build(
 		thirdProvider,
 		userSvcProvider,
+		articleSvcProvider,
 
+		article3.NewKafkaProducer,
 		cache.NewCodeRedisCache,
-		article2.NewGORMArticleDAO,
 		repository.NewCodeRepository,
-		article.NewArticleRepository,
-
 		// service 部分
 		// 集成测试我们显式指定使用内存实现
 		ioc.InitSMSService,
@@ -40,13 +49,11 @@ func InitWebServer() *gin.Engine {
 		// 指定啥也不干的 wechat service
 		InitPhantomWechatService,
 		service.NewCodeService,
-		service.NewArticleService,
 
 		// handler 部分
 		web.NewUserHandler,
 		web.NewOAuth2WechatHandler,
 		web.NewArticleHandler,
-		InitWechatHandlerConfig,
 		ijwt.NewRedisJwtHandler,
 
 		// gin 的中间件
@@ -61,7 +68,8 @@ func InitWebServer() *gin.Engine {
 
 func InitArticleHandler(dao article.ArticleDAO) *web.ArticleHandler {
 	wire.Build(thirdProvider,
-		article2.NewGORMArticleDAO,
+		article3.NewKafkaProducer,
+		article2.NewArticleRepository,
 		service.NewArticleService,
 		web.NewArticleHandler,
 	)

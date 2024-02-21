@@ -37,7 +37,7 @@ var rankingServiceSet = wire.NewSet(
 func InitWebServer() *App {
 	wire.Build(
 		// 最底层的第三方依赖
-		ioc.InitDB, ioc.InitRedis,
+		ioc.InitDB, ioc.InitRedis, ioc.InitRLockClient,
 		ioc.InitLogger,
 		ioc.InitKafka,
 		ioc.NewConsumers,
