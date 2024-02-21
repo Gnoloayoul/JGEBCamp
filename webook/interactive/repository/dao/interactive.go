@@ -19,6 +19,13 @@ type InteractiveDAO interface {
 	InsertCollectionBiz(ctx context.Context, cb UserCollectionBiz) error
 	GetCollectionInfo(ctx context.Context, biz string, bizId, uid int64) (UserCollectionBiz, error)
 	BatchIncrReadCnt(ctx context.Context, bizs []string, ids []int64) error
+	GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error) 
+}
+
+func (dao *GORMInteractiveDAO) GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error) {
+	var res []Interactive
+	err := dao.db.WithContext(ctx).Where("biz = ? AND id IN ?", biz, ids).Find(&res).Error
+	return res, err
 }
 
 // IncrReadCnt
@@ -351,4 +358,38 @@ func (dao *GORMInteractiveDAO) GetItems() ([]CollectionItem, error) {
 	var items []CollectionItem
 	err := dao.db.Raw("", 1, 2, 3).Find(&items).Error
 	return items, err
+}
+
+
+// 前100相关
+func multipleCh() {
+	ch0 := make(chan msg, 100000)
+	ch1 := make(chan msg, 100000)
+
+	go func() {
+		for {
+			var m msg
+			select {
+			case ch0 <- m:
+			default:
+				ch1 <- m
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			var m msg
+			select {
+			case ch1 <- m:
+			default:
+				ch0 <- m
+			}
+		}
+	}()
+}
+
+type msg struct {
+	biz string
+	bizId int64
 }

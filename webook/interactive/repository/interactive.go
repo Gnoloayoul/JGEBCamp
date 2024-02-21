@@ -2,10 +2,11 @@ package repository
 
 import (
 	"context"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/domain"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/cache"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
+	"github.com/ecodeclub/ekit/slice"
 )
 
 //go:generate mockgen -source=./interactive.go -package=repomocks -destination=mocks/interactive_mock.go InteractiveRepository
@@ -20,7 +21,19 @@ type InteractiveRepository interface {
 	Get(ctx context.Context, biz string, bizId int64) (domain.Interactive, error)
 	Liked(ctx context.Context, biz string, id int64, uid int64) (bool, error)
 	Collected(ctx context.Context, biz string, id int64, uid int64) (bool, error)
-	AddRecord(ctx context.Context, aid int64, uid int64) error
+	GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interactive ,error)
+}
+
+func (c *CachedReadCntRepository) GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interactive, error) {
+	vals, err := c.dao.GetByIds(ctx, biz, ids)
+	if err != nil {
+		return nil, err
+	}
+	return slice.Map[dao.Interactive, domain.Interactive](vals,
+		func(idx int, src dao.Interactive) domain.Interactive {
+			return c.toDomain(src)
+		}), nil
+
 }
 
 type CachedReadCntRepository struct {
@@ -151,9 +164,6 @@ func (c *CachedReadCntRepository) Collected(ctx context.Context, biz string, id 
 	}
 }
 
-func (c *CachedReadCntRepository) AddRecord(ctx context.Context, aid int64, uid int64) error {
-	panic("implement me")
-}
 
 // UpdateCnt 这不是好的实践
 func (c *CachedReadCntRepository) UpdateCnt(intr *dao.Interactive) {
@@ -176,21 +186,11 @@ func (c *CachedReadCntRepository) UpdateCntV1(intr dao.Interactive) dao.Interact
 // 2. 输入输出都用结构体
 func (c *CachedReadCntRepository) toDomain(intr dao.Interactive) domain.Interactive {
 	return domain.Interactive{
+		BizId: intr.BizId,
 		LikeCnt:    intr.LikeCnt,
 		CollectCnt: intr.CollectCnt,
 		ReadCnt:    intr.ReadCnt,
 	}
-}
-
-func (c *CachedReadCntRepository) GetCollection() (domain.Collection, error) {
-	items, err := c.dao.(*dao.GORMInteractiveDAO).GetItems()
-	if err != nil {
-		return domain.Collection{}, err
-	}
-	// 用 items 来构造一个 Collection
-	return domain.Collection{
-		Name: items[0].Cname,
-	}, nil
 }
 
 func NewCachedInteractiveRepository(dao dao.InteractiveDAO,

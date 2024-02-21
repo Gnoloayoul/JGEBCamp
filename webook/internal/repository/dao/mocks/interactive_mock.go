@@ -6,9 +6,9 @@ package daomocks
 
 import (
 	context "context"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
 	reflect "reflect"
 
-	dao "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
 	gomock "go.uber.org/mock/gomock"
 )
 

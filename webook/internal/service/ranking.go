@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/service"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	"github.com/ecodeclub/ekit/queue"
@@ -104,9 +105,9 @@ func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, err
 }
 
 type BatchRankingService struct {
-	artSvc    ArticleService
-	intrSvc   InteractiveService
-	repo      repository.RankingRepository
+	artSvc  ArticleService
+	intrSvc service.InteractiveService
+	repo    repository.RankingRepository
 	batchSize int
 	n         int
 	// scoreFunc 不能返回负数
@@ -114,7 +115,7 @@ type BatchRankingService struct {
 	scoreFunc func(t time.Time, likeCnt int64) float64
 }
 
-func NewBatchRankingService(artSvc ArticleService, intrSvc InteractiveService) RankingService {
+func NewBatchRankingService(artSvc ArticleService, intrSvc service.InteractiveService) RankingService {
 	return &BatchRankingService{
 		artSvc:    artSvc,
 		intrSvc:   intrSvc,

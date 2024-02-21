@@ -1,8 +1,8 @@
-package article
+package events
 
 import (
 	"context"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/saramax"
 	"github.com/IBM/sarama"

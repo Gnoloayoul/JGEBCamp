@@ -6,9 +6,9 @@ package repomocks
 
 import (
 	context "context"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/domain"
 	reflect "reflect"
 
-	domain "github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	gomock "go.uber.org/mock/gomock"
 )
 

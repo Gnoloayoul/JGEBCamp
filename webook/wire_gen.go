@@ -7,6 +7,10 @@
 package main
 
 import (
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/events"
+	repository2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository"
+	cache2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/cache"
+	dao2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
 	article3 "github.com/Gnoloayoul/JGEBCamp/webook/internal/events/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	article2 "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
@@ -50,10 +54,10 @@ func InitWebServer() *App {
 	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
 	articleHandler := web.NewArticleHandler(articleService, loggerV1)
 	engine := ioc.InitwebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
-	interactiveDAO := dao.NewGORMInteractiveDAO(db)
-	interactiveCache := cache.NewRedisInteractiveCache(cmdable)
-	interactiveRepository := repository.NewCachedInteractiveRepository(interactiveDAO, interactiveCache, loggerV1)
-	interactiveReadEventBatchConsumer := article3.NewInteractiveReadEventBatchConsumer(client, interactiveRepository, loggerV1)
+	interactiveDAO := dao2.NewGORMInteractiveDAO(db)
+	interactiveCache := cache2.NewRedisInteractiveCache(cmdable)
+	interactiveRepository := repository2.NewCachedInteractiveRepository(interactiveDAO, interactiveCache, loggerV1)
+	interactiveReadEventBatchConsumer := events.NewInteractiveReadEventBatchConsumer(client, interactiveRepository, loggerV1)
 	v2 := ioc.NewConsumers(interactiveReadEventBatchConsumer)
 	app := &App{
 		web:       engine,

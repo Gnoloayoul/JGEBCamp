@@ -3,6 +3,11 @@
 package main
 
 import (
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/events"
+	repository2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository"
+	cache2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/cache"
+	dao2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
+	service2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/service"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/events/article"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	article2 "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/article"
@@ -17,10 +22,10 @@ import (
 )
 
 var interactiveSvcProvider = wire.NewSet(
-	service.NewInteractiveService,
-	repository.NewCachedInteractiveRepository,
-	dao.NewGORMInteractiveDAO,
-	cache.NewRedisInteractiveCache,
+	service2.NewInteractiveService,
+	repository2.NewCachedInteractiveRepository,
+	dao2.NewGORMInteractiveDAO,
+	cache2.NewRedisInteractiveCache,
 )
 
 var rankingServiceSet = wire.NewSet(
@@ -44,7 +49,7 @@ func InitWebServer() *App {
 		ioc.InitRankingJob,
 
 		// consumer
-		article.NewInteractiveReadEventBatchConsumer,
+		events.NewInteractiveReadEventBatchConsumer,
 		article.NewKafkaProducer,
 
 		// dao
