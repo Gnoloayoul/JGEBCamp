@@ -17,9 +17,7 @@ var interactiveSvcProvider = wire.NewSet(
 	repository2.NewCachedInteractiveRepository,
 	service2.NewInteractiveService)
 
-
 func InitInteractiveService() service2.InteractiveService {
 	wire.Build(thirdProvider, interactiveSvcProvider)
 	return service2.NewInteractiveService(nil, nil)
 }
-

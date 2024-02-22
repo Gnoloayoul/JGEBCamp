@@ -105,9 +105,9 @@ func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, err
 }
 
 type BatchRankingService struct {
-	artSvc  ArticleService
-	intrSvc service.InteractiveService
-	repo    repository.RankingRepository
+	artSvc    ArticleService
+	intrSvc   service.InteractiveService
+	repo      repository.RankingRepository
 	batchSize int
 	n         int
 	// scoreFunc 不能返回负数

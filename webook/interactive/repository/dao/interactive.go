@@ -19,7 +19,7 @@ type InteractiveDAO interface {
 	InsertCollectionBiz(ctx context.Context, cb UserCollectionBiz) error
 	GetCollectionInfo(ctx context.Context, biz string, bizId, uid int64) (UserCollectionBiz, error)
 	BatchIncrReadCnt(ctx context.Context, bizs []string, ids []int64) error
-	GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error) 
+	GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error)
 }
 
 func (dao *GORMInteractiveDAO) GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error) {
@@ -253,7 +253,7 @@ type Interactive struct {
 	// 默认是 BLOB/TEXT 类型
 	Biz string `gorm:"uniqueIndex:biz_id_type;type:varchar(128)"`
 	// 这个是阅读计数
-	ReadCnt    int64
+	ReadCnt int64
 	// 点赞前100方法1：直接在 LikeCnt 上建索引
 	// 使用语句 SELECT * FROM interactives ORDER BY like_cnt limit 0, 100
 	// 优化写法：添加一个过滤条件，比如点赞数要超1000才能算进排行表，SELECT * FROM interactives WHERE like_cnt > 1000 ORDER BY like_cnt limit 0, 100
@@ -360,7 +360,6 @@ func (dao *GORMInteractiveDAO) GetItems() ([]CollectionItem, error) {
 	return items, err
 }
 
-
 // 前100相关
 func multipleCh() {
 	ch0 := make(chan msg, 100000)
@@ -390,6 +389,6 @@ func multipleCh() {
 }
 
 type msg struct {
-	biz string
+	biz   string
 	bizId int64
 }

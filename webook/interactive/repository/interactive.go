@@ -21,7 +21,7 @@ type InteractiveRepository interface {
 	Get(ctx context.Context, biz string, bizId int64) (domain.Interactive, error)
 	Liked(ctx context.Context, biz string, id int64, uid int64) (bool, error)
 	Collected(ctx context.Context, biz string, id int64, uid int64) (bool, error)
-	GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interactive ,error)
+	GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interactive, error)
 }
 
 func (c *CachedReadCntRepository) GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interactive, error) {
@@ -164,7 +164,6 @@ func (c *CachedReadCntRepository) Collected(ctx context.Context, biz string, id 
 	}
 }
 
-
 // UpdateCnt 这不是好的实践
 func (c *CachedReadCntRepository) UpdateCnt(intr *dao.Interactive) {
 	intr.LikeCnt = 30
@@ -186,7 +185,7 @@ func (c *CachedReadCntRepository) UpdateCntV1(intr dao.Interactive) dao.Interact
 // 2. 输入输出都用结构体
 func (c *CachedReadCntRepository) toDomain(intr dao.Interactive) domain.Interactive {
 	return domain.Interactive{
-		BizId: intr.BizId,
+		BizId:      intr.BizId,
 		LikeCnt:    intr.LikeCnt,
 		CollectCnt: intr.CollectCnt,
 		ReadCnt:    intr.ReadCnt,

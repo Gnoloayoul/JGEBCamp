@@ -12,7 +12,7 @@ func InitKafka() sarama.Client {
 	return client
 }
 
-func  NewSyncProducer(client sarama.Client) sarama.SyncProducer {
+func NewSyncProducer(client sarama.Client) sarama.SyncProducer {
 	res, err := sarama.NewSyncProducerFromClient(client)
 	if err != nil {
 		panic(err)

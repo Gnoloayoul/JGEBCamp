@@ -13,31 +13,31 @@ import (
 
 func TestClient(t *testing.T) {
 	testCases := []struct {
-		name string
+		name  string
 		reqId int64
 	}{
 		{
-			name: "user:123",
+			name:  "user:123",
 			reqId: 123,
 		},
 		{
-			name: "user:456",
+			name:  "user:456",
 			reqId: 456,
 		},
 		{
-			name: "user:444",
+			name:  "user:444",
 			reqId: 444,
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T){
+		t.Run(tc.name, func(t *testing.T) {
 			// 创建gRPC连接
 			cc, err := grpc.Dial(":8090",
 				grpc.WithTransportCredentials(insecure.NewCredentials()))
 			require.NoError(t, err)
 			client := NewUserSvcClient(cc)
-			_, cancel := context.WithTimeout(context.Background(), time.Second * 30)
+			_, cancel := context.WithTimeout(context.Background(), time.Second*30)
 			defer cancel()
 
 			resp, err := client.GetById(context.Background(), &GetByIdRep{Id: tc.reqId})
