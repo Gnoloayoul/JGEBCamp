@@ -10,7 +10,7 @@ var redisClient redis.Cmdable
 func InitRedis() redis.Cmdable {
 	if redisClient == nil {
 		redisClient = redis.NewClient(&redis.Options{
-			Addr: "localhost:6379",
+			Addr: localhost + ":6379",
 		})
 
 		for err := redisClient.Ping(context.Background()).Err(); err != nil; {

@@ -28,13 +28,13 @@ func (s *InteractiveTestSuite) TearDownTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 3)
 	defer cancel()
 
-	err := s.db.Exec("TRUNCATE TABLE 'interactive'").Error
+	err := s.db.Exec("TRUNCATE TABLE `interactives`").Error
 	assert.NoError(s.T(), err)
 
-	err = s.db.Exec("TRUNCATE TABLE 'user_like_bizs'").Error
+	err = s.db.Exec("TRUNCATE TABLE `user_like_bizs`").Error
 	assert.NoError(s.T(), err)
 
-	err = s.db.Exec("TRUNCATE TABLE 'user_collection_bizs'").Error
+	err = s.db.Exec("TRUNCATE TABLE `user_collection_bizs`").Error
 	assert.NoError(s.T(), err)
 
 	// clear Redis
@@ -42,7 +42,7 @@ func (s *InteractiveTestSuite) TearDownTest() {
 	assert.NoError(s.T(), err)
 }
 
-func (s *InteractiveTestSuite) TestIncrReadCnt() {
+func (s *InteractiveTestSuite) TestIncrReadCnt()  {
 	t := s.T()
 	testCases := []struct {
 		name string
@@ -166,7 +166,7 @@ func (s *InteractiveTestSuite) TestIncrReadCnt() {
 
 				// 测试 db 部分
 				var data dao.Interactive
-				err := s.db.Where("biz = ? AND biz_id = ?", "test",3).First(&data).Error
+				err := s.db.Where("biz = ? AND biz_id = ?", "test", 4).First(&data).Error
 				assert.NoError(t, err)
 				assert.True(t, data.Utime > 0)
 				assert.True(t, data.Ctime > 0)

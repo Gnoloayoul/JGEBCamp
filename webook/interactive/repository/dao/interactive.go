@@ -22,9 +22,21 @@ type InteractiveDAO interface {
 	GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error)
 }
 
+type GORMInteractiveDAO struct {
+	db *gorm.DB
+}
+
 func (dao *GORMInteractiveDAO) GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error) {
 	var res []Interactive
 	err := dao.db.WithContext(ctx).Where("biz = ? AND id IN ?", biz, ids).Find(&res).Error
+	return res, err
+}
+
+func (dao *GORMInteractiveDAO) GetLikeInfo(ctx context.Context, biz string, bizId, uid int64) (UserLikeBiz, error) {
+	var res UserLikeBiz
+	err := dao.db.WithContext(ctx).
+		Where("biz=? AND biz_id = ? AND uid = ? AND status = ?",
+			biz, bizId, uid, 1).First(&res).Error
 	return res, err
 }
 
@@ -109,14 +121,6 @@ func (dao *GORMInteractiveDAO) InsertLikeInfo(ctx context.Context, biz string, b
 			Utime:   now,
 		}).Error
 	})
-}
-
-func (dao *GORMInteractiveDAO) GetLikeInfo(ctx context.Context, biz string, bizId, uid int64) (UserLikeBiz, error) {
-	var res UserLikeBiz
-	err := dao.db.WithContext(ctx).
-		Where("biz=? AND biz_id = ? AND uid = ? AND status = ?",
-			biz, bizId, uid, 1).First(&res).Error
-	return res, err
 }
 
 func (dao *GORMInteractiveDAO) DeleteLikeInfo(ctx context.Context, biz string, bizId, uid int64) error {
@@ -210,10 +214,6 @@ func (dao *GORMInteractiveDAO) BatchIncrReadCnt(ctx context.Context, bizs []stri
 		}
 		return nil
 	})
-}
-
-type GORMInteractiveDAO struct {
-	db *gorm.DB
 }
 
 func NewGORMInteractiveDAO(db *gorm.DB) InteractiveDAO {
