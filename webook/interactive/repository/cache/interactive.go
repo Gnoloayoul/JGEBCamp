@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/domain"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
 	"github.com/redis/go-redis/v9"
 	"strconv"
 	"time"
@@ -52,10 +51,10 @@ type RedisInteractiveCache struct {
 	expiration time.Duration
 }
 
-func NewRedisInteractiveCache(client redis.Cmdable) InteractiveCache {
-	return &RedisInteractiveCache{
-		client: client,
-	}
+func (r *RedisInteractiveCache) IncrCollectCntIfPresent(ctx context.Context, biz string, bizId int64) error {
+	return r.client.Eval(ctx, luaIncrCnt,
+		[]string{r.key(biz, bizId)},
+		fieldCollectCnt, 1).Err()
 }
 
 func (r *RedisInteractiveCache) IncrReadCntIfPresent(ctx context.Context, biz string, bizId int64) error {
@@ -90,23 +89,6 @@ func (r *RedisInteractiveCache) DecrLikeCntIfPresent(ctx context.Context, biz st
 		fieldLikeCnt, -1).Err()
 }
 
-func (r *RedisInteractiveCache) IncrCollectCntIfPresent(ctx context.Context, biz string, bizId int64) error {
-	return r.client.Eval(ctx, luaIncrCnt, []string{
-		r.key(biz, bizId), fieldCollectCnt}, 1).Err()
-}
-
-//func (r *RedisInteractiveCache) GetV1(ctx context.Context,
-//	biz string, bizId int64) (map[string]string, error) {
-//	//	你知道我会返回哪些 key 吗？
-//	data, err := r.client.HGetAll(ctx, r.key(biz, bizId)).Result()
-//	if err != nil {
-//		return nil, err
-//	}
-//	// 你同样看不出来我会返回哪些 key
-//	// 你要看完全部代码你才知道
-//	return data, nil
-//}
-
 func (r *RedisInteractiveCache) Get(ctx context.Context, biz string, bizId int64) (domain.Interactive, error) {
 	// 直接使用 HMGet，即便缓存中没有对应的 key，也不会返回 error
 	//r.client.HMGet(ctx, r.key(biz, bizId),
@@ -121,7 +103,7 @@ func (r *RedisInteractiveCache) Get(ctx context.Context, biz string, bizId int64
 
 	if len(data) == 0 {
 		// 缓存不存在，系统错误，比如说你的同事，手贱设置了缓存，但是忘记任何 fields
-		return domain.Interactive{}, cache.ErrKeyNotExist
+		return domain.Interactive{}, ErrKeyNotExist
 	}
 
 	// 理论上来说，这里不可能有 error
@@ -130,6 +112,7 @@ func (r *RedisInteractiveCache) Get(ctx context.Context, biz string, bizId int64
 	readCnt, _ := strconv.ParseInt(data[fieldReadCnt], 10, 64)
 
 	return domain.Interactive{
+		BizId: bizId,
 		CollectCnt: collectCnt,
 		LikeCnt:    likeCnt,
 		ReadCnt:    readCnt,
@@ -151,6 +134,28 @@ func (r *RedisInteractiveCache) Set(ctx context.Context, biz string, bizId int64
 func (r *RedisInteractiveCache) key(biz string, bizId int64) string {
 	return fmt.Sprintf("interactive:%s:%d", biz, bizId)
 }
+
+
+func NewRedisInteractiveCache(client redis.Cmdable) InteractiveCache {
+	return &RedisInteractiveCache{
+		client: client,
+	}
+}
+
+//func (r *RedisInteractiveCache) GetV1(ctx context.Context,
+//	biz string, bizId int64) (map[string]string, error) {
+//	//	你知道我会返回哪些 key 吗？
+//	data, err := r.client.HGetAll(ctx, r.key(biz, bizId)).Result()
+//	if err != nil {
+//		return nil, err
+//	}
+//	// 你同样看不出来我会返回哪些 key
+//	// 你要看完全部代码你才知道
+//	return data, nil
+//}
+
+
+
 
 //func (r *RedisInteractiveCache) keyPersonal(biz string, bizId int64) string {
 //	return fmt.Sprintf("interactive:personal:%s:%d:%d", biz, bizId, uid)

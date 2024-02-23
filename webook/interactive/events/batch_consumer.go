@@ -57,7 +57,7 @@ func (r *InteractiveReadEventBatchConsumer) Consume(
 	defer cancel()
 	err := r.repo.BatchIncrReadCnt(ctx, bizs, ids)
 	if err != nil {
-		r.l.Error("",
+		r.l.Error("批量增加阅读计数失败",
 			logger.Field{Key: "ids", Value: ids},
 			logger.Error(err))
 	}

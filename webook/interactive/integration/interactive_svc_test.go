@@ -334,7 +334,7 @@ func (s *InteractiveTestSuite) TestLike() {
 				}, likeBiz)
 
 				// 测试 redis 部分 + 清除数据
-				cnt, err := s.rdb.HGet(ctx, "interactive:test:2", "like_cnt").Result()
+				cnt, err := s.rdb.Exists(ctx, "interactive:test:2").Result()
 				assert.NoError(t, err)
 				assert.Equal(t, int64(0), cnt)
 			},
@@ -426,14 +426,14 @@ func (s *InteractiveTestSuite) TestDisLike() {
 					ReadCnt: 3,
 					CollectCnt: 4,
 					// 点赞 - 1
-					LikeCnt: 5,
+					LikeCnt: 4,
 					Ctime: 6,
 				}, data)
 
 				var likeBiz dao.UserLikeBiz
 				err = s.db.Where("id = ?", 1).First(&likeBiz).Error
 				assert.NoError(t, err)
-				assert.True(t, likeBiz.Utime > 0)
+				assert.True(t, likeBiz.Utime > 7)
 				likeBiz.Utime = 0
 				assert.Equal(t, dao.UserLikeBiz{
 					Id: 1,
@@ -667,7 +667,7 @@ func (s *InteractiveTestSuite) TestCollect() {
 				assert.Equal(t, int64(0), cnt)
 			},
 			biz: "test",
-			bizId: 2,
+			bizId: 1,
 			cid: 1,
 			uid: 1,
 		},
