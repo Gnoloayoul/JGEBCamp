@@ -21,3 +21,7 @@ push: commit
 	@echo "============================"
 	@echo "JGEBCamp git push accomplish"
 	@echo "============================"
+
+.PHONY: grpc
+grpc:
+	@buf generate webook/api/proto
