@@ -68,6 +68,100 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 	//	ijwt.UserClaims](h.Like))
 }
 
+func (a *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc ijwt.UserClaims) (ginx.Result, error) {
+	var err error
+	if req.Like {
+		err = a.intrSvc.Like(ctx, a.biz, req.Id, uc.Id)
+	} else {
+		err = a.intrSvc.CancelLike(ctx, a.biz, req.Id, uc.Id)
+	}
+
+	if err != nil {
+		return ginx.Result{
+			Code: 5,
+			Msg:  "系统错误",
+		}, err
+	}
+	return ginx.Result{Msg: "OK"}, nil
+}
+
+func (a *ArticleHandler) PubDetail(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.ParseInt(idstr, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 4,
+			Msg:  "参数错误",
+		})
+		a.l.Error("前端输入的 ID 不对", logger.Error(err))
+		return
+	}
+
+	uc := ctx.MustGet("users").(ijwt.UserClaims)
+	var eg errgroup.Group
+	var art domain.Article
+	eg.Go(func() error {
+		art, err = a.svc.GetPublishedById(ctx, id, uc.Id)
+		return err
+	})
+
+	var intr domain2.Interactive
+	eg.Go(func() error {
+		// 这个地方可以容忍错误
+		intr, err = a.intrSvc.Get(ctx, a.biz, id, uc.Id)
+		// 这种是容错的写法
+		//if err != nil {
+		//	// 记录日志
+		//}
+		//return nil
+		return err
+	})
+
+	// 在这儿等，要保证前面两个
+	err = eg.Wait()
+	if err != nil {
+		// 代表查询出错了
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "系统错误",
+		})
+		return
+	}
+
+	// 增加阅读计数。
+	go func() {
+		// 你都异步了，怎么还说有巨大的压力呢？
+		// 开一个 goroutine，异步去执行
+		er := a.intrSvc.IncrReadCnt(ctx, a.biz, art.Id)
+		if er != nil {
+			a.l.Error("增加阅读计数失败",
+				logger.Int64("aid", art.Id),
+				logger.Error(err))
+		}
+	}()
+
+	// ctx.Set("art", art)
+
+	// 这个功能是不是可以让前端，主动发一个 HTTP 请求，来增加一个计数？
+	ctx.JSON(http.StatusOK, Result{
+		Data: ArticleVO{
+			Id:      art.Id,
+			Title:   art.Title,
+			Status:  art.Status.ToUint8(),
+			Content: art.Content,
+			// 要把作者信息带出去
+			Author:     art.Author.Name,
+			Ctime:      art.Ctime.Format(time.DateTime),
+			Utime:      art.Utime.Format(time.DateTime),
+			Liked:      intr.Liked,
+			Collected:  intr.Collected,
+			LikeCnt:    intr.LikeCnt,
+			ReadCnt:    intr.ReadCnt,
+			CollectCnt: intr.CollectCnt,
+		},
+	})
+}
+
 func (h *ArticleHandler) Detail(ctx *gin.Context, usr ijwt.UserClaims) (ginx.Result, error) {
 	idstr := ctx.Param("id")
 	id, err := strconv.ParseInt(idstr, 10, 64)
@@ -114,6 +208,39 @@ func (h *ArticleHandler) Detail(ctx *gin.Context, usr ijwt.UserClaims) (ginx.Res
 			Utime: art.Utime.Format(time.DateTime),
 		},
 	}, nil
+}
+
+func (h *ArticleHandler) Publish(ctx *gin.Context) {
+	var req ArticleReq
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	c := ctx.MustGet("claims")
+	claims, ok := c.(*ijwt.UserClaims)
+	if !ok {
+		//ctx.AbortWithStatus(http.StatusUnauthorized)
+		//return
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "系统错误",
+		})
+		h.l.Error("未发现用户的 session 信息")
+		return
+	}
+	id, err := h.svc.Publish(ctx, req.toDomain(claims.Id))
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "系统错误",
+		})
+
+		// 打日志
+		h.l.Error("保存帖子失败", logger.Error(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Data: id,
+	})
 }
 
 func (h *ArticleHandler) WithDraw(ctx *gin.Context) {
@@ -197,39 +324,6 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 	})
 }
 
-func (h *ArticleHandler) Publish(ctx *gin.Context) {
-	var req ArticleReq
-	if err := ctx.Bind(&req); err != nil {
-		return
-	}
-	c := ctx.MustGet("claims")
-	claims, ok := c.(*ijwt.UserClaims)
-	if !ok {
-		//ctx.AbortWithStatus(http.StatusUnauthorized)
-		//return
-		ctx.JSON(http.StatusOK, Result{
-			Code: 5,
-			Msg:  "系统错误",
-		})
-		h.l.Error("未发现用户的 session 信息")
-		return
-	}
-	id, err := h.svc.Publish(ctx, req.toDomain(claims.Id))
-	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
-			Code: 5,
-			Msg:  "系统错误",
-		})
-
-		// 打日志
-		h.l.Error("保存帖子失败", logger.Error(err))
-		return
-	}
-	ctx.JSON(http.StatusOK, Result{
-		Data: id,
-	})
-}
-
 func (h *ArticleHandler) List(ctx *gin.Context, req ListReq, uc ijwt.UserClaims) (ginx.Result, error) {
 	res, err := h.svc.List(ctx, uc.Id, req.Offset, req.Limit)
 	if err != nil {
@@ -260,97 +354,6 @@ func (h *ArticleHandler) List(ctx *gin.Context, req ListReq, uc ijwt.UserClaims)
 	}, nil
 }
 
-func (a *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc ijwt.UserClaims) (ginx.Result, error) {
-	var err error
-	if req.Like {
-		err = a.intrSvc.Like(ctx, a.biz, req.Id, uc.Id)
-	} else {
-		err = a.intrSvc.CancelLike(ctx, a.biz, req.Id, uc.Id)
-	}
 
-	if err != nil {
-		return ginx.Result{
-			Code: 5,
-			Msg:  "系统错误",
-		}, err
-	}
-	return ginx.Result{Msg: "OK"}, nil
-}
 
-func (a *ArticleHandler) PubDetail(ctx *gin.Context) {
-	idstr := ctx.Param("id")
-	id, err := strconv.ParseInt(idstr, 10, 64)
-	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
-			Code: 4,
-			Msg:  "参数错误",
-		})
-		a.l.Error("前端输入的 ID 不对", logger.Error(err))
-		return
-	}
 
-	uc := ctx.MustGet("users").(ijwt.UserClaims)
-	var eg errgroup.Group
-	var art domain.Article
-	eg.Go(func() error {
-
-		art, err = a.svc.GetPublishedById(ctx, id, uc.Id)
-		return err
-	})
-
-	var intr domain2.Interactive
-	eg.Go(func() error {
-		// 这个地方可以容忍错误
-		intr, err = a.intrSvc.Get(ctx, a.biz, id, uc.Id)
-		// 这种是容错的写法
-		//if err != nil {
-		//	// 记录日志
-		//}
-		//return nil
-		return err
-	})
-
-	// 在这儿等，要保证前面两个
-	err = eg.Wait()
-	if err != nil {
-		// 代表查询出错了
-		ctx.JSON(http.StatusOK, Result{
-			Code: 5,
-			Msg:  "系统错误",
-		})
-		return
-	}
-
-	// 增加阅读计数。
-	go func() {
-		// 你都异步了，怎么还说有巨大的压力呢？
-		// 开一个 goroutine，异步去执行
-		er := a.intrSvc.IncrReadCnt(ctx, a.biz, art.Id)
-		if er != nil {
-			a.l.Error("增加阅读计数失败",
-				logger.Int64("aid", art.Id),
-				logger.Error(err))
-		}
-	}()
-
-	// ctx.Set("art", art)
-
-	// 这个功能是不是可以让前端，主动发一个 HTTP 请求，来增加一个计数？
-	ctx.JSON(http.StatusOK, Result{
-		Data: ArticleVO{
-			Id:      art.Id,
-			Title:   art.Title,
-			Status:  art.Status.ToUint8(),
-			Content: art.Content,
-			// 要把作者信息带出去
-			Author:     art.Author.Name,
-			Ctime:      art.Ctime.Format(time.DateTime),
-			Utime:      art.Utime.Format(time.DateTime),
-			Liked:      intr.Liked,
-			Collected:  intr.Collected,
-			LikeCnt:    intr.LikeCnt,
-			ReadCnt:    intr.ReadCnt,
-			CollectCnt: intr.CollectCnt,
-		},
-	})
-}
