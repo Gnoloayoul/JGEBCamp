@@ -7,6 +7,7 @@
 package startup
 
 import (
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/grpc"
 	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository"
 	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/cache"
 	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
@@ -25,6 +26,18 @@ func InitInteractiveService() service.InteractiveService {
 	interactiveRepository := repository.NewCachedInteractiveRepository(interactiveDAO, interactiveCache, loggerV1)
 	interactiveService := service.NewInteractiveService(interactiveRepository, loggerV1)
 	return interactiveService
+}
+
+func InitInteractiveGRPCServer() *grpc.InteractiveServiceServer {
+	gormDB := InitTestDB()
+	interactiveDAO := dao.NewGORMInteractiveDAO(gormDB)
+	cmdable := InitRedis()
+	interactiveCache := cache.NewRedisInteractiveCache(cmdable)
+	loggerV1 := InitLog()
+	interactiveRepository := repository.NewCachedInteractiveRepository(interactiveDAO, interactiveCache, loggerV1)
+	interactiveService := service.NewInteractiveService(interactiveRepository, loggerV1)
+	interactiveServiceServer := grpc.NewInteractiveServiceServer(interactiveService)
+	return interactiveServiceServer
 }
 
 // wire.go:

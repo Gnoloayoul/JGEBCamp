@@ -7,6 +7,7 @@ import (
 	cache2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/cache"
 	dao2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
 	service2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/service"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/grpc"
 	"github.com/google/wire"
 )
 
@@ -20,4 +21,9 @@ var interactiveSvcProvider = wire.NewSet(
 func InitInteractiveService() service2.InteractiveService {
 	wire.Build(thirdProvider, interactiveSvcProvider)
 	return service2.NewInteractiveService(nil, nil)
+}
+
+func InitInteractiveGRPCServer() *grpc.InteractiveServiceServer {
+	wire.Build(thirdProvider, interactiveSvcProvider, grpc.NewInteractiveServiceServer)
+	return new(grpc.InteractiveServiceServer)
 }

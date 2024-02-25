@@ -158,6 +158,7 @@ func (c *CachedReadCntRepository) Get(ctx context.Context, biz string, bizId int
 
 func (c *CachedReadCntRepository) toDomain(intr dao.Interactive) domain.Interactive {
 	return domain.Interactive{
+		Biz: intr.Biz,
 		BizId:      intr.BizId,
 		LikeCnt:    intr.LikeCnt,
 		CollectCnt: intr.CollectCnt,
