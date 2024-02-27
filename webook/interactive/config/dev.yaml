@@ -1,0 +1,13 @@
+db.mysql:
+  dsn: "root:root@tcp(124.156.171.250:13316)/webook"
+
+redis:
+  addr: "124.156.171.250:6379"
+
+kafka:
+  addrs:
+    - "124.156.171.250:9094"
+
+grpc:
+  server:
+    addr: ":8090"
