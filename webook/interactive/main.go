@@ -24,7 +24,7 @@ func main() {
 
 func initViperV1() {
 	cfile := pflag.String("config",
-		"config/dev.yaml", "指定配置文件路径")
+		"config/config.yaml", "指定配置文件路径")
 	pflag.Parse()
 	viper.SetConfigFile(*cfile)
 	// 实时监听配置变更

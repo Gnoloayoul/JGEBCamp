@@ -18,6 +18,13 @@ func InitKafka() sarama.Client {
 	if err != nil {
 		panic(err)
 	}
+
+	//// 云服务器访问操作
+	//cloudServerIP := cfg.Addrs[:len(cfg.Addrs) - 5] // 替换为实际的云服务器IP地址
+	//
+	//// 将云服务器的IP地址写入Kafka的配置
+	//viper.Set("kafka.advertised.listeners", fmt.Sprintf("PLAINTEXT://%s:9092,EXTERNAL://%s:9094", cloudServerIP, cloudServerIP))
+
 	client, err := sarama.NewClient(cfg.Addrs, saramaCfg)
 	if err != nil {
 		panic(err)
