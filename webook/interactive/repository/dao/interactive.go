@@ -138,14 +138,14 @@ func (dao *GORMInteractiveDAO) DeleteLikeInfo(ctx context.Context, biz string, b
 		return dao.db.WithContext(ctx).Clauses(clause.OnConflict{
 			DoUpdates: clause.Assignments(map[string]any{
 				"like_cnt": gorm.Expr("`like_cnt`-1"),
-				"utime": now,
+				"utime":    now,
 			}),
 		}).Create(&Interactive{
 			LikeCnt: 1,
-			Ctime: now,
-			Utime: now,
-			Biz: biz,
-			BizId: bizId,
+			Ctime:   now,
+			Utime:   now,
+			Biz:     biz,
+			BizId:   bizId,
 		}).Error
 	})
 	return err
@@ -156,7 +156,6 @@ func NewGORMInteractiveDAO(db *gorm.DB) InteractiveDAO {
 		db: db,
 	}
 }
-
 
 // IncrReadCnt
 // 是一个插入或者更新语义

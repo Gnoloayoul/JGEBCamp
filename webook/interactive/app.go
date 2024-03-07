@@ -6,6 +6,6 @@ import (
 )
 
 type App struct {
-	 server *grpcx.Server
-	 consumers []saramax.Consumer
+	server    *grpcx.Server
+	consumers []saramax.Consumer
 }

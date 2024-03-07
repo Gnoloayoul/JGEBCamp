@@ -23,7 +23,6 @@ func InitGRPCxServer(intrServer *grpc2.InteractiveServiceServer) *grpcx.Server {
 
 	return &grpcx.Server{
 		Server: server,
-		Addr: cfg.Addr,
+		Addr:   cfg.Addr,
 	}
 }
-

@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+	intrv1 "github.com/Gnoloayoul/JGEBCamp/webook/api/proto/gen/intr/v1"
 	domain2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/domain"
-	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/service"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	svcmocks "github.com/Gnoloayoul/JGEBCamp/webook/internal/service/mocks"
 	"github.com/stretchr/testify/assert"
@@ -16,14 +16,15 @@ func TestRankingTopN(t *testing.T) {
 	now := time.Now()
 	testCases := []struct {
 		name string
-		mock func(ctrl *gomock.Controller) (ArticleService, service.InteractiveService)
+		mock func(ctrl *gomock.Controller) (ArticleService,
+			intrv1.InteractiveServiceClient)
 
 		wantErr  error
 		wantArts []domain.Article
 	}{
 		{
 			name: "计算成功",
-			mock: func(ctrl *gomock.Controller) (ArticleService, service.InteractiveService) {
+			mock: func(ctrl *gomock.Controller) (ArticleService, intrv1.InteractiveServiceClient) {
 				artSvc := svcmocks.NewMockArticleService(ctrl)
 				// 最简单，一批就搞完
 				artSvc.EXPECT().ListPub(gomock.Any(), gomock.Any(), 0, 3).
@@ -35,7 +36,15 @@ func TestRankingTopN(t *testing.T) {
 				artSvc.EXPECT().ListPub(gomock.Any(), gomock.Any(), 3, 3).
 					Return([]domain.Article{}, nil)
 				intrSvc := svcmocks.NewMockInteractiveService(ctrl)
-				intrSvc.EXPECT().GetByIds(gomock.Any(), "article", []int64{1, 2, 3}).
+				intrSvc.EXPECT().GetByIds(gomock.Any(),
+					"article", []int64{1, 2, 3}).
+					Return(map[int64]domain2.Interactive{
+						1: {BizId: 1, LikeCnt: 1},
+						2: {BizId: 2, LikeCnt: 2},
+						3: {BizId: 3, LikeCnt: 3},
+				}, nil)
+				intrSvc.EXPECT().GetByIds(gomock.Any(),
+					"article", []int64{}).
 					Return(map[int64]domain2.Interactive{}, nil)
 				return artSvc, intrSvc
 			},
@@ -51,7 +60,7 @@ func TestRankingTopN(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			artSvc, intrSvc := tc.mock(ctrl)
-			svc := NewBatchRankingService(artSvc, intrSvc)
+			svc := NewBatchRankingService(artSvc, intrSvc).(*BatchRankingService)
 			// 为了测试
 			svc.batchSize = 3
 			svc.n = 3

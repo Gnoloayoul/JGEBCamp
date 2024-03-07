@@ -29,7 +29,6 @@ func InitAPP() *App {
 		ioc.NewConsumers,
 		ioc.InitGRPCxServer,
 		wire.Struct(new(App), "*"),
-		)
+	)
 	return new(App)
 }
-

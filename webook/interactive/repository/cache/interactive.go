@@ -112,7 +112,7 @@ func (r *RedisInteractiveCache) Get(ctx context.Context, biz string, bizId int64
 	readCnt, _ := strconv.ParseInt(data[fieldReadCnt], 10, 64)
 
 	return domain.Interactive{
-		BizId: bizId,
+		BizId:      bizId,
 		CollectCnt: collectCnt,
 		LikeCnt:    likeCnt,
 		ReadCnt:    readCnt,
@@ -135,7 +135,6 @@ func (r *RedisInteractiveCache) key(biz string, bizId int64) string {
 	return fmt.Sprintf("interactive:%s:%d", biz, bizId)
 }
 
-
 func NewRedisInteractiveCache(client redis.Cmdable) InteractiveCache {
 	return &RedisInteractiveCache{
 		client: client,
@@ -153,9 +152,6 @@ func NewRedisInteractiveCache(client redis.Cmdable) InteractiveCache {
 //	// 你要看完全部代码你才知道
 //	return data, nil
 //}
-
-
-
 
 //func (r *RedisInteractiveCache) keyPersonal(biz string, bizId int64) string {
 //	return fmt.Sprintf("interactive:personal:%s:%d:%d", biz, bizId, uid)

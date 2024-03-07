@@ -2,7 +2,8 @@ package service
 
 import (
 	"context"
-	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/service"
+	"errors"
+	intrv1 "github.com/Gnoloayoul/JGEBCamp/webook/api/proto/gen/intr/v1"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	"github.com/ecodeclub/ekit/queue"
@@ -13,6 +14,34 @@ import (
 
 type RankingService interface {
 	TopN(ctx context.Context) error
+}
+
+type BatchRankingService struct {
+	artSvc    ArticleService
+	intrSvc   intrv1.InteractiveServiceClient
+	repo      repository.RankingRepository
+	batchSize int
+	n         int
+	// scoreFunc 不能返回负数
+	// 实际的算法公式
+	scoreFunc func(t time.Time, likeCnt int64) float64
+	load int64
+}
+
+func NewBatchRankingService(artSvc ArticleService,
+	repo repository.RankingRepository,
+	intrSvc intrv1.InteractiveServiceClient) RankingService {
+	return &BatchRankingService{
+		artSvc:    artSvc,
+		intrSvc:   intrSvc,
+		batchSize: 100,
+		n:         100,
+		repo: repo,
+		scoreFunc: func(t time.Time, likeCnt int64) float64 {
+			sec := time.Since(t).Seconds()
+			return float64(likeCnt-1) / math.Pow(float64(sec+2), 1.5)
+		},
+	}
 }
 
 func (svc *BatchRankingService) TopN(ctx context.Context) error {
@@ -56,14 +85,19 @@ func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, err
 				return src.Id
 			})
 		// 要去找到对应的点赞数据
-		intrs, err := svc.intrSvc.GetByIds(ctx, "article", ids)
+		intrs, err := svc.intrSvc.GetByIds(ctx, &intrv1.GetByIdsRequest{
+			Biz: "article", BizIds: ids,
+		})
 		if err != nil {
 			return nil, err
+		}
+		if len(intrs.Intrs) == 0 {
+			return nil, errors.New("没有数据")
 		}
 		// 合并计算 score
 		// 排序
 		for _, art := range arts {
-			intr := intrs[art.Id]
+			intr := intrs.Intrs[art.Id]
 			score := svc.scoreFunc(art.Utime, intr.LikeCnt)
 			err = topN.Enqueue(Score{
 				art:   art,
@@ -104,26 +138,4 @@ func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, err
 	return res, nil
 }
 
-type BatchRankingService struct {
-	artSvc    ArticleService
-	intrSvc   service.InteractiveService
-	repo      repository.RankingRepository
-	batchSize int
-	n         int
-	// scoreFunc 不能返回负数
-	// 实际的算法公式
-	scoreFunc func(t time.Time, likeCnt int64) float64
-}
 
-func NewBatchRankingService(artSvc ArticleService, intrSvc service.InteractiveService) RankingService {
-	return &BatchRankingService{
-		artSvc:    artSvc,
-		intrSvc:   intrSvc,
-		batchSize: 100,
-		n:         100,
-		scoreFunc: func(t time.Time, likeCnt int64) float64 {
-			sec := time.Since(t).Seconds()
-			return float64(likeCnt-1) / math.Pow(float64(sec+2), 1.5)
-		},
-	}
-}

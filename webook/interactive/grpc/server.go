@@ -70,14 +70,14 @@ func (i *InteractiveServiceServer) GetByIds(ctx context.Context, request *intrv1
 	}, nil
 }
 
-func (i *InteractiveServiceServer) toDTO (intr domain2.Interactive) *intrv1.Interactive {
+func (i *InteractiveServiceServer) toDTO(intr domain2.Interactive) *intrv1.Interactive {
 	return &intrv1.Interactive{
-		Biz: intr.Biz,
-		BizId: intr.BizId,
+		Biz:        intr.Biz,
+		BizId:      intr.BizId,
 		CollectCnt: intr.CollectCnt,
-		Collected: intr.Collected,
-		LikeCnt: intr.LikeCnt,
-		Liked: intr.Liked,
-		ReadCnt: intr.ReadCnt,
+		Collected:  intr.Collected,
+		LikeCnt:    intr.LikeCnt,
+		Liked:      intr.Liked,
+		ReadCnt:    intr.ReadCnt,
 	}
 }

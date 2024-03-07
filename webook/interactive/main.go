@@ -8,7 +8,6 @@ import (
 	"log"
 )
 
-
 func main() {
 	initViperV1()
 	app := InitAPP()

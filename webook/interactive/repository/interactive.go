@@ -30,7 +30,6 @@ type CachedReadCntRepository struct {
 	l     logger.LoggerV1
 }
 
-
 func (c *CachedReadCntRepository) GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interactive, error) {
 	vals, err := c.dao.GetByIds(ctx, biz, ids)
 	if err != nil {
@@ -143,7 +142,7 @@ func (c *CachedReadCntRepository) Get(ctx context.Context, biz string, bizId int
 	}
 
 	ie, err := c.dao.Get(ctx, biz, bizId)
-	if err == nil  {
+	if err == nil {
 		res := c.toDomain(ie)
 		if er := c.cache.Set(ctx, biz, bizId, res); er != nil {
 			c.l.Error("回写缓存失败",
@@ -158,7 +157,7 @@ func (c *CachedReadCntRepository) Get(ctx context.Context, biz string, bizId int
 
 func (c *CachedReadCntRepository) toDomain(intr dao.Interactive) domain.Interactive {
 	return domain.Interactive{
-		Biz: intr.Biz,
+		Biz:        intr.Biz,
 		BizId:      intr.BizId,
 		LikeCnt:    intr.LikeCnt,
 		CollectCnt: intr.CollectCnt,
@@ -175,7 +174,6 @@ func NewCachedInteractiveRepository(dao dao.InteractiveDAO,
 	}
 }
 
-
 // 正常来说，参数必然不用指针：方法不要修改参数，通过返回值来修改参数
 // 返回值就看情况。如果是指针实现了接口，那么就返回指针
 // 如果返回值很大，你不想值传递引发复制问题，那么还是返回指针
@@ -184,4 +182,3 @@ func NewCachedInteractiveRepository(dao dao.InteractiveDAO,
 // 最简原则：
 // 1. 接收器永远用指针
 // 2. 输入输出都用结构体
-
