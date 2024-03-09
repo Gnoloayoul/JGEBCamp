@@ -6,7 +6,6 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
-	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -37,13 +36,13 @@ func NewUserService(repo repository.UserRepository, l logger.LoggerV1) UserServi
 	}
 }
 
-func NewUserServiceV1(repo repository.UserRepository, l *zap.Logger) UserService {
-	return &userService{
-		repo: repo,
-		// 预留了变化空间
-		//logger: zap.L(),
-	}
-}
+//func NewUserServiceV1(repo repository.UserRepository, l *zap.Logger) UserService {
+//	return &userService{
+//		repo: repo,
+//		// 预留了变化空间
+//		//logger: zap.L(),
+//	}
+//}
 
 func (svc *UserServiceIn) Login(ctx context.Context, email, password string) (domain.User, error) {
 	// 先找用户

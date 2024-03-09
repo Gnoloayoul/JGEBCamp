@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=./ranking.go -package=svcmocks -destination=mocks/ranking_mock.go RankingService
 type RankingService interface {
 	TopN(ctx context.Context) error
 }
@@ -25,7 +26,7 @@ type BatchRankingService struct {
 	// scoreFunc 不能返回负数
 	// 实际的算法公式
 	scoreFunc func(t time.Time, likeCnt int64) float64
-	load int64
+	load      int64
 }
 
 func NewBatchRankingService(artSvc ArticleService,
@@ -36,7 +37,7 @@ func NewBatchRankingService(artSvc ArticleService,
 		intrSvc:   intrSvc,
 		batchSize: 100,
 		n:         100,
-		repo: repo,
+		repo:      repo,
 		scoreFunc: func(t time.Time, likeCnt int64) float64 {
 			sec := time.Since(t).Seconds()
 			return float64(likeCnt-1) / math.Pow(float64(sec+2), 1.5)
@@ -137,5 +138,3 @@ func (svc *BatchRankingService) topN(ctx context.Context) ([]domain.Article, err
 	}
 	return res, nil
 }
-
-

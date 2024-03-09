@@ -29,9 +29,9 @@ func NewArticleHandler(svc service.ArticleService,
 	intrSvc intrv1.InteractiveServiceClient,
 	l logger.LoggerV1) *ArticleHandler {
 	return &ArticleHandler{
-		svc: svc,
-		l:   l,
-		biz: "article",
+		svc:     svc,
+		l:       l,
+		biz:     "article",
 		intrSvc: intrSvc,
 	}
 }
@@ -73,7 +73,7 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 func (a *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc ijwt.UserClaims) (ginx.Result, error) {
 	var err error
 	if req.Like {
-		_, err = a.intrSvc.Like(ctx,&intrv1.LikeRequest{
+		_, err = a.intrSvc.Like(ctx, &intrv1.LikeRequest{
 			Biz: a.biz, BizId: req.Id, Uid: uc.Id,
 		})
 	} else {

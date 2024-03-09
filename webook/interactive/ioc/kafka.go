@@ -31,7 +31,6 @@ func InitKafka() sarama.Client {
 	//	panic(fmt.Errorf("Failed to write config file: %w", err))
 	//}
 
-
 	client, err := sarama.NewClient(cfg.Addrs, saramaCfg)
 	if err != nil {
 		panic(err)

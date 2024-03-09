@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go v1.47.3
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/dlclark/regexp2 v1.10.0
-	github.com/ecodeclub/ekit v0.0.7
+	github.com/ecodeclub/ekit v0.0.8
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-contrib/sessions v0.0.5
