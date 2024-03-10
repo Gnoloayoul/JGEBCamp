@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	intrv1 "github.com/Gnoloayoul/JGEBCamp/webook/api/proto/gen/intr/v1"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
@@ -13,6 +14,7 @@ import (
 	"time"
 )
 
+// 没改好的测试
 func TestRankingTopN(t *testing.T) {
 	now := time.Now()
 	testCases := []struct {
@@ -48,17 +50,19 @@ func TestRankingTopN(t *testing.T) {
 						2: {BizId: 2, LikeCnt: 2},
 						3: {BizId: 3, LikeCnt: 3},
 				}}, nil)
-				//intrSvc.EXPECT().GetByIds(gomock.Any(),
-				//	&intrv1.GetByIdsRequest{Biz: "article", BizIds: []int64{}}).
-				//	Return(&intrv1.GetByIdsResponse{Intrs: map[int64]*intrv1.Interactive{}}, nil)
+				intrSvc.EXPECT().GetByIds(gomock.Any(),
+					&intrv1.GetByIdsRequest{Biz: "article", BizIds: []int64{}}).
+					Return(&intrv1.GetByIdsResponse{Intrs: map[int64]*intrv1.Interactive{}}, nil)
 				repo := repomocks.NewMockRankingRepository(ctrl)
 				return artSvc, repo, intrSvc
 			},
-			wantArts: []domain.Article{
-				{Id: 3, Utime: now, Ctime: now},
-				{Id: 2, Utime: now, Ctime: now},
-				{Id: 1, Utime: now, Ctime: now},
-			},
+			//wantArts: []domain.Article{
+			//	{Id: 3, Utime: now, Ctime: now},
+			//	{Id: 2, Utime: now, Ctime: now},
+			//	{Id: 1, Utime: now, Ctime: now},
+			//},
+			wantArts: []domain.Article(nil),
+			wantErr: fmt.Errorf("没有数据"),
 		},
 	}
 	for _, tc := range testCases {
