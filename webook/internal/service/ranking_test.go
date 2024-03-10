@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	intrv1 "github.com/Gnoloayoul/JGEBCamp/webook/api/proto/gen/intr/v1"
-	domain2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	repomocks "github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/mocks"
@@ -38,17 +37,20 @@ func TestRankingTopN(t *testing.T) {
 					}, nil)
 				artSvc.EXPECT().ListPub(gomock.Any(), gomock.Any(), 3, 3).
 					Return([]domain.Article{}, nil)
+
 				intrSvc := svcmocks.NewMockInteractiveServiceClient(ctrl)
 				intrSvc.EXPECT().GetByIds(gomock.Any(),
-					"article", []int64{1, 2, 3}).
-					Return(map[int64]domain2.Interactive{
+					&intrv1.GetByIdsRequest{
+						Biz: "article",
+						BizIds: []int64{1, 2, 3},
+					}).Return(&intrv1.GetByIdsResponse{Intrs: map[int64]*intrv1.Interactive{
 						1: {BizId: 1, LikeCnt: 1},
 						2: {BizId: 2, LikeCnt: 2},
 						3: {BizId: 3, LikeCnt: 3},
-					}, nil)
-				intrSvc.EXPECT().GetByIds(gomock.Any(),
-					"article", []int64{}).
-					Return(map[int64]domain2.Interactive{}, nil)
+				}}, nil)
+				//intrSvc.EXPECT().GetByIds(gomock.Any(),
+				//	&intrv1.GetByIdsRequest{Biz: "article", BizIds: []int64{}}).
+				//	Return(&intrv1.GetByIdsResponse{Intrs: map[int64]*intrv1.Interactive{}}, nil)
 				repo := repomocks.NewMockRankingRepository(ctrl)
 				return artSvc, repo, intrSvc
 			},
