@@ -45,7 +45,7 @@ func InitWebServer() *App {
 		ioc.NewSyncProducer,
 
 		interactiveSvcProvider,
-		ioc.InitIntrGRPCClient,
+		ioc.InitGRPCInteractiveServiceClient,
 		rankingServiceSet,
 		ioc.InitJobs,
 		ioc.InitRankingJob,

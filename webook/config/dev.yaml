@@ -3,3 +3,14 @@ db.mysql:
 
 redis:
   addr: "43.132.234.191:6380"
+
+kafka:
+  addrs:
+    - "localHost: 9094"
+
+grpc:
+  client:
+    intr:
+      addr: "localhost:8090"
+      secure: false
+      threshold: 100
