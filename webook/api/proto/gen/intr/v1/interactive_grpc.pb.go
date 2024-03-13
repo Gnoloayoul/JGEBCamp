@@ -30,7 +30,6 @@ const (
 // InteractiveServiceClient is the client API for InteractiveService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//go:generate mockgen -source=./interactive_grpc.pb.go -package=svcmocks -destination=mocks/interactive_grpc_client_mock.go InteractiveGrpcClient
 type InteractiveServiceClient interface {
 	IncrReadCnt(ctx context.Context, in *IncrReadCntRequest, opts ...grpc.CallOption) (*IncrReadCntResponse, error)
 	Like(ctx context.Context, in *LikeRequest, opts ...grpc.CallOption) (*LikeResponse, error)
