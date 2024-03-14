@@ -761,7 +761,7 @@ func (s *InteractiveRepoGrpcTestSuite) TestGet() {
 			// 初始化测试
 			tc.before(t)
 
-			// 运行测试
+			// 运行测试111
 			res, err := svc.Get(context.Background(), &intrRepov1.GetRequest{
 				Biz: tc.biz, BizId: tc.bizId,
 			})
