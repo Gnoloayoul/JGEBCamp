@@ -7,15 +7,26 @@
 package startup
 
 import (
-	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/grpc"
+	grpc2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/grpc"
 	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository"
 	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/cache"
 	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/grpc"
 	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/service"
 	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
+
+func InitInteractiveRepoService() repository.InteractiveRepository {
+	gormDB := InitTestDB()
+	interactiveDAO := dao.NewGORMInteractiveDAO(gormDB)
+	cmdable := InitRedis()
+	interactiveCache := cache.NewRedisInteractiveCache(cmdable)
+	loggerV1 := InitLog()
+	interactiveRepository := repository.NewCachedInteractiveRepository(interactiveDAO, interactiveCache, loggerV1)
+	return interactiveRepository
+}
 
 func InitInteractiveService() service.InteractiveService {
 	gormDB := InitTestDB()
@@ -28,7 +39,18 @@ func InitInteractiveService() service.InteractiveService {
 	return interactiveService
 }
 
-func InitInteractiveGRPCServer() *grpc.InteractiveServiceServer {
+func InitInteractiveRepoGRPCServer() *grpc.InteractiveGRPCRepositoryServer {
+	gormDB := InitTestDB()
+	interactiveDAO := dao.NewGORMInteractiveDAO(gormDB)
+	cmdable := InitRedis()
+	interactiveCache := cache.NewRedisInteractiveCache(cmdable)
+	loggerV1 := InitLog()
+	interactiveRepository := repository.NewCachedInteractiveRepository(interactiveDAO, interactiveCache, loggerV1)
+	interactiveGRPCRepositoryServer := grpc.NewInteractiveGRPCRepositoryServer(interactiveRepository)
+	return interactiveGRPCRepositoryServer
+}
+
+func InitInteractiveGRPCServer() *grpc2.InteractiveServiceServer {
 	gormDB := InitTestDB()
 	interactiveDAO := dao.NewGORMInteractiveDAO(gormDB)
 	cmdable := InitRedis()
@@ -36,12 +58,14 @@ func InitInteractiveGRPCServer() *grpc.InteractiveServiceServer {
 	loggerV1 := InitLog()
 	interactiveRepository := repository.NewCachedInteractiveRepository(interactiveDAO, interactiveCache, loggerV1)
 	interactiveService := service.NewInteractiveService(interactiveRepository, loggerV1)
-	interactiveServiceServer := grpc.NewInteractiveServiceServer(interactiveService)
+	interactiveServiceServer := grpc2.NewInteractiveServiceServer(interactiveService)
 	return interactiveServiceServer
 }
 
 // wire.go:
 
 var thirdProvider = wire.NewSet(InitRedis, InitTestDB, InitLog)
+
+var interactiveRepoProvider = wire.NewSet(dao.NewGORMInteractiveDAO, cache.NewRedisInteractiveCache, repository.NewCachedInteractiveRepository)
 
 var interactiveSvcProvider = wire.NewSet(dao.NewGORMInteractiveDAO, cache.NewRedisInteractiveCache, repository.NewCachedInteractiveRepository, service.NewInteractiveService)

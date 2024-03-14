@@ -11,7 +11,7 @@ import (
 )
 
 var db *gorm.DB
-var localhost = "43.129.172.218"
+var localhost = "43.129.68.58"
 
 // InitTestDB
 // 测试的话，不用控制并发。等遇到了并发问题再说
