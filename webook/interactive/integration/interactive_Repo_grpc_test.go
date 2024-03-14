@@ -233,127 +233,85 @@ func (s *InteractiveRepoGrpcTestSuite) TestLiked() {
 		wantResp *intrRepov1.LikedResponse
 	}{
 		{
-			name: "点赞成功， db 和 redis 都有",
+			name: "查找是否点赞，成功",
 			before: func(t *testing.T) {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				_, cancel := context.WithTimeout(context.Background(), time.Second*3)
 				defer cancel()
 
 				// 写入 db
-				err := s.db.Create(dao.Interactive{
+				err := s.db.Create(dao.UserLikeBiz{
 					Id:         1,
 					Biz:        "test",
 					BizId:      2,
-					ReadCnt:    3,
-					CollectCnt: 4,
-					LikeCnt:    5,
+					Uid: 3,
 					Ctime:      6,
 					Utime:      7,
+					Status: 1,
 				}).Error
-				assert.NoError(t, err)
-
-				// 写入 redis
-				err = s.rdb.HSet(ctx, "interactive:test:2",
-					"like_cnt", 3).Err()
 				assert.NoError(t, err)
 			},
 			after: func(t *testing.T) {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				_, cancel := context.WithTimeout(context.Background(), time.Second*3)
 				defer cancel()
 
 				// 测试 db 部分
-				var data dao.Interactive
+				var data dao.UserLikeBiz
 				err := s.db.Where("id = ?", 1).First(&data).Error
 				assert.NoError(t, err)
-				assert.True(t, data.Utime > 7)
-				data.Utime = 0
-				assert.Equal(t, dao.Interactive{
+				assert.Equal(t, dao.UserLikeBiz{
 					Id:         1,
 					Biz:        "test",
 					BizId:      2,
-					ReadCnt:    3,
-					CollectCnt: 4,
-					// 点赞 + 1
-					LikeCnt: 6,
-					Ctime:   6,
-				}, data)
-
-				var likeBiz dao.UserLikeBiz
-				err = s.db.Where("biz = ? AND biz_id = ? AND uid = ?",
-					"test", 2, 123).First(&likeBiz).Error
-				assert.NoError(t, err)
-				assert.True(t, likeBiz.Id > 0)
-				assert.True(t, likeBiz.Ctime > 0)
-				assert.True(t, likeBiz.Utime > 0)
-				likeBiz.Id = 0
-				likeBiz.Ctime = 0
-				likeBiz.Utime = 0
-				assert.Equal(t, dao.UserLikeBiz{
-					Biz:    "test",
-					BizId:  2,
-					Uid:    123,
+					Uid: 3,
+					Ctime:      6,
+					Utime:      7,
 					Status: 1,
-				}, likeBiz)
-
-				// 测试 redis 部分 + 清除数据
-				cnt, err := s.rdb.HGet(ctx, "interactive:test:2", "like_cnt").Int()
-				assert.NoError(t, err)
-				assert.Equal(t, 4, cnt)
-				err = s.rdb.Del(ctx, "interactive:test:2").Err()
-				assert.NoError(t, err)
+				}, data)
 			},
 			biz:      "test",
 			bizId:    2,
-			uid:      123,
+			uid:      3,
 			wantResp: &intrRepov1.LikedResponse{},
 		},
 		{
-			name:   "点赞成功， db 和 redis 都没有",
-			before: func(t *testing.T) {},
+			name: "查找是否点赞，没有",
+			before: func(t *testing.T) {
+				_, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer cancel()
+
+				// 写入 db
+				err := s.db.Create(dao.UserLikeBiz{
+					Id:         2,
+					Biz:        "test",
+					BizId:      22,
+					Uid: 33,
+					Ctime:      66,
+					Utime:      77,
+					Status: 0,
+				}).Error
+				assert.NoError(t, err)
+			},
 			after: func(t *testing.T) {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				_, cancel := context.WithTimeout(context.Background(), time.Second*3)
 				defer cancel()
 
 				// 测试 db 部分
-				var data dao.Interactive
-				err := s.db.Where("biz = ? AND biz_id = ?", "test", 3).First(&data).Error
+				var data dao.UserLikeBiz
+				err := s.db.Where("id = ?", 2).First(&data).Error
 				assert.NoError(t, err)
-				assert.True(t, data.Id > 0)
-				assert.True(t, data.Ctime > 0)
-				assert.True(t, data.Utime > 0)
-				data.Id = 0
-				data.Ctime = 0
-				data.Utime = 0
-				assert.Equal(t, dao.Interactive{
-					Biz:     "test",
-					BizId:   3,
-					LikeCnt: 1,
-				}, data)
-
-				var likeBiz dao.UserLikeBiz
-				err = s.db.Where("biz = ? AND biz_id = ? AND uid = ?",
-					"test", 3, 123).First(&likeBiz).Error
-				assert.NoError(t, err)
-				assert.True(t, likeBiz.Id > 0)
-				assert.True(t, likeBiz.Ctime > 0)
-				assert.True(t, likeBiz.Utime > 0)
-				likeBiz.Id = 0
-				likeBiz.Ctime = 0
-				likeBiz.Utime = 0
 				assert.Equal(t, dao.UserLikeBiz{
-					Biz:    "test",
-					BizId:  3,
-					Uid:    123,
-					Status: 1,
-				}, likeBiz)
-
-				// 测试 redis 部分 + 清除数据
-				cnt, err := s.rdb.Exists(ctx, "interactive:test:2").Result()
-				assert.NoError(t, err)
-				assert.Equal(t, int64(0), cnt)
+					Id:         2,
+					Biz:        "test",
+					BizId:      22,
+					Uid: 33,
+					Ctime:      66,
+					Utime:      77,
+					Status: 0,
+				}, data)
 			},
 			biz:      "test",
-			bizId:    3,
-			uid:      123,
+			bizId:    22,
+			uid:      33,
 			wantResp: &intrRepov1.LikedResponse{},
 		},
 	}
@@ -726,7 +684,6 @@ func (s *InteractiveRepoGrpcTestSuite) TestGet() {
 
 		biz   string
 		bizId int64
-		uid   int64
 
 		wantErr error
 		wantRes *intrRepov1.GetResponse
@@ -751,7 +708,6 @@ func (s *InteractiveRepoGrpcTestSuite) TestGet() {
 			},
 			biz:   "test",
 			bizId: 12,
-			uid:   123,
 			wantRes: &intrRepov1.GetResponse{
 				Intr: &intrRepov1.Interactive{
 					Biz:        "test",
@@ -769,37 +725,28 @@ func (s *InteractiveRepoGrpcTestSuite) TestGet() {
 				defer cancel()
 
 				// 写入 db
-				err := s.db.WithContext(ctx).Create(&dao.UserLikeBiz{
-					Biz:    "test",
-					BizId:  3,
-					Uid:    123,
-					Ctime:  123,
-					Utime:  124,
-					Status: 1,
+				err := s.db.WithContext(ctx).Create(&dao.Interactive{
+					Biz:        "test",
+					BizId:      1,
+					ReadCnt:    10,
+					CollectCnt: 20,
+					LikeCnt:    30,
+					Ctime:      13,
+					Utime:      24,
 				}).Error
 				assert.NoError(t, err)
 
-				err = s.db.WithContext(ctx).Create(&dao.UserCollectionBiz{
-					Cid:   1,
-					Biz:   "test",
-					BizId: 3,
-					Uid:   123,
-					Ctime: 123,
-					Utime: 234,
-				}).Error
-				assert.NoError(t, err)
-
-				err = s.rdb.HSet(ctx, "interactive:test:3",
+				err = s.rdb.HSet(ctx, "interactive:test:1",
 					"read_cnt", 0, "collect_cnt", 1).Err()
 				assert.NoError(t, err)
 			},
 			biz:   "test",
-			bizId: 3,
-			uid:   123,
+			bizId: 1,
 			wantRes: &intrRepov1.GetResponse{
 				Intr: &intrRepov1.Interactive{
-					BizId:      3,
-					CollectCnt: 1,
+					Biz:        "test",
+					BizId:      1,
+					CollectCnt: 20,
 					Collected:  true,
 					Liked:      true,
 				},

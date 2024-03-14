@@ -138,7 +138,7 @@ func (c *CachedReadCntRepository) Get(ctx context.Context, biz string, bizId int
 	// 要从缓存拿出来阅读数，点赞数和收藏数
 	intr, err := c.cache.Get(ctx, biz, bizId)
 	if err == nil {
-		return intr, nil
+		return intr, err
 	}
 
 	ie, err := c.dao.Get(ctx, biz, bizId)
@@ -150,7 +150,7 @@ func (c *CachedReadCntRepository) Get(ctx context.Context, biz string, bizId int
 				logger.String("biz", biz),
 				logger.Error(er))
 		}
-		return res, nil
+		return res, err
 	}
 	return domain.Interactive{}, err
 }
@@ -159,9 +159,9 @@ func (c *CachedReadCntRepository) toDomain(intr dao.Interactive) domain.Interact
 	return domain.Interactive{
 		Biz:        intr.Biz,
 		BizId:      intr.BizId,
+		ReadCnt:    intr.ReadCnt,
 		LikeCnt:    intr.LikeCnt,
 		CollectCnt: intr.CollectCnt,
-		ReadCnt:    intr.ReadCnt,
 	}
 }
 

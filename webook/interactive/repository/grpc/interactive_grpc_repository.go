@@ -40,27 +40,29 @@ func (i *InteractiveGRPCRepositoryServer) AddCollectionItem(ctx context.Context,
 
 func (i *InteractiveGRPCRepositoryServer) Get(ctx context.Context, request *intrRepov1.GetRequest) (*intrRepov1.GetResponse, error) {
 	intr, err := i.repo.Get(ctx, request.GetBiz(), request.GetBizId())
+	if err != nil {
+		return nil, err
+	}
 	return &intrRepov1.GetResponse{
 		Intr: i.toDTO(intr),
 	}, err
 }
 
 func (i *InteractiveGRPCRepositoryServer) Liked(ctx context.Context, request *intrRepov1.LikedRequest) (*intrRepov1.LikedResponse, error) {
-	liked, err := i.repo.Liked(ctx, request.GetBiz(), request.GetId(), request.GetUid())
-	return &intrRepov1.LikedResponse{
-		Bool: liked,
-	}, err
+	_, err := i.repo.Liked(ctx, request.GetBiz(), request.GetId(), request.GetUid())
+	return &intrRepov1.LikedResponse{}, err
 }
 
 func (i *InteractiveGRPCRepositoryServer) Collected(ctx context.Context, request *intrRepov1.CollectedRequest) (*intrRepov1.CollectedResponse, error) {
-	bool, err := i.repo.Collected(ctx, request.GetBiz(), request.GetId(), request.GetUid())
-	return &intrRepov1.CollectedResponse{
-		Bool: bool,
-	}, err
+	_, err := i.repo.Collected(ctx, request.GetBiz(), request.GetId(), request.GetUid())
+	return &intrRepov1.CollectedResponse{}, err
 }
 
 func (i *InteractiveGRPCRepositoryServer) GetByIds(ctx context.Context, request *intrRepov1.GetByIdsRequest) (*intrRepov1.GetByIdsResponse, error) {
 	intrs, err := i.repo.GetByIds(ctx, request.GetBiz(), request.GetIds())
+	if err != nil {
+		return nil, err
+	}
 	res := make([]*intrRepov1.Interactive, len(intrs))
 	for k, v := range intrs {
 		res[k] = i.toDTO(v)
