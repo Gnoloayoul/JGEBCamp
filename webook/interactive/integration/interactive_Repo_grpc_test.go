@@ -736,9 +736,9 @@ func (s *InteractiveRepoGrpcTestSuite) TestGet() {
 				}).Error
 				assert.NoError(t, err)
 
-				err = s.rdb.HSet(ctx, "interactive:test:1",
-					"read_cnt", 0, "collect_cnt", 1).Err()
-				assert.NoError(t, err)
+				//err = s.rdb.HSet(ctx, "interactive:test:1",
+				//	"read_cnt", 10, "collect_cnt", 20).Err()
+				//assert.NoError(t, err)
 			},
 			biz:   "test",
 			bizId: 1,
@@ -746,9 +746,9 @@ func (s *InteractiveRepoGrpcTestSuite) TestGet() {
 				Intr: &intrRepov1.Interactive{
 					Biz:        "test",
 					BizId:      1,
+					ReadCnt:    10,
 					CollectCnt: 20,
-					Collected:  true,
-					Liked:      true,
+					LikeCnt:    30,
 				},
 			},
 		},
@@ -761,7 +761,7 @@ func (s *InteractiveRepoGrpcTestSuite) TestGet() {
 			// 初始化测试
 			tc.before(t)
 
-			// 运行测试111
+			// 运行测试
 			res, err := svc.Get(context.Background(), &intrRepov1.GetRequest{
 				Biz: tc.biz, BizId: tc.bizId,
 			})
@@ -849,6 +849,174 @@ func (s *InteractiveRepoGrpcTestSuite) TestGetByIds() {
 		})
 	}
 }
+
+func (s *InteractiveRepoGrpcTestSuite) TestBatchIncrReadCnt() {
+	t := s.T()
+	testCases := []struct {
+		name   string
+		before func(t *testing.T)
+
+		biz   []string
+		bizId []int64
+
+		wantErr error
+		wantRes *intrRepov1.BatchIncrReadCntResponse
+	}{
+		{
+			name: "批量添加阅读量成功",
+			before: func(t *testing.T) {
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer cancel()
+
+				// 写入 db
+				err := s.db.WithContext(ctx).Create(&dao.Interactive{
+					Biz:        "test1",
+					BizId:      13,
+					ReadCnt:    100,
+				}).Error
+				assert.NoError(t, err)
+				err = s.db.WithContext(ctx).Create(&dao.Interactive{
+					Biz:        "test2",
+					BizId:      14,
+					ReadCnt:    101,
+				}).Error
+				assert.NoError(t, err)
+				err = s.db.WithContext(ctx).Create(&dao.Interactive{
+					Biz:        "test3",
+					BizId:      14,
+					ReadCnt:    102,
+				}).Error
+				assert.NoError(t, err)
+				err = s.db.WithContext(ctx).Create(&dao.Interactive{
+					Biz:        "test4",
+					BizId:      15,
+					ReadCnt:    103,
+				}).Error
+				assert.NoError(t, err)
+			},
+			biz: []string{"test1", "test2", "test3", "test4"},
+			bizId: []int64{13, 14, 15, 16},
+			wantErr: nil,
+			wantRes: &intrRepov1.BatchIncrReadCntResponse{},
+		},
+	}
+
+	// 启动服务，准备测试
+	svc := startup.InitInteractiveRepoGRPCServer()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// 初始化测试
+			tc.before(t)
+
+			// 运行测试
+			res, err := svc.BatchIncrReadCnt(context.Background(), &intrRepov1.BatchIncrReadCntRequest{
+				Biz: tc.biz, BizId: tc.bizId,
+			})
+			assert.Equal(t, tc.wantErr, err)
+			assert.Equal(t, tc.wantRes, res)
+
+		})
+	}
+}
+
+func (s *InteractiveRepoGrpcTestSuite) TestIncrLike(){
+	t := s.T()
+	testCases := []struct {
+		name   string
+		before func(t *testing.T)
+		after func(t *testing.T)
+
+		biz   string
+		bizId int64
+		uid int64
+
+		wantErr error
+		wantRes *intrRepov1.IncrLikeResponse
+	}{
+		{
+			name: "添加点赞成功",
+			before: func(t *testing.T) {
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer cancel()
+
+				// 写入 db
+				err := s.db.WithContext(ctx).Create(&dao.Interactive{
+					Id: 1,
+					Biz:        "test1",
+					BizId:      23,
+					LikeCnt: 1,
+				}).Error
+				assert.NoError(t, err)
+				err = s.db.WithContext(ctx).Create(&dao.UserLikeBiz{
+					Id: 1,
+					Biz:        "test1",
+					BizId:      23,
+					Uid: 33,
+					Status: 0,
+				}).Error
+				assert.NoError(t, err)
+			},
+			after: func(t *testing.T) {
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer cancel()
+
+				var data dao.Interactive
+				err := s.db.WithContext(ctx).Where("biz = ? AND biz_id = ?", "test1", 23).First(&data).Error
+				assert.NoError(t, err)
+				// 强制归零
+				data.Utime = 0
+				assert.Equal(t, dao.Interactive{
+					Id: 1,
+					Biz:        "test1",
+					BizId:      23,
+					LikeCnt: 2,
+				}, data)
+
+				var data2 dao.UserLikeBiz
+				err = s.db.WithContext(ctx).Where("biz = ? AND biz_id = ? AND uid = ?", "test1", 23, 33).First(&data2).Error
+				// 强制归零
+				data2.Utime = 0
+				assert.NoError(t, err)
+				assert.Equal(t, dao.UserLikeBiz{
+					Id: 1,
+					Biz:        "test1",
+					BizId:      23,
+					Uid: 33,
+					Status: 1,
+				}, data2)
+
+			},
+			biz: "test1",
+			bizId: 23,
+			uid: 33,
+			wantErr: nil,
+			wantRes: &intrRepov1.IncrLikeResponse{},
+		},
+	}
+
+	// 启动服务，准备测试
+	svc := startup.InitInteractiveRepoGRPCServer()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// 初始化测试
+			tc.before(t)
+
+			// 运行测试
+			res, err := svc.IncrLike(context.Background(), &intrRepov1.IncrLikeRequest{
+				Biz: tc.biz, BizId: tc.bizId, Uid: tc.uid,
+			})
+			assert.Equal(t, tc.wantErr, err)
+			assert.Equal(t, tc.wantRes, res)
+
+			tc.after(t)
+		})
+	}
+}
+
+func (s *InteractiveRepoGrpcTestSuite) Collected(){}
+
+
+
 
 func TestInteractiveRepoGrpcService(t *testing.T) {
 	suite.Run(t, &InteractiveRepoGrpcTestSuite{})
