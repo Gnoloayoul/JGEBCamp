@@ -1013,7 +1013,7 @@ func (s *InteractiveRepoGrpcTestSuite) TestIncrLike(){
 	}
 }
 
-func (s *InteractiveRepoGrpcTestSuite) Collected(){}
+func (s *InteractiveRepoGrpcTestSuite) Collected(1111 int){}
 
 
 
