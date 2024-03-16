@@ -12,8 +12,8 @@ import (
 
 func InitGRPCInteractiveServiceClient(svc service.InteractiveService) intrv1.InteractiveServiceClient {
 	type Config struct {
-		Addr string
-		Secure bool
+		Addr      string
+		Secure    bool
 		Threshold int32
 	}
 

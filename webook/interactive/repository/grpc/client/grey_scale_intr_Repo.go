@@ -9,8 +9,8 @@ import (
 )
 
 type GreyscaleInteractiveRepositoryClient struct {
-	remote intrRepov1.InteractiveRepositoryClient
-	local *InteractiveRepositoryAdapter
+	remote    intrRepov1.InteractiveRepositoryClient
+	local     *InteractiveRepositoryAdapter
 	threshold *atomicx.Value[int32]
 }
 
@@ -63,10 +63,9 @@ func (g *GreyscaleInteractiveRepositoryClient) UpdateThreshold(newThreshold int3
 	g.threshold.Store(newThreshold)
 }
 
-func NewGreyscaleInteractiveRepositoryClient(remote intrRepov1.InteractiveRepositoryClient, local *InteractiveRepositoryAdapter) *GreyscaleInteractiveRepositoryClient{
+func NewGreyscaleInteractiveRepositoryClient(remote intrRepov1.InteractiveRepositoryClient, local *InteractiveRepositoryAdapter) *GreyscaleInteractiveRepositoryClient {
 	return &GreyscaleInteractiveRepositoryClient{
 		remote: remote, local: local,
 		threshold: atomicx.NewValue[int32()](),
 	}
 }
-

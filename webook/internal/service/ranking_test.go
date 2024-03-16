@@ -28,7 +28,7 @@ func TestRankingTopN(t *testing.T) {
 	}{
 		{
 			name: "计算成功",
-			mock: func(ctrl *gomock.Controller) (ArticleService, repository.RankingRepository,intrv1.InteractiveServiceClient) {
+			mock: func(ctrl *gomock.Controller) (ArticleService, repository.RankingRepository, intrv1.InteractiveServiceClient) {
 				artSvc := svcmocks.NewMockArticleService(ctrl)
 				// 最简单，一批就搞完
 				artSvc.EXPECT().ListPub(gomock.Any(), gomock.Any(), 0, 3).
@@ -43,12 +43,12 @@ func TestRankingTopN(t *testing.T) {
 				intrSvc := svcmocks.NewMockInteractiveServiceClient(ctrl)
 				intrSvc.EXPECT().GetByIds(gomock.Any(),
 					&intrv1.GetByIdsRequest{
-						Biz: "article",
+						Biz:    "article",
 						BizIds: []int64{1, 2, 3},
 					}).Return(&intrv1.GetByIdsResponse{Intrs: map[int64]*intrv1.Interactive{
-						1: {BizId: 1, LikeCnt: 1},
-						2: {BizId: 2, LikeCnt: 2},
-						3: {BizId: 3, LikeCnt: 3},
+					1: {BizId: 1, LikeCnt: 1},
+					2: {BizId: 2, LikeCnt: 2},
+					3: {BizId: 3, LikeCnt: 3},
 				}}, nil)
 				intrSvc.EXPECT().GetByIds(gomock.Any(),
 					&intrv1.GetByIdsRequest{Biz: "article", BizIds: []int64{}}).
@@ -62,7 +62,7 @@ func TestRankingTopN(t *testing.T) {
 			//	{Id: 1, Utime: now, Ctime: now},
 			//},
 			wantArts: []domain.Article(nil),
-			wantErr: fmt.Errorf("没有数据"),
+			wantErr:  fmt.Errorf("没有数据"),
 		},
 	}
 	for _, tc := range testCases {

@@ -72,7 +72,7 @@ func (i *InteractiveGRPCRepositoryServer) GetByIds(ctx context.Context, request 
 	}, err
 }
 
-func NewInteractiveGRPCRepositoryServer(repo repository.InteractiveRepository) *InteractiveGRPCRepositoryServer{
+func NewInteractiveGRPCRepositoryServer(repo repository.InteractiveRepository) *InteractiveGRPCRepositoryServer {
 	return &InteractiveGRPCRepositoryServer{
 		repo: repo,
 	}
@@ -93,4 +93,3 @@ func (i *InteractiveGRPCRepositoryServer) toDTO(intr domain.Interactive) *intrRe
 		ReadCnt:    intr.ReadCnt,
 	}
 }
-

@@ -240,12 +240,12 @@ func (s *InteractiveRepoGrpcTestSuite) TestLiked() {
 
 				// 写入 db
 				err := s.db.Create(dao.UserLikeBiz{
-					Id:         1,
-					Biz:        "test",
-					BizId:      2,
-					Uid: 3,
-					Ctime:      6,
-					Utime:      7,
+					Id:     1,
+					Biz:    "test",
+					BizId:  2,
+					Uid:    3,
+					Ctime:  6,
+					Utime:  7,
 					Status: 1,
 				}).Error
 				assert.NoError(t, err)
@@ -259,12 +259,12 @@ func (s *InteractiveRepoGrpcTestSuite) TestLiked() {
 				err := s.db.Where("id = ?", 1).First(&data).Error
 				assert.NoError(t, err)
 				assert.Equal(t, dao.UserLikeBiz{
-					Id:         1,
-					Biz:        "test",
-					BizId:      2,
-					Uid: 3,
-					Ctime:      6,
-					Utime:      7,
+					Id:     1,
+					Biz:    "test",
+					BizId:  2,
+					Uid:    3,
+					Ctime:  6,
+					Utime:  7,
 					Status: 1,
 				}, data)
 			},
@@ -281,12 +281,12 @@ func (s *InteractiveRepoGrpcTestSuite) TestLiked() {
 
 				// 写入 db
 				err := s.db.Create(dao.UserLikeBiz{
-					Id:         2,
-					Biz:        "test",
-					BizId:      22,
-					Uid: 33,
-					Ctime:      66,
-					Utime:      77,
+					Id:     2,
+					Biz:    "test",
+					BizId:  22,
+					Uid:    33,
+					Ctime:  66,
+					Utime:  77,
 					Status: 0,
 				}).Error
 				assert.NoError(t, err)
@@ -300,12 +300,12 @@ func (s *InteractiveRepoGrpcTestSuite) TestLiked() {
 				err := s.db.Where("id = ?", 2).First(&data).Error
 				assert.NoError(t, err)
 				assert.Equal(t, dao.UserLikeBiz{
-					Id:         2,
-					Biz:        "test",
-					BizId:      22,
-					Uid: 33,
-					Ctime:      66,
-					Utime:      77,
+					Id:     2,
+					Biz:    "test",
+					BizId:  22,
+					Uid:    33,
+					Ctime:  66,
+					Utime:  77,
 					Status: 0,
 				}, data)
 			},
@@ -870,32 +870,32 @@ func (s *InteractiveRepoGrpcTestSuite) TestBatchIncrReadCnt() {
 
 				// 写入 db
 				err := s.db.WithContext(ctx).Create(&dao.Interactive{
-					Biz:        "test1",
-					BizId:      13,
-					ReadCnt:    100,
+					Biz:     "test1",
+					BizId:   13,
+					ReadCnt: 100,
 				}).Error
 				assert.NoError(t, err)
 				err = s.db.WithContext(ctx).Create(&dao.Interactive{
-					Biz:        "test2",
-					BizId:      14,
-					ReadCnt:    101,
+					Biz:     "test2",
+					BizId:   14,
+					ReadCnt: 101,
 				}).Error
 				assert.NoError(t, err)
 				err = s.db.WithContext(ctx).Create(&dao.Interactive{
-					Biz:        "test3",
-					BizId:      14,
-					ReadCnt:    102,
+					Biz:     "test3",
+					BizId:   14,
+					ReadCnt: 102,
 				}).Error
 				assert.NoError(t, err)
 				err = s.db.WithContext(ctx).Create(&dao.Interactive{
-					Biz:        "test4",
-					BizId:      15,
-					ReadCnt:    103,
+					Biz:     "test4",
+					BizId:   15,
+					ReadCnt: 103,
 				}).Error
 				assert.NoError(t, err)
 			},
-			biz: []string{"test1", "test2", "test3", "test4"},
-			bizId: []int64{13, 14, 15, 16},
+			biz:     []string{"test1", "test2", "test3", "test4"},
+			bizId:   []int64{13, 14, 15, 16},
 			wantErr: nil,
 			wantRes: &intrRepov1.BatchIncrReadCntResponse{},
 		},
@@ -919,16 +919,16 @@ func (s *InteractiveRepoGrpcTestSuite) TestBatchIncrReadCnt() {
 	}
 }
 
-func (s *InteractiveRepoGrpcTestSuite) TestIncrLike(){
+func (s *InteractiveRepoGrpcTestSuite) TestIncrLike() {
 	t := s.T()
 	testCases := []struct {
 		name   string
 		before func(t *testing.T)
-		after func(t *testing.T)
+		after  func(t *testing.T)
 
 		biz   string
 		bizId int64
-		uid int64
+		uid   int64
 
 		wantErr error
 		wantRes *intrRepov1.IncrLikeResponse
@@ -941,17 +941,17 @@ func (s *InteractiveRepoGrpcTestSuite) TestIncrLike(){
 
 				// 写入 db
 				err := s.db.WithContext(ctx).Create(&dao.Interactive{
-					Id: 1,
-					Biz:        "test1",
-					BizId:      23,
+					Id:      1,
+					Biz:     "test1",
+					BizId:   23,
 					LikeCnt: 1,
 				}).Error
 				assert.NoError(t, err)
 				err = s.db.WithContext(ctx).Create(&dao.UserLikeBiz{
-					Id: 1,
-					Biz:        "test1",
-					BizId:      23,
-					Uid: 33,
+					Id:     1,
+					Biz:    "test1",
+					BizId:  23,
+					Uid:    33,
 					Status: 0,
 				}).Error
 				assert.NoError(t, err)
@@ -966,9 +966,9 @@ func (s *InteractiveRepoGrpcTestSuite) TestIncrLike(){
 				// 强制归零
 				data.Utime = 0
 				assert.Equal(t, dao.Interactive{
-					Id: 1,
-					Biz:        "test1",
-					BizId:      23,
+					Id:      1,
+					Biz:     "test1",
+					BizId:   23,
 					LikeCnt: 2,
 				}, data)
 
@@ -978,17 +978,17 @@ func (s *InteractiveRepoGrpcTestSuite) TestIncrLike(){
 				data2.Utime = 0
 				assert.NoError(t, err)
 				assert.Equal(t, dao.UserLikeBiz{
-					Id: 1,
-					Biz:        "test1",
-					BizId:      23,
-					Uid: 33,
+					Id:     1,
+					Biz:    "test1",
+					BizId:  23,
+					Uid:    33,
 					Status: 1,
 				}, data2)
 
 			},
-			biz: "test1",
-			bizId: 23,
-			uid: 33,
+			biz:     "test1",
+			bizId:   23,
+			uid:     33,
 			wantErr: nil,
 			wantRes: &intrRepov1.IncrLikeResponse{},
 		},
@@ -1013,14 +1013,14 @@ func (s *InteractiveRepoGrpcTestSuite) TestIncrLike(){
 	}
 }
 
-func (s *InteractiveRepoGrpcTestSuite) TestCollected(){
+func (s *InteractiveRepoGrpcTestSuite) TestCollected() {
 	t := s.T()
 	testCases := []struct {
 		name   string
 		before func(t *testing.T)
 
-		biz   string
-		Id int64
+		biz string
+		Id  int64
 		uid int64
 
 		wantErr error
@@ -1034,15 +1034,15 @@ func (s *InteractiveRepoGrpcTestSuite) TestCollected(){
 
 				// 写入 db
 				err := s.db.WithContext(ctx).Create(&dao.UserCollectionBiz{
-					Id: 1,
-					Biz:        "test1",
+					Id:  1,
+					Biz: "test1",
 					Uid: 223,
 				}).Error
 				assert.NoError(t, err)
 			},
-			biz: "test1",
-			Id: 1,
-			uid: 233,
+			biz:     "test1",
+			Id:      1,
+			uid:     233,
 			wantErr: nil,
 			wantRes: &intrRepov1.CollectedResponse{},
 		},
@@ -1064,9 +1064,6 @@ func (s *InteractiveRepoGrpcTestSuite) TestCollected(){
 		})
 	}
 }
-
-
-
 
 func TestInteractiveRepoGrpcService(t *testing.T) {
 	suite.Run(t, &InteractiveRepoGrpcTestSuite{})

@@ -65,7 +65,7 @@ func (i *InteractiveRepositoryAdapter) GetByIds(ctx context.Context, in *intrRep
 	}, err
 }
 
-func NewInteractiveRepositoryAdapter(repo repository.InteractiveRepository) *InteractiveRepositoryAdapter{
+func NewInteractiveRepositoryAdapter(repo repository.InteractiveRepository) *InteractiveRepositoryAdapter {
 	return &InteractiveRepositoryAdapter{
 		repo: repo,
 	}
@@ -73,12 +73,12 @@ func NewInteractiveRepositoryAdapter(repo repository.InteractiveRepository) *Int
 
 func (i *InteractiveRepositoryAdapter) toDTO(intr domain.Interactive) *intrRepov1.Interactive {
 	return &intrRepov1.Interactive{
-		Biz: intr.Biz,
-		BizId: intr.BizId,
-		ReadCnt: intr.ReadCnt,
-		LikeCnt: intr.LikeCnt,
+		Biz:        intr.Biz,
+		BizId:      intr.BizId,
+		ReadCnt:    intr.ReadCnt,
+		LikeCnt:    intr.LikeCnt,
 		CollectCnt: intr.CollectCnt,
-		Liked: intr.Liked,
-		Collected: intr.Collected,
+		Liked:      intr.Liked,
+		Collected:  intr.Collected,
 	}
 }

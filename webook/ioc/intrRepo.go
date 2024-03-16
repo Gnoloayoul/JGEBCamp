@@ -12,8 +12,8 @@ import (
 
 func InitGRPCInteractiveRepositoryClient(repo repository.InteractiveRepository) intrRepov1.InteractiveRepositoryClient {
 	type Config struct {
-		Addr string
-		Secure bool
+		Addr      string
+		Secure    bool
 		Threshold int32
 	}
 
@@ -39,7 +39,7 @@ func InitGRPCInteractiveRepositoryClient(repo repository.InteractiveRepository) 
 	local := client.NewInteractiveRepositoryAdapter(repo)
 	res := client.NewGreyscaleInteractiveRepositoryClient(remote, local)
 
-	viper.OnConfigChange(func(in fsnotify.Event){
+	viper.OnConfigChange(func(in fsnotify.Event) {
 		var newCfg Config
 		err = viper.UnmarshalKey("grpc.client.intr", &newCfg)
 		if err != nil {

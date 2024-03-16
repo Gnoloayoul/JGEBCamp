@@ -267,10 +267,10 @@ func NewArticleRepository(dao dao.ArticleDAO,
 	l logger.LoggerV1,
 	GIRepoGRPC client.GreyscaleInteractiveRepositoryClient) ArticleRepository {
 	return &CachedArticleRepository{
-		dao:      dao,
-		cache:    c,
-		userRepo: userRepo,
-		l:        l,
+		dao:        dao,
+		cache:      c,
+		userRepo:   userRepo,
+		l:          l,
 		GIRepoGRPC: GIRepoGRPC,
 	}
 }

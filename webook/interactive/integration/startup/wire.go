@@ -4,11 +4,11 @@ package startup
 
 import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/grpc"
-	repository2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository"
-	grpcRepo "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/grpc"
 	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository"
+	repository2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository"
 	cache2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/cache"
 	dao2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
+	grpcRepo "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/grpc"
 	service2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/service"
 	"github.com/google/wire"
 )

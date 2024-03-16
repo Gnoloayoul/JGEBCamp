@@ -62,12 +62,12 @@ func NewInteractiveServiceAdapter(svc service.InteractiveService) *InteractiveSe
 
 func (i *InteractiveServiceAdapter) toDTO(intr domain2.Interactive) *intrv1.Interactive {
 	return &intrv1.Interactive{
-		Biz: intr.Biz,
-		BizId: intr.BizId,
-		ReadCnt: intr.ReadCnt,
-		LikeCnt: intr.LikeCnt,
+		Biz:        intr.Biz,
+		BizId:      intr.BizId,
+		ReadCnt:    intr.ReadCnt,
+		LikeCnt:    intr.LikeCnt,
 		CollectCnt: intr.CollectCnt,
-		Liked: intr.Liked,
-		Collected: intr.Collected,
+		Liked:      intr.Liked,
+		Collected:  intr.Collected,
 	}
 }

@@ -11,8 +11,8 @@ import (
 // GreyScaleInteractiveServiceClient
 // 运用阈值+随机数控制流量的 Client
 type GreyScaleInteractiveServiceClient struct {
-	remote intrv1.InteractiveServiceClient
-	local *InteractiveServiceAdapter
+	remote    intrv1.InteractiveServiceClient
+	local     *InteractiveServiceAdapter
 	threshold *atomicx.Value[int32]
 }
 
@@ -40,7 +40,7 @@ func (g *GreyScaleInteractiveServiceClient) GetByIds(ctx context.Context, in *in
 	return g.client().GetByIds(ctx, in, opts...)
 }
 
-func (g *GreyScaleInteractiveServiceClient) OnChange (ch <-chan int32) {
+func (g *GreyScaleInteractiveServiceClient) OnChange(ch <-chan int32) {
 	go func() {
 		for newch := range ch {
 			g.threshold.Store(newch)
@@ -73,11 +73,10 @@ func (g *GreyScaleInteractiveServiceClient) client() intrv1.InteractiveServiceCl
 	return g.local
 }
 
-func NewGreyScaleInteractiveServiceClient(remote intrv1.InteractiveServiceClient, local *InteractiveServiceAdapter) *GreyScaleInteractiveServiceClient{
+func NewGreyScaleInteractiveServiceClient(remote intrv1.InteractiveServiceClient, local *InteractiveServiceAdapter) *GreyScaleInteractiveServiceClient {
 	return &GreyScaleInteractiveServiceClient{
-		remote: remote,
-		local: local,
+		remote:    remote,
+		local:     local,
 		threshold: atomicx.NewValue[int32()](),
 	}
 }
-
