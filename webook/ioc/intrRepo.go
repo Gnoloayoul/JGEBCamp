@@ -1,16 +1,16 @@
 package ioc
 
 import (
-	intrv1 "github.com/Gnoloayoul/JGEBCamp/webook/api/proto/gen/intr/v1"
-	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/service"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/web/client"
+	intrRepov1 "github.com/Gnoloayoul/JGEBCamp/webook/api/proto/gen/intrRepo/v1"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/grpc/client"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func InitGRPCInteractiveServiceClient(svc service.InteractiveService) intrv1.InteractiveServiceClient {
+func InitGRPCInteractiveRepositoryClient(repo repository.InteractiveRepository) intrRepov1.InteractiveRepositoryClient {
 	type Config struct {
 		Addr string
 		Secure bool
@@ -23,31 +23,27 @@ func InitGRPCInteractiveServiceClient(svc service.InteractiveService) intrv1.Int
 		panic(err)
 	}
 
-	// 配置连接安全部分
 	var opts []grpc.DialOption
 	if cfg.Secure {
-		// 安全证书什么的
+
 	} else {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
-	// 启动 grpc 部分
 	cc, err := grpc.Dial(cfg.Addr, opts...)
 	if err != nil {
 		panic(err)
 	}
 
-	// 构建client
-	remote := intrv1.NewInteractiveServiceClient(cc)
-	local := client.NewInteractiveServiceAdapter(svc)
-	res := client.NewGreyScaleInteractiveServiceClient(remote, local)
+	remote := intrRepov1.NewInteractiveRepositoryClient(cc)
+	local := client.NewInteractiveRepositoryAdapter(repo)
+	res := client.NewGreyscaleInteractiveRepositoryClient(remote, local)
 
-	// 监听配置后续变化
-	viper.OnConfigChange(func(in fsnotify.Event) {
+	viper.OnConfigChange(func(in fsnotify.Event){
 		var newCfg Config
 		err = viper.UnmarshalKey("grpc.client.intr", &newCfg)
 		if err != nil {
-			// 输出日志
+			panic(err)
 		}
 		res.UpdateThreshold(newCfg.Threshold)
 	})

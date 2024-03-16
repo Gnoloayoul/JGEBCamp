@@ -1013,7 +1013,57 @@ func (s *InteractiveRepoGrpcTestSuite) TestIncrLike(){
 	}
 }
 
-func (s *InteractiveRepoGrpcTestSuite) Collected(1111 int){}
+func (s *InteractiveRepoGrpcTestSuite) TestCollected(){
+	t := s.T()
+	testCases := []struct {
+		name   string
+		before func(t *testing.T)
+
+		biz   string
+		Id int64
+		uid int64
+
+		wantErr error
+		wantRes *intrRepov1.CollectedResponse
+	}{
+		{
+			name: "成功获取收藏信息",
+			before: func(t *testing.T) {
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+				defer cancel()
+
+				// 写入 db
+				err := s.db.WithContext(ctx).Create(&dao.UserCollectionBiz{
+					Id: 1,
+					Biz:        "test1",
+					Uid: 223,
+				}).Error
+				assert.NoError(t, err)
+			},
+			biz: "test1",
+			Id: 1,
+			uid: 233,
+			wantErr: nil,
+			wantRes: &intrRepov1.CollectedResponse{},
+		},
+	}
+
+	// 启动服务，准备测试
+	svc := startup.InitInteractiveRepoGRPCServer()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// 初始化测试
+			tc.before(t)
+
+			// 运行测试
+			res, err := svc.Collected(context.Background(), &intrRepov1.CollectedRequest{
+				Biz: tc.biz, Id: tc.Id, Uid: tc.uid,
+			})
+			assert.Equal(t, tc.wantErr, err)
+			assert.Equal(t, tc.wantRes, res)
+		})
+	}
+}
 
 
 

@@ -2,6 +2,7 @@ package article
 
 import (
 	"context"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/grpc/client"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/domain"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository"
 	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/cache"
@@ -45,6 +46,9 @@ type CachedArticleRepository struct {
 
 	cache cache.ArticleCache
 	l     logger.LoggerV1
+
+	// week10 homework
+	GIRepoGRPC client.GreyscaleInteractiveRepositoryClient
 }
 
 func (repo *CachedArticleRepository) ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]domain.Article, error) {
@@ -260,11 +264,13 @@ func (c *CachedArticleRepository) preCache(ctx context.Context, data []domain.Ar
 func NewArticleRepository(dao dao.ArticleDAO,
 	c cache.ArticleCache,
 	userRepo repository.UserRepository,
-	l logger.LoggerV1) ArticleRepository {
+	l logger.LoggerV1,
+	GIRepoGRPC client.GreyscaleInteractiveRepositoryClient) ArticleRepository {
 	return &CachedArticleRepository{
 		dao:      dao,
 		cache:    c,
 		userRepo: userRepo,
 		l:        l,
+		GIRepoGRPC: GIRepoGRPC,
 	}
 }
