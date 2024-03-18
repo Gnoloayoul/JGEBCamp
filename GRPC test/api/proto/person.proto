@@ -1,0 +1,25 @@
+syntax="proto3";
+
+package person.v1;
+option go_package="person/v1;personv1";
+
+service PersonAction {
+  rpc SayHello(SayHelloRequest) returns (SayHelloResponse);
+  rpc SayGoodBye(SayGoodByeRequest) returns (SayGoodByeResponse);
+}
+
+message SayHelloRequest {
+  string anybody = 1;
+}
+
+message SayHelloResponse {
+
+}
+
+message SayGoodByeRequest {
+  string anybody = 1;
+}
+
+message SayGoodByeResponse {
+
+}
