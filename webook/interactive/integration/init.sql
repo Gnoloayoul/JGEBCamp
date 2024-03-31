@@ -6,7 +6,7 @@ create table if not exists webook.interactives
     biz_id bigint null,
     biz varchar(128) null,
     read_cnt bigint null,
-    collect_cnt bigint nuil,
+    collect_cnt bigint null,
     like_cnt bigint null,
     ctime bigint null,
     utime bigint null,
