@@ -264,13 +264,11 @@ func (c *CachedArticleRepository) preCache(ctx context.Context, data []domain.Ar
 func NewArticleRepository(dao dao.ArticleDAO,
 	c cache.ArticleCache,
 	userRepo repository.UserRepository,
-	l logger.LoggerV1,
-	GIRepoGRPC client.GreyscaleInteractiveRepositoryClient) ArticleRepository {
+	l logger.LoggerV1) ArticleRepository {
 	return &CachedArticleRepository{
 		dao:        dao,
 		cache:      c,
 		userRepo:   userRepo,
 		l:          l,
-		GIRepoGRPC: GIRepoGRPC,
 	}
 }

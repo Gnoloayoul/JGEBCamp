@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/repository/dao"
+	"github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
 	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
