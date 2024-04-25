@@ -36,8 +36,8 @@ func (p *PersonGreyScaleClient) SayGoodBye(ctx context.Context, in *personv1.Say
 
 func NewPersonGreyScaleClient(local *PersonLocalAdapter, remote personv1.PersonActionClient) *PersonGreyScaleClient {
 	return &PersonGreyScaleClient{
-		local: local,
-		remote: local,
+		local:     local,
+		remote:    local,
 		threshold: atomicx.NewValue[int32](),
 	}
 }

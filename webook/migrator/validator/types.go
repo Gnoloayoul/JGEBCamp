@@ -7,20 +7,20 @@ import (
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/ecodeclub/ekit/syncx/atomicx"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"time"
 )
 
 type Validator[T migrator.Entity] struct {
-	base *gorm.DB
-	target *gorm.DB
-	l logger.LoggerV1
-	p events.Producer
+	base      *gorm.DB
+	target    *gorm.DB
+	l         logger.LoggerV1
+	p         events.Producer
 	direction string
 	batchSize int
-	highLoad *atomicx.Value[bool]
+	highLoad  *atomicx.Value[bool]
 }
-
 
 func NewValidator[T migrator.Entity](base *gorm.DB, target *gorm.DB, l logger.LoggerV1, p events.Producer, direction string) *Validator[T] {
 	highLoad := atomicx.NewValueOf[bool](false)
@@ -28,18 +28,26 @@ func NewValidator[T migrator.Entity](base *gorm.DB, target *gorm.DB, l logger.Lo
 		// TODO: 性能判断，优先看数据库，再结合 CPU 与内存
 	}()
 	return &Validator[T]{
-		base: base,
-		target: target,
-		l: l,
-		p: p,
+		base:      base,
+		target:    target,
+		l:         l,
+		p:         p,
 		direction: direction,
-		highLoad: highLoad,
+		highLoad:  highLoad,
 	}
 }
 
-func (v *Validator[T]) Validate(ctx context.Context) {
-	v.validateBaseToTarget(ctx)
-	v.validateTargetToBase(ctx)
+func (v *Validator[T]) Validate(ctx context.Context) error {
+	var eg errgroup.Group
+	eg.Go(func() error {
+		v.validateBaseToTarget(ctx)
+		return nil
+	})
+	eg.Go(func() error {
+		v.validateTargetToBase(ctx)
+		return nil
+	})
+	return eg.Wait()
 }
 
 // validateBaseToTarget 校验
@@ -53,6 +61,7 @@ func (v *Validator[T]) validateBaseToTarget(ctx context.Context) {
 		dbCtx, cancel := context.WithTimeout(ctx, time.Second)
 		offset++
 		var src T
+		// ToDo: 改成批量处理
 		err := v.base.WithContext(dbCtx).Offset(offset).Order("id").First(&src).Error
 		cancel()
 		switch err {
@@ -138,9 +147,9 @@ func (v *Validator[T]) notify(ctx context.Context, id int64, typ string) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	err := v.p.ProduceInconsistentEvent(ctx,
 		events.InconsistentEvent{
-			ID: id,
+			ID:        id,
 			Direction: v.direction,
-			Type: typ,
+			Type:      typ,
 		})
 	cancel()
 	if err != nil {
@@ -148,4 +157,3 @@ func (v *Validator[T]) notify(ctx context.Context, id int64, typ string) {
 		v.l.Error("发送数据不一致的消息失败", logger.Error(err))
 	}
 }
-

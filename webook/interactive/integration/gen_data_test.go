@@ -60,13 +60,13 @@ func TestGenData(t *testing.T) {
 		now := time.Now().UnixMilli()
 		for j := 0; j < batchSize; j++ {
 			data = append(data, dao.Interactive{
-				BizId: int64(i * batchSize + j + 1),
-				Biz: "test",
-				ReadCnt: rand.Int63(),
+				BizId:      int64(i*batchSize + j + 1),
+				Biz:        "test",
+				ReadCnt:    rand.Int63(),
 				CollectCnt: rand.Int63(),
-				LikeCnt: rand.Int63(),
-				Ctime: now,
-				Utime: now,
+				LikeCnt:    rand.Int63(),
+				Ctime:      now,
+				Utime:      now,
 			})
 		}
 

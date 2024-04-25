@@ -266,9 +266,9 @@ func NewArticleRepository(dao dao.ArticleDAO,
 	userRepo repository.UserRepository,
 	l logger.LoggerV1) ArticleRepository {
 	return &CachedArticleRepository{
-		dao:        dao,
-		cache:      c,
-		userRepo:   userRepo,
-		l:          l,
+		dao:      dao,
+		cache:    c,
+		userRepo: userRepo,
+		l:        l,
 	}
 }

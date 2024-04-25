@@ -17,6 +17,7 @@ import (
 var db *gorm.DB
 
 var mongoDB *mongo.Database
+
 func InitMongoDB() *mongo.Database {
 	if mongoDB == nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

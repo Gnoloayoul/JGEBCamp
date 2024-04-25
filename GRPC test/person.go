@@ -8,16 +8,16 @@ type PersonAction interface {
 }
 
 type Person struct {
-	name string
+	name   string
 	gender string
-	age int
+	age    int
 }
 
 func NewPerson(name, gender string, age int) *Person {
 	return &Person{
-		name: name,
+		name:   name,
 		gender: gender,
-		age: age,
+		age:    age,
 	}
 }
 
