@@ -10,8 +10,8 @@ import (
 )
 
 type Fixer[T migrator.Entity] struct {
-	base *gorm.DB
-	target *gorm.DB
+	base    *gorm.DB
+	target  *gorm.DB
 	columns []string
 }
 
@@ -27,7 +27,7 @@ func (f *Fixer[T]) Fix(ctx context.Context, evt events.InconsistentEvent) error 
 		return f.target.WithContext(ctx).
 			Clauses(clause.OnConflict{
 				DoUpdates: clause.AssignmentColumns(f.columns),
-		}).Create(&t).Error
+			}).Create(&t).Error
 	case gorm.ErrRecordNotFound:
 		return f.target.WithContext(ctx).
 			Where("id = ?", evt.ID).Delete(&t).Error
@@ -65,22 +65,31 @@ func (f *Fixer[T]) FixV1(ctx context.Context, evt events.InconsistentEvent) erro
 }
 
 // FixV2
-//
+// 最老实处理三种信号
 func (f *Fixer[T]) FixV2(ctx context.Context, evt events.InconsistentEvent) error {
 	switch evt.Type {
-	case events.InconsistentEventTypeTargetMissing,
-		events.InconsistentEventTypeNEQ:
+	case events.InconsistentEventTypeTargetMissing:
+		var t T
+		err := f.base.WithContext(ctx).
+			Where("id = ?", evt.ID).First(&t).Error
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return nil
+		case nil:
+			return f.target.Create(&t).Error
+		default:
+			return err
+		}
+	case events.InconsistentEventTypeNEQ:
 		var t T
 		err := f.base.WithContext(ctx).
 			Where("id = ?", evt.ID).First(&t).Error
 		switch err {
 		case gorm.ErrRecordNotFound:
 			return f.target.WithContext(ctx).
-				Where("id = ?", evt.ID).Delete(new(T)).Error
+				Where("id = ?", evt.ID).Delete(&t).Error
 		case nil:
-			return f.target.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns(f.columns),
-			}).Create(&t).Error
+			return f.target.Updates(&t).Error
 		default:
 			return err
 		}
