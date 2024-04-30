@@ -1,11 +1,25 @@
 create database if not exists testBase;
 
 create table if not exists testBase.testTables(
-    id bigint auto_increment primary key,
-    A bigint null,
-    B bigint null,
-    C bigint null,
-    constraint test_id unique (id, A)
+    id bigint primary key,
+    cid bigint null,
+    biz_id bigint null,
+    biz varchar(128) null,
+    uid bigint null,
+    ctime bigint null,
+    utime bigint null,
+    constraint biz_type_id_uid unique (biz_id, biz, uid)
+);
+
+create table if not exists testBase_NewOne.testTables(
+    id bigint primary key,
+    cid bigint null,
+    biz_id bigint null,
+    biz varchar(128) null,
+    uid bigint null,
+    ctime bigint null,
+    utime bigint null,
+    constraint biz_type_id_uid unique (biz_id, biz, uid)
 );
 
 INSERT INTO testTables (id, A, B, C)

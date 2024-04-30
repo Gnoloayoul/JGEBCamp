@@ -9,20 +9,20 @@ import (
 )
 
 func TestConnPool(t *testing.T) {
-	webook, err := gorm.Open(mysql.Open("root:root@tcp(:13316)/webook"))
+	webook, err := gorm.Open(mysql.Open("root:root@tcp(124.156.150.17:13316)/webook"))
 	require.NoError(t, err)
 	err = webook.AutoMigrate(&Interactive{})
 	require.NoError(t, err)
 
-	intr, err := gorm.Open(mysql.Open("root:root@tcp(:13316)/webook_intr"))
+	intr, err := gorm.Open(mysql.Open("root:root@tcp(124.156.150.17:13316)/webook_intr"))
 	require.NoError(t, err)
 	err = intr.AutoMigrate(&Interactive{})
 	require.NoError(t, err)
 
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: &DoubleWriterPool{
-			src: webook.ConnPool,
-			dst: intr.ConnPool,
+			src:     webook.ConnPool,
+			dst:     intr.ConnPool,
 			pattern: atomicx.NewValueOf(patternDstFirst),
 		},
 	}))
@@ -31,7 +31,7 @@ func TestConnPool(t *testing.T) {
 	t.Log(db)
 
 	err = db.Create(&Interactive{
-		Biz: "DWtest",
+		Biz:   "DWtest",
 		BizId: 112233,
 	}).Error
 	require.NoError(t, err)
@@ -39,7 +39,7 @@ func TestConnPool(t *testing.T) {
 	err = db.Transaction(func(tx *gorm.DB) error {
 		err1 := tx.Create(&Interactive{
 			BizId: 112233,
-			Biz: "DWtest_tx",
+			Biz:   "DWtest_tx",
 		}).Error
 
 		return err1
@@ -51,7 +51,6 @@ func TestConnPool(t *testing.T) {
 	}).Error
 	require.NoError(t, err)
 }
-
 
 type Interactive struct {
 	Id         int64  `gorm:"primaryKey,autoIncrement"`

@@ -6,8 +6,8 @@ import (
 )
 
 type DoubleWriteCallback struct {
-	src *gorm.DB
-	dst *gorm.DB
+	src     *gorm.DB
+	dst     *gorm.DB
 	pattern *atomicx.Value[string]
 }
 

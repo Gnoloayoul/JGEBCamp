@@ -1,8 +1,6 @@
 package connpool
 
 import (
-	"context"
-	"database/sql"
 	"github.com/ecodeclub/ekit/syncx/atomicx"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
@@ -12,8 +10,8 @@ import (
 // 难点之一: sql.Rows 要怎么搞出来？
 
 type MySQL2Mongo struct {
-	db gorm.ConnPool
-	mdb *mongo.Database
+	db      gorm.ConnPool
+	mdb     *mongo.Database
 	pattern *atomicx.Value[string]
 }
 

@@ -26,4 +26,3 @@ func (w *WriteSplit) QueryContext(ctx context.Context, query string, args ...int
 func (w *WriteSplit) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	panic("implement me")
 }
-

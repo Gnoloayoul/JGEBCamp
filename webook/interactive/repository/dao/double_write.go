@@ -8,30 +8,30 @@ import (
 )
 
 const (
-	patternDstOnly = "DST_ONLY"
-	patternSrcOnly = "SRC_ONLY"
+	patternDstOnly  = "DST_ONLY"
+	patternSrcOnly  = "SRC_ONLY"
 	patternDstFirst = "DST_FIRST"
 	patternSrcFirst = "SRC_FIRST"
 )
 
 type DoubleWriterDAO struct {
-	src InteractiveDAO
-	dst InteractiveDAO
+	src     InteractiveDAO
+	dst     InteractiveDAO
 	pattern *atomicx.Value[string]
 }
 
 func NewDoubleWriterDAOV1(src, dst *gorm.DB) *DoubleWriterDAO {
 	return &DoubleWriterDAO{
-		src: NewGORMInteractiveDAO(src),
-		dst: NewGORMInteractiveDAO(dst),
+		src:     NewGORMInteractiveDAO(src),
+		dst:     NewGORMInteractiveDAO(dst),
 		pattern: atomicx.NewValueOf(patternSrcOnly),
 	}
 }
 
 func NewDoubleWriterDAO(src, dst InteractiveDAO) *DoubleWriterDAO {
 	return &DoubleWriterDAO{
-		src: src,
-		dst: dst,
+		src:     src,
+		dst:     dst,
 		pattern: atomicx.NewValueOf(patternSrcOnly),
 	}
 }
@@ -54,13 +54,13 @@ func (d *DoubleWriterDAO) IncrReadCnt(ctx context.Context, biz string, bizId int
 
 		err = d.dst.IncrReadCnt(ctx, biz, bizId)
 		if err != nil {
-		// 记日志
+			// 记日志
 		}
 
 		return nil
 	case patternDstFirst:
 		err := d.dst.IncrReadCnt(ctx, biz, bizId)
-		if  err != nil {
+		if err != nil {
 			return err
 		}
 
@@ -106,6 +106,3 @@ func (d *DoubleWriterDAO) BatchIncrReadCnt(ctx context.Context, bizs []string, i
 func (d *DoubleWriterDAO) GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error) {
 	panic("implement me")
 }
-
-
-

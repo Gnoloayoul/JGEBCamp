@@ -1,3 +1,9 @@
+TRUNCATE TABLE  webook_intr.interactives;
+TRUNCATE TABLE  webook.interactives;
+
+select * FROM webook.interactives;
+select * FROM webook_intr.interactives;
+
 create database if not exists webook;
 
 create table if not exists webook.interactives
