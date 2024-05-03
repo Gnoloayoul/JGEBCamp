@@ -2,8 +2,8 @@ package fixer
 
 import (
 	"context"
-	"github.com/Gnoloayoul/JGEBCamp/webook/migrator"
-	"github.com/Gnoloayoul/JGEBCamp/webook/migrator/events"
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/migrator"
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/migrator/events"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

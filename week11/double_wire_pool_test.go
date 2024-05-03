@@ -58,6 +58,6 @@ type TestTable struct {
 	Biz        string `gorm:"type:varchar(128);uniqueIndex:biz_type_id"`
 	ReadCnt    int64
 	CollectCnt int64
-	Ctime   int64
-	Utime   int64
+	Ctime      int64
+	Utime      int64
 }
