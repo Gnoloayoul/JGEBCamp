@@ -13,16 +13,16 @@ import (
 )
 
 type Validator[T migrator.Entity] struct {
-	base      *gorm.DB
-	target    *gorm.DB
-	l         logger.LoggerV1
-	p         events.Producer
-	direction string
-	batchSize int
-	highLoad  *atomicx.Value[bool]
-	utime int64
+	base          *gorm.DB
+	target        *gorm.DB
+	l             logger.LoggerV1
+	p             events.Producer
+	direction     string
+	batchSize     int
+	highLoad      *atomicx.Value[bool]
+	utime         int64
 	sleepInterval time.Duration
-	fromBase func(ctx context.Context, offset int) (T, error)
+	fromBase      func(ctx context.Context, offset int) (T, error)
 }
 
 func NewValidator[T migrator.Entity](
@@ -36,8 +36,8 @@ func NewValidator[T migrator.Entity](
 		// TODO: 性能判断，优先看数据库，再结合 CPU 与内存
 	}()
 	res := &Validator[T]{base: base, target: target,
-		l: 	l, p: p, direction: direction,
-	highLoad: highLoad}
+		l: l, p: p, direction: direction,
+		highLoad: highLoad}
 	res.fromBase = res.fullFromBase
 	return res
 }

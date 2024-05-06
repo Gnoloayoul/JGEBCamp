@@ -20,10 +20,10 @@ func TestConnPool(t *testing.T) {
 	require.NoError(t, err)
 
 	db, err := gorm.Open(mysql.New(mysql.Config{
-		Conn: &DoubleWriterPool{
+		Conn: &DoubleWritePool{
 			src:     webook.ConnPool,
 			dst:     intr.ConnPool,
-			pattern: atomicx.NewValueOf(patternDstFirst),
+			pattern: atomicx.NewValueOf(PatternDstFirst),
 		},
 	}))
 	require.NoError(t, err)

@@ -2,6 +2,7 @@ package ioc
 
 import (
 	dao2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/repository/dao"
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/gormx/connpool"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
 	promsdk "github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/viper"
@@ -10,7 +11,34 @@ import (
 	"time"
 )
 
-func InitDB(l logger.LoggerV1) *gorm.DB {
+func InitSRC(l logger.LoggerV1) SrcDB {
+	return InitDB(l, "src")
+}
+
+func InitDST(l logger.LoggerV1) DstDB {
+	return InitDB(l, "dst")
+}
+
+func InitDoubleWriterPool(src SrcDB, dst DstDB) *connpool.DoubleWritePool {
+	pattern := viper.GetString("migrator.pattern")
+	return connpool.NewDoubleWritePool(src.ConnPool, dst.ConnPool, pattern)
+}
+
+// 这个是业务用的，支持双写的 DB
+func InitBizDB(pool *connpool.DoubleWritePool) *gorm.DB {
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: pool,
+	}))
+	if err != nil {
+		panic(err)
+	}
+	return db
+}
+
+type SrcDB *gorm.DB
+type DstDB *gorm.DB
+
+func InitDB(l logger.LoggerV1, key string) *gorm.DB {
 	type Config struct {
 		DSN string `yaml:"dsn"`
 	}
@@ -20,6 +48,12 @@ func InitDB(l logger.LoggerV1) *gorm.DB {
 	err := viper.UnmarshalKey("db", &cfg)
 
 	db, err := gorm.Open(mysql.Open(cfg.DSN), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+
+	cb := newCallbacks(key)
+	err = db.Use(cb)
 	if err != nil {
 		panic(err)
 	}
@@ -45,11 +79,11 @@ func (pcb *Callbacks) Initialize(db *gorm.DB) error {
 	return nil
 }
 
-func newCallbacks() *Callbacks {
+func newCallbacks(key string) *Callbacks {
 	vector := promsdk.NewSummaryVec(promsdk.SummaryOpts{
 		// 在这边，你要考虑设置各种 Namespace
 		Namespace: "geekbang_daming",
-		Subsystem: "webook",
+		Subsystem: "webook" + key,
 		Name:      "gorm_query_time",
 		Help:      "统计 GORM 的执行时间",
 		ConstLabels: map[string]string{

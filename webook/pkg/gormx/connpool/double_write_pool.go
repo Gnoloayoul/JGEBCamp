@@ -10,22 +10,27 @@ import (
 
 var errUnknownPattern = errors.New("未知的双写模式")
 
-type DoubleWriterPool struct {
+type DoubleWritePool struct {
 	src     gorm.ConnPool
 	dst     gorm.ConnPool
 	pattern *atomicx.Value[string]
 }
 
-func (d *DoubleWriterPool) BeginTx(ctx context.Context, opts *sql.TxOptions) (gorm.ConnPool, error) {
+func NewDoubleWritePool(src gorm.ConnPool,
+	dst gorm.ConnPool, pattern string) *DoubleWritePool {
+	return &DoubleWritePool{src: src, dst: dst, pattern: atomicx.NewValueOf(pattern)}
+}
+
+func (d *DoubleWritePool) BeginTx(ctx context.Context, opts *sql.TxOptions) (gorm.ConnPool, error) {
 	pattern := d.pattern.Load()
 	switch pattern {
-	case patternSrcOnly:
+	case PatternSrcOnly:
 		tx, err := d.src.(gorm.TxBeginner).BeginTx(ctx, opts)
-		return &DoubleWriterPoolTx{
+		return &DoubleWritePoolTx{
 			src:     tx,
 			pattern: pattern,
 		}, err
-	case patternSrcFirst:
+	case PatternSrcFirst:
 		srcTx, err := d.src.(gorm.TxBeginner).BeginTx(ctx, opts)
 		if err != nil {
 			return nil, err
@@ -38,18 +43,18 @@ func (d *DoubleWriterPool) BeginTx(ctx context.Context, opts *sql.TxOptions) (go
 			// err = srcTx.Rollback()
 			// return err
 		}
-		return &DoubleWriterPoolTx{
+		return &DoubleWritePoolTx{
 			src:     srcTx,
 			dst:     dstTx,
 			pattern: pattern,
 		}, nil
-	case patternDstOnly:
+	case PatternDstOnly:
 		tx, err := d.dst.(gorm.TxBeginner).BeginTx(ctx, opts)
-		return &DoubleWriterPoolTx{
+		return &DoubleWritePoolTx{
 			src:     tx,
 			pattern: pattern,
 		}, err
-	case patternDstFirst:
+	case PatternDstFirst:
 		dstTx, err := d.dst.(gorm.TxBeginner).BeginTx(ctx, opts)
 		if err != nil {
 			return nil, err
@@ -62,7 +67,7 @@ func (d *DoubleWriterPool) BeginTx(ctx context.Context, opts *sql.TxOptions) (go
 			// err = srcTx.Rollback()
 			// return err
 		}
-		return &DoubleWriterPoolTx{
+		return &DoubleWritePoolTx{
 			src:     srcTx,
 			dst:     dstTx,
 			pattern: pattern,
@@ -72,15 +77,15 @@ func (d *DoubleWriterPool) BeginTx(ctx context.Context, opts *sql.TxOptions) (go
 	}
 }
 
-func (d *DoubleWriterPool) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+func (d *DoubleWritePool) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
 	panic("implement me")
 }
 
-func (d *DoubleWriterPool) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (d *DoubleWritePool) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	switch d.pattern.Load() {
-	case patternSrcOnly:
+	case PatternSrcOnly:
 		return d.src.ExecContext(ctx, query, args...)
-	case patternSrcFirst:
+	case PatternSrcFirst:
 		res, err := d.src.ExecContext(ctx, query, args...)
 		if err != nil {
 			return res, err
@@ -91,9 +96,9 @@ func (d *DoubleWriterPool) ExecContext(ctx context.Context, query string, args .
 			// dst 写失败，不被认为是失败
 		}
 		return res, err
-	case patternDstOnly:
+	case PatternDstOnly:
 		return d.dst.ExecContext(ctx, query, args...)
-	case patternDstFirst:
+	case PatternDstFirst:
 		res, err := d.dst.ExecContext(ctx, query, args...)
 		if err != nil {
 			return res, err
@@ -109,49 +114,49 @@ func (d *DoubleWriterPool) ExecContext(ctx context.Context, query string, args .
 	}
 }
 
-func (d *DoubleWriterPool) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+func (d *DoubleWritePool) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	switch d.pattern.Load() {
-	case patternSrcOnly, patternSrcFirst:
+	case PatternSrcOnly, PatternSrcFirst:
 		return d.src.QueryContext(ctx, query, args...)
-	case patternDstOnly, patternDstFirst:
+	case PatternDstOnly, PatternDstFirst:
 		return d.dst.QueryContext(ctx, query, args...)
 	default:
 		panic("未知的双写模式")
 	}
 }
 
-func (d *DoubleWriterPool) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+func (d *DoubleWritePool) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	switch d.pattern.Load() {
-	case patternSrcOnly, patternSrcFirst:
+	case PatternSrcOnly, PatternSrcFirst:
 		return d.src.QueryRowContext(ctx, query, args...)
-	case patternDstOnly, patternDstFirst:
+	case PatternDstOnly, PatternDstFirst:
 		return d.dst.QueryRowContext(ctx, query, args...)
 	default:
 		panic("未知的双写模式")
 	}
 }
 
-func (d *DoubleWriterPool) UpdatePattern(pattern string) {
+func (d *DoubleWritePool) UpdatePattern(pattern string) {
 	d.pattern.Store(pattern)
 	// 能不能再有事务未提交的情况加，我禁止修改?
 	// 能，需要维持一个已开事务的计数，要用锁，因此有严重的性能问题
 }
 
-type DoubleWriterPoolTx struct {
+type DoubleWritePoolTx struct {
 	src     *sql.Tx
 	dst     *sql.Tx
 	pattern string
 }
 
-func (d *DoubleWriterPoolTx) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+func (d *DoubleWritePoolTx) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
 	panic("implement me")
 }
 
-func (d *DoubleWriterPoolTx) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (d *DoubleWritePoolTx) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	switch d.pattern {
-	case patternSrcOnly:
+	case PatternSrcOnly:
 		return d.src.ExecContext(ctx, query, args...)
-	case patternSrcFirst:
+	case PatternSrcFirst:
 		res, err := d.src.ExecContext(ctx, query, args...)
 		if err != nil {
 			return res, err
@@ -165,9 +170,9 @@ func (d *DoubleWriterPoolTx) ExecContext(ctx context.Context, query string, args
 			// dst 写失败，不被认为是失败
 		}
 		return res, err
-	case patternDstOnly:
+	case PatternDstOnly:
 		return d.dst.ExecContext(ctx, query, args...)
-	case patternDstFirst:
+	case PatternDstFirst:
 		res, err := d.dst.ExecContext(ctx, query, args...)
 		if err != nil {
 			return res, err
@@ -186,33 +191,33 @@ func (d *DoubleWriterPoolTx) ExecContext(ctx context.Context, query string, args
 	}
 }
 
-func (d *DoubleWriterPoolTx) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+func (d *DoubleWritePoolTx) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	switch d.pattern {
-	case patternSrcOnly, patternSrcFirst:
+	case PatternSrcOnly, PatternSrcFirst:
 		return d.src.QueryContext(ctx, query, args...)
-	case patternDstOnly, patternDstFirst:
+	case PatternDstOnly, PatternDstFirst:
 		return d.dst.QueryContext(ctx, query, args...)
 	default:
 		panic("未知的双写模式")
 	}
 }
 
-func (d *DoubleWriterPoolTx) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+func (d *DoubleWritePoolTx) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	switch d.pattern {
-	case patternSrcOnly, patternSrcFirst:
+	case PatternSrcOnly, PatternSrcFirst:
 		return d.src.QueryRowContext(ctx, query, args...)
-	case patternDstOnly, patternDstFirst:
+	case PatternDstOnly, PatternDstFirst:
 		return d.dst.QueryRowContext(ctx, query, args...)
 	default:
 		panic("未知的双写模式")
 	}
 }
 
-func (d *DoubleWriterPoolTx) Commit() error {
+func (d *DoubleWritePoolTx) Commit() error {
 	switch d.pattern {
-	case patternSrcOnly:
+	case PatternSrcOnly:
 		return d.src.Commit()
-	case patternSrcFirst:
+	case PatternSrcFirst:
 		err := d.src.Commit()
 		if err != nil {
 			return err
@@ -224,9 +229,9 @@ func (d *DoubleWriterPoolTx) Commit() error {
 			}
 		}
 		return nil
-	case patternDstOnly:
+	case PatternDstOnly:
 		return d.dst.Commit()
-	case patternDstFirst:
+	case PatternDstFirst:
 		err := d.dst.Commit()
 		if err != nil {
 			return err
@@ -243,11 +248,11 @@ func (d *DoubleWriterPoolTx) Commit() error {
 	}
 }
 
-func (d *DoubleWriterPoolTx) Rollback() error {
+func (d *DoubleWritePoolTx) Rollback() error {
 	switch d.pattern {
-	case patternSrcOnly:
+	case PatternSrcOnly:
 		return d.src.Rollback()
-	case patternSrcFirst:
+	case PatternSrcFirst:
 		err := d.src.Rollback()
 		if err != nil {
 			return err
@@ -259,9 +264,9 @@ func (d *DoubleWriterPoolTx) Rollback() error {
 			}
 		}
 		return nil
-	case patternDstOnly:
+	case PatternDstOnly:
 		return d.dst.Rollback()
-	case patternDstFirst:
+	case PatternDstFirst:
 		err := d.dst.Rollback()
 		if err != nil {
 			return err
@@ -279,8 +284,8 @@ func (d *DoubleWriterPoolTx) Rollback() error {
 }
 
 const (
-	patternDstOnly  = "DST_ONLY"
-	patternSrcOnly  = "SRC_ONLY"
-	patternDstFirst = "DST_FIRST"
-	patternSrcFirst = "SRC_FIRST"
+	PatternDstOnly  = "DST_ONLY"
+	PatternSrcOnly  = "SRC_ONLY"
+	PatternDstFirst = "DST_FIRST"
+	PatternSrcFirst = "SRC_FIRST"
 )
