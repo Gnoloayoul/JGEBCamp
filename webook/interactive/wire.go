@@ -13,18 +13,32 @@ import (
 	"github.com/google/wire"
 )
 
-var thirdProvider = wire.NewSet(ioc.InitRedis, ioc.InitDB, ioc.InitLogger, ioc.InitKafka)
+var thirdProvider = wire.NewSet(
+	ioc.InitDST,
+	ioc.InitSRC,
+	ioc.InitBizDB,
+	ioc.InitDoubleWriterPool,
+	ioc.InitLogger,
+	ioc.InitKafka,
+	ioc.InitSyncProducer,
+	ioc.InitRedis)
 
 var interactiveSvcProvider = wire.NewSet(
-	dao.NewGORMInteractiveDAO,
-	cache.NewRedisInteractiveCache,
+	service.NewInteractiveService,
 	repository.NewCachedInteractiveRepository,
-	service.NewInteractiveService)
+	dao.NewGORMInteractiveDAO,
+	cache.NewRedisInteractiveCache)
+
+var migratorProvider = wire.NewSet(
+	ioc.InitMigratorWeb,
+	ioc.InitFixDataConsumer,
+	ioc.InitMigratorProducer)
 
 func InitAPP() *App {
 	wire.Build(interactiveSvcProvider,
 		thirdProvider,
-		events.NewInteractiveReadEventBatchConsumer,
+		migratorProvider,
+		events.NewInteractiveReadEventConsumer,
 		grpc.NewInteractiveServiceServer,
 		ioc.NewConsumers,
 		ioc.InitGRPCxServer,

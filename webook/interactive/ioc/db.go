@@ -45,7 +45,7 @@ func InitDB(l logger.LoggerV1, key string) *gorm.DB {
 	var cfg = Config{
 		DSN: "root:root@tcp(localhost:13316)/webook",
 	}
-	err := viper.UnmarshalKey("db", &cfg)
+	err := viper.UnmarshalKey("db." + key, &cfg)
 
 	db, err := gorm.Open(mysql.Open(cfg.DSN), &gorm.Config{})
 	if err != nil {

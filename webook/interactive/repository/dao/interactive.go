@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/migrator"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -264,6 +265,15 @@ type InteractiveV1 struct {
 	CntType string
 	Ctime   int64
 	Utime   int64
+}
+
+func (i Interactive) ID() int64 {
+	return i.Id
+}
+
+func (i Interactive) CompareTo(dst migrator.Entity) bool {
+	dstVal, ok := dst.(Interactive)
+	return ok && i == dstVal
 }
 
 // UserLikeBiz

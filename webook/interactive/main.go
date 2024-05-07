@@ -17,6 +17,10 @@ func main() {
 			panic(err)
 		}
 	}
+	go func() {
+		err := app.webAdmin.Start()
+		log.Println(err)
+	}()
 	err := app.server.Serve()
 	log.Println(err)
 }
