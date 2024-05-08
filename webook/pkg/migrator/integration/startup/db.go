@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var localhost = "43.132.133.178"
+var localhost = "119.28.64.94"
 
 func InitSrcDB() *gorm.DB {
 	return initDB("weboook")

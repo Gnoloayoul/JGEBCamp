@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type Consumer[T migrator.Evtity] struct {
+type Consumer[T migrator.Entity] struct {
 	client sarama.Client
 	l logger.LoggerV1
 	srcFirst *fixer.OverrideFixer[T]

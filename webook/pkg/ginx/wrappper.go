@@ -33,7 +33,7 @@ func Wrap(fn func(ctx *gin.Context) (Result, error)) gin.HandlerFunc {
 				logger.String("route", ctx.FullPath()),
 				logger.Error(err))
 		}
-		vector.WithLabelValues(strconv.Itoa.(res.Code)).Inc()
+		vector.WithLabelValues(strconv.Itoa(res.Code)).Inc()
 		ctx.JSON(http.StatusOK, res)
  	}
 }

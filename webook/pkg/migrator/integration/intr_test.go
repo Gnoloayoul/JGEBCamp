@@ -1,8 +1,13 @@
 package integration
 
 import (
+	"context"
+	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/logger"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/migrator"
+	events2 "github.com/Gnoloayoul/JGEBCamp/webook/pkg/migrator/events"
+	evtmocks "github.com/Gnoloayoul/JGEBCamp/webook/pkg/migrator/events/mocks"
 	"github.com/Gnoloayoul/JGEBCamp/webook/pkg/migrator/integration/startup"
+	gorm2 "github.com/Gnoloayoul/JGEBCamp/webook/pkg/migrator/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
@@ -39,10 +44,143 @@ func (i *InteractiveTestSuite) TestValidator() {
 
 		wantErr error
 	}{
-		{},
-
+		{
+			name: "src有，但是intr没有",
+			before: func(t *testing.T) {
+				err := i.srcDB.Create(&Interactive{
+					Id:         1,
+					Biz:        "test",
+					BizId:      123,
+					ReadCnt:    111,
+					CollectCnt: 222,
+					LikeCnt:    333,
+					Ctime:      456,
+					Utime:      678,
+				}).Error
+				assert.NoError(t, err)
+			},
+			after: func(t *testing.T) {
+				i.TearDownTest()
+			},
+			mock: func(ctrl *gomock.Controller) events2.Producer {
+				p := evtmocks.NewMockProducer(ctrl)
+				p.EXPECT().ProduceInconsistentEvent(gomock.Any(),
+					events2.InconsistentEvent{
+						Type:      events2.InconsistentEventTypeTargetMissing,
+						Direction: "SRC",
+						ID:        1,
+					}).Return(nil)
+				return p
+			},
+		},
+		{
+			name: "src有，intr也有，数据相同",
+			before: func(t *testing.T) {
+				intr := &Interactive{
+					Id:         2,
+					Biz:        "test",
+					BizId:      124,
+					ReadCnt:    111,
+					CollectCnt: 222,
+					LikeCnt:    333,
+					Ctime:      456,
+					Utime:      678,
+				}
+				err := i.srcDB.Create(intr).Error
+				assert.NoError(t, err)
+				err = i.intrDB.Create(intr).Error
+				assert.NoError(t, err)
+			},
+			after: func(t *testing.T) {
+				i.TearDownTest()
+			},
+			mock: func(ctrl *gomock.Controller) events2.Producer {
+				p := evtmocks.NewMockProducer(ctrl)
+				return p
+			},
+		},
+		{
+			name: "src有，intr有，但是数据不同",
+			before: func(t *testing.T) {
+				err := i.srcDB.Create(&Interactive{
+					Id:         1,
+					Biz:        "test",
+					BizId:      123,
+					ReadCnt:    111,
+					CollectCnt: 222,
+					LikeCnt:    333,
+					Ctime:      456,
+					Utime:      678,
+				}).Error
+				assert.NoError(t, err)
+				err = i.intrDB.Create(&Interactive{
+					Id:         1,
+					Biz:        "test",
+					BizId:      123,
+					ReadCnt:    111,
+					CollectCnt: 222,
+					LikeCnt:    33333333,
+					Ctime:      456,
+					Utime:      678,
+				}).Error
+				assert.NoError(t, err)
+			},
+			after: func(t *testing.T) {
+				i.TearDownTest()
+			},
+			mock: func(ctrl *gomock.Controller) events2.Producer {
+				p := evtmocks.NewMockProducer(ctrl)
+				p.EXPECT().ProduceInconsistentEvent(gomock.Any(),
+					events2.InconsistentEvent{
+					Type: events2.InconsistentEventTypeNEQ,
+					Direction: "SRC",
+					ID: 1,
+					}).Return(nil)
+				return p
+			},
+		},
+		{
+			name: "src没有，intr有",
+			before: func(t *testing.T) {
+				err := i.intrDB.Create(&Interactive{
+					Id:         1,
+					Biz:        "test",
+					BizId:      123,
+					ReadCnt:    111,
+					CollectCnt: 222,
+					LikeCnt:    33333333,
+					Ctime:      456,
+					Utime:      678,
+				}).Error
+				assert.NoError(t, err)
+			},
+			after: func(t *testing.T) {
+				i.TearDownTest()
+			},
+			mock: func(ctrl *gomock.Controller) events2.Producer {
+				p := evtmocks.NewMockProducer(ctrl)
+				p.EXPECT().ProduceInconsistentEvent(gomock.Any(),
+					events2.InconsistentEvent{
+						Type: events2.InconsistentEventTypeBaseMissing,
+						Direction: "SRC",
+						ID: 1,
+					}).Return(nil)
+				return p
+			},
+		},
 	}
-	for _, tc :=
+	for _, tc := range testCases {
+		i.T().Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			tc.before(t)
+			v := gorm2.NewValidator[Interactive](i.srcDB, i.intrDB,
+				"SRC", logger.NewNoOpLogger(), tc.mock(ctrl))
+			err := v.Validate(context.Background())
+			assert.Equal(t, tc.wantErr, err)
+			tc.after(t)
+		})
+	}
 
 }
 

@@ -1,8 +1,8 @@
 db.mysql:
-  dsn: "acs:root278803@tcp(43.132.234.191:3308)/webook"
+  dsn: "acs:root278803@tcp(119.28.64.94:3308)/webook"
 
 redis:
-  addr: "43.132.234.191:6380"
+  addr: "119.28.64.94:6380"
 
 kafka:
   addrs:

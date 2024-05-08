@@ -1,10 +1,7 @@
 package startup
 
 import (
-	events2 "github.com/Gnoloayoul/JGEBCamp/webook/interactive/events"
-	"github.com/Gnoloayoul/JGEBCamp/webook/internal/events"
 	"github.com/IBM/sarama"
-	"github.com/spf13/viper"
 )
 
 func InitKafka() sarama.Client {
