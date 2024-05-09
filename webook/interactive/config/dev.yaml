@@ -1,5 +1,9 @@
 db:
-  dsn: "root:root@tcp(43.132.192.44:13316)/webook"
+  src:
+    dsn: "root:root@tcp(101.33.120.99:13316)/webook"
+  dst:
+    dsn: "root:root@tcp(101.33.120.99:13316)/webook_intr"
+
 
 migrator:
   pattern: "SRC_ONLY"
@@ -7,11 +11,11 @@ migrator:
     addr: ":8082"
 
 redis:
-  addr: "43.132.192.44:6379"
+  addr: "101.33.120.99:6379"
 
 kafka:
   addrs:
-    - "43.132.192.44:9094"
+    - "101.33.120.99:9094"
 
 grpc:
   server:

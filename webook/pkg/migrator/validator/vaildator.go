@@ -28,9 +28,9 @@ type Validator[T migrator.Entity] struct {
 func NewValidator[T migrator.Entity](
 	base *gorm.DB,
 	target *gorm.DB,
+	direction string,
 	l logger.LoggerV1,
-	p events.Producer,
-	direction string) *Validator[T] {
+	p events.Producer) *Validator[T] {
 	highLoad := atomicx.NewValueOf[bool](false)
 	go func() {
 		// TODO: 性能判断，优先看数据库，再结合 CPU 与内存

@@ -43,7 +43,7 @@ func InitDB(l logger.LoggerV1, key string) *gorm.DB {
 		DSN string `yaml:"dsn"`
 	}
 	var cfg = Config{
-		DSN: "root:root@tcp(localhost:13316)/webook",
+		DSN: "root:root@tcp(101.33.120.99:13316)/webook",
 	}
 	err := viper.UnmarshalKey("db." + key, &cfg)
 
