@@ -66,6 +66,8 @@ func (s *Scheduler[T]) RegisterRoutes(server *gin.RouterGroup) {
 	server.POST("/dst_only", ginx.Wrap(s.DstOnly))
 	server.POST("/full/start", ginx.Wrap(s.StartFullValidation))
 	server.POST("/full/stop", ginx.Wrap(s.StopFullValidation))
+	server.POST("/fullBatch/start", ginx.Wrap(s.StartFullBatchValidation))
+	server.POST("/fullBatch/stop", ginx.Wrap(s.StopFullBatchValidation))
 	server.POST("/incr/stop", ginx.Wrap(s.StopIncrementValidation))
 	server.POST("/incr/start", ginx.WrapBodyV1[StartIncrRequest](s.StartIncrementValidation))
 }
@@ -206,4 +208,41 @@ type StartIncrRequest struct {
 	// 毫秒数
 	// json 不能正确处理 time.Duration 类型
 	Interval int64 `json:"interval"`
+}
+
+// StartFullBatchValidation
+// 开启全量校验(批量)
+func (s *Scheduler[T]) StartFullBatchValidation(c *gin.Context) (ginx.Result, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	cancel := s.cancelFull
+	v, err := s.newValidator()
+	if err != nil {
+		return ginx.Result{}, err
+	}
+	var ctx context.Context
+	ctx, s.cancelFull = context.WithCancel(context.Background())
+
+	go func() {
+		// 开启新的时候，关掉旧的
+		cancel()
+		err := v.ValidateV1(ctx)
+		if err != nil {
+			s.l.Warn("退出全量校验(批量)", logger.Error(err))
+		}
+	}()
+	return ginx.Result{
+		Msg: "启动全量校验(批量)成功",
+	}, nil
+}
+
+// StopFullBatchValidation
+// 停止全量校验(批量)
+func (s *Scheduler[T]) StopFullBatchValidation(c *gin.Context) (ginx.Result, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.cancelIncr()
+	return ginx.Result{
+		Msg: "停止全量校验(批量)，OK",
+	}, nil
 }

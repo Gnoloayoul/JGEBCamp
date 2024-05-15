@@ -23,6 +23,7 @@ type Validator[T migrator.Entity] struct {
 	utime         int64
 	sleepInterval time.Duration
 	fromBase      func(ctx context.Context, offset int) (T, error)
+	fromBaseBatch func(ctx context.Context, offset int, batchSize int) ([]T, error)
 }
 
 func NewValidator[T migrator.Entity](
