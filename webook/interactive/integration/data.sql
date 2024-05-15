@@ -39,7 +39,7 @@ create table if not exists webook.user_like_bizs
     constraint biz_type_id_uid unique (biz_id, biz, uid)
     );
 
-INSERT INTO webook.interactives (biz_id, biz, read_cnt, collect_cnt, like_cnt, ctime, utime)
+INSERT INTO webook_intr.interactives (biz_id, biz, read_cnt, collect_cnt, like_cnt, ctime, utime)
 VALUES (1,"test",9277,5619,4933,1713000769329,1713000769329),
 (2,"test",9558,6576,8587,1713000769329,1713000769329),
 (3,"test",6773,5644,1945,1713000769329,1713000769329),
